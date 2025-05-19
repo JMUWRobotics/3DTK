@@ -78,15 +78,26 @@ jobs:
         run: equivs-build doc/equivs/control.ubuntu.noble    
       - name: Install build dependencies
         run: apt-get install --yes --no-install-recommends ./3dtk-build-deps_1.0_all.deb
-      - name: Build
-      - if: matrix.os == 'ubuntu:focal' 
-        run: | # Ubuntu 20.04 focal supports ROS 1 natively, so tested here
+      - name: Configure CMake (WITH_ROS)
+        if: matrix.os == 'ubuntu:focal'
+        run: |
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_ROS=ON -G Ninja
-          cmake --build .build --config RelWithDebInfo
-          CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
-      - if: matrix.os != 'ubuntu:focal'
-        run: | # Non-ROS supporting distros:
+      - name: Configure CMake
+        if: matrix.os != 'ubuntu:focal'
+        run: |
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
+      - name: Build and Test
+        run: |
           cmake --build .build --config RelWithDebInfo
           CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
+      # - name: Build
+      # - if: matrix.os == 'ubuntu:focal' 
+      #   run: | # Ubuntu 20.04 focal supports ROS 1 natively, so tested here
+      #     cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_ROS=ON -G Ninja
+      # - if: matrix.os != 'ubuntu:focal'
+      #   run: | # Non-ROS supporting distros:
+      #     cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
+      #   run: |
+      #     cmake --build .build --config RelWithDebInfo
+      #     CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
 
