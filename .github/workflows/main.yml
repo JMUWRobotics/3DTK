@@ -46,7 +46,12 @@ jobs:
         os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
     container: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2
+      - name: Clean workspace 
+        run: |
+          rm -rf ./* .[^.] .??*
+      - name: Checkout code
+        run: git clone https://github.com/JMUWRobotics/3DTK.git .
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
