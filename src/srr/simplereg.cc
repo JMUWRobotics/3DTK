@@ -1,5 +1,5 @@
 /**
- * @file 
+ * @file
  * @brief The implementation of globally consistent scan matching algorithm by using helix correction
  * @author Peter Schneider. Institute of Computer Science, University of Koblenz, Germany.
  */
@@ -41,7 +41,7 @@ using std::ofstream;
  * @param epsilonLUM Termination criterion for LUM
  */
 simpleRegZ::simpleRegZ(icp6Dminimizer *my_icp6Dminimizer,
-		   double mdm, double max_dist_match, 
+		   double mdm, double max_dist_match,
 		   int max_num_iterations, bool quiet, bool meta, int rnd,
 		   bool eP, int anim, double epsilonICP, bool use_cache, double epsilonLUM)
   : graphSlam6DL(my_icp6Dminimizer,
@@ -63,11 +63,11 @@ simpleRegZ::~simpleRegZ()
 /**
  * This function generates the matrices B and Bd that are used for solving B * c = Bd.
  * This function has to be called once for every linked scan-pair.
- * 
+ *
  * @param firstScanNum The number of the first scan of the linked scan-pair
  * @param secondScanNum The number of the second scan of the linked scan-pair
  * @param ptpairs Vector that holds all point-pairs for the actual scan-pair
- * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1)) 
+ * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1))
  * @param Bd Vector with dimension (6*(number of scans-1))
  * @return returns the sum of square distance
  */
@@ -141,10 +141,10 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
 #ifdef _OPENMP
   #pragma omp critical (enterB)
 #endif
-  { 
+  {
   int matPlace1 = (firstScanNum-1) * 6;
 
-  if(firstScanNum != 0) 
+  if(firstScanNum != 0)
   {
     (*B)(matPlace1+4,matPlace1+4) += n;
     (*B)(matPlace1+5,matPlace1+5) += n;
@@ -154,10 +154,10 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
     (*B)(matPlace1+5,matPlace1+1) += Btemp1[4][0];
     (*B)(matPlace1+2,matPlace1+4) += -Btemp1[4][0];
     (*B)(matPlace1+4,matPlace1+2) += -Btemp1[4][0];
-    (*B)(matPlace1+1,matPlace1+6) += Btemp1[5][0]; 
+    (*B)(matPlace1+1,matPlace1+6) += Btemp1[5][0];
     (*B)(matPlace1+6,matPlace1+1) += Btemp1[5][0];
     (*B)(matPlace1+3,matPlace1+4) += -Btemp1[5][0];
-    (*B)(matPlace1+4,matPlace1+3) += -Btemp1[5][0]; 
+    (*B)(matPlace1+4,matPlace1+3) += -Btemp1[5][0];
     (*B)(matPlace1+3,matPlace1+5) += Btemp1[4][2];
     (*B)(matPlace1+5,matPlace1+3) += Btemp1[4][2];
     (*B)(matPlace1+2,matPlace1+6) += -Btemp1[4][2];
@@ -181,7 +181,7 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
   }
 //-------------------------------------------
   unsigned int matPlace2 = (secondScanNum-1) * 6;
- 
+
   (*B)(matPlace2+4,matPlace2+4) += n;
   (*B)(matPlace2+5,matPlace2+5) += n;
   (*B)(matPlace2+6,matPlace2+6) += n;
@@ -193,7 +193,7 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
   (*B)(matPlace2+1,matPlace2+6) += Btemp1[5][0];
   (*B)(matPlace2+6,matPlace2+1) += Btemp1[5][0];
   (*B)(matPlace2+3,matPlace2+4) += -Btemp1[5][0];
-  (*B)(matPlace2+4,matPlace2+3) += -Btemp1[5][0]; 
+  (*B)(matPlace2+4,matPlace2+3) += -Btemp1[5][0];
   (*B)(matPlace2+3,matPlace2+5) += Btemp1[4][2];
   (*B)(matPlace2+5,matPlace2+3) += Btemp1[4][2];
   (*B)(matPlace2+2,matPlace2+6) += -Btemp1[4][2];
@@ -215,10 +215,10 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
   (*Bd)(matPlace2+4) += bd2[3];
   (*Bd)(matPlace2+5) += bd2[4];
   (*Bd)(matPlace2+6) += bd2[5];
-  
+
 //-------------------------------------------
   if( firstScanNum != 0)
-  {  
+  {
     (*B)(matPlace1+4,matPlace2+4) -= n;
     (*B)(matPlace1+5,matPlace2+5) -= n;
     (*B)(matPlace1+6,matPlace2+6) -= n;
@@ -230,7 +230,7 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
     (*B)(matPlace1+1,matPlace2+6) += -Btemp1[5][0];
     (*B)(matPlace1+6,matPlace2+1) += -Btemp1[5][0];
     (*B)(matPlace1+3,matPlace2+4) += Btemp1[5][0];
-    (*B)(matPlace1+4,matPlace2+3) += Btemp1[5][0]; 
+    (*B)(matPlace1+4,matPlace2+3) += Btemp1[5][0];
     (*B)(matPlace1+3,matPlace2+5) += -Btemp1[4][2];
     (*B)(matPlace1+5,matPlace2+3) += -Btemp1[4][2];
     (*B)(matPlace1+2,matPlace2+6) += Btemp1[4][2];
@@ -248,7 +248,7 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
     (*B)(matPlace2+4,matPlace1+4) -= n;
     (*B)(matPlace2+5,matPlace1+5) -= n;
     (*B)(matPlace2+6,matPlace1+6) -= n;
-  
+
     (*B)(matPlace2+1,matPlace1+5) += -Btemp1[4][0];
     (*B)(matPlace2+5,matPlace1+1) += -Btemp1[4][0];
     (*B)(matPlace2+2,matPlace1+4) += Btemp1[4][0];
@@ -256,7 +256,7 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
     (*B)(matPlace2+1,matPlace1+6) += -Btemp1[5][0];
     (*B)(matPlace2+6,matPlace1+1) += -Btemp1[5][0];
     (*B)(matPlace2+3,matPlace1+4) += Btemp1[5][0];
-    (*B)(matPlace2+4,matPlace1+3) += Btemp1[5][0]; 
+    (*B)(matPlace2+4,matPlace1+3) += Btemp1[5][0];
     (*B)(matPlace2+3,matPlace1+5) += -Btemp1[4][2];
     (*B)(matPlace2+5,matPlace1+3) += -Btemp1[4][2];
     (*B)(matPlace2+2,matPlace1+6) += Btemp1[4][2];
@@ -269,10 +269,10 @@ double simpleRegZ::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPt
     (*B)(matPlace2+3,matPlace1+2) += -Btemp1[2][1];
     (*B)(matPlace2+1,matPlace1+1) += -Btemp1[0][0];
     (*B)(matPlace2+2,matPlace1+2) += -Btemp1[1][1];
-    (*B)(matPlace2+3,matPlace1+3) += -Btemp1[2][2]; 
+    (*B)(matPlace2+3,matPlace1+3) += -Btemp1[2][2];
   }
   }    // of pragma omp critical
-  
+
   return sqrt( sum / (double) n );
 }
 
@@ -295,18 +295,18 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
   static int d = 0;
   cout << "writing graph.dat ....................................." << endl;
   d++;
-  string gfilename = "graph_" + to_string(d, 3) + ".net"; 
-  ofstream out(gfilename.c_str());  
+  string gfilename = "graph_" + to_string(d, 3) + ".net";
+  ofstream out(gfilename.c_str());
   for (int i=0; i < gr.getNrLinks(); i++) {
     int from = gr.getLink(i,0);
     int to = gr.getLink(i,1);
     // shouldn't be necessary, just in case a (out of date) graph file is loaded:
     if (from < (int)allScans.size() && to < (int)allScans.size()) {
-      out << allScans[from]->get_rPos()[0] << " " 
-        << allScans[from]->get_rPos()[1] << " " 
+      out << allScans[from]->get_rPos()[0] << " "
+        << allScans[from]->get_rPos()[1] << " "
         << allScans[from]->get_rPos()[2] << endl
-        << allScans[to  ]->get_rPos()[0] << " " 
-        << allScans[to  ]->get_rPos()[1] << " " 
+        << allScans[to  ]->get_rPos()[0] << " "
+        << allScans[to  ]->get_rPos()[1] << " "
         << allScans[to  ]->get_rPos()[2] << endl << endl;
     }
   }
@@ -351,14 +351,14 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
     }
 
     // Get all point pairs after ICP
-    int end_loop = gr.getNrLinks(); 
+    int end_loop = gr.getNrLinks();
 #ifdef _OPENMP
     omp_set_num_threads(OPENMP_NUM_THREADS);
 #pragma omp parallel for schedule(dynamic)
 #endif
 
     for ( int i = 0; i < end_loop; i++) {
-      cout << "P" << i << flush; 
+      cout << "P" << i << flush;
       LScan * FirstScan  = allScans[gr.getLink(i,0)];
       LScan * SecondScan = allScans[gr.getLink(i,1)];
 #ifdef _OPENMP
@@ -379,7 +379,7 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
         //	   exit(1);
 
       } else {
-        // build the matrix B and vector bd   
+        // build the matrix B and vector bd
         //        genBBdForLinkedPair( gr.getLink(i,0), gr.getLink(i,1), ptpairs[i], &B, &bd );
         vPtPair *ptpairsi = ptpairs[i];
         int n = (*ptpairsi).size();
@@ -437,7 +437,7 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
         rPosTheta[k] = allScans[i]->get_rPosTheta()[k];
       }
 
-      rPos[2] += zs[i]; 
+      rPos[2] += zs[i];
 
       // Update the Pose
 
@@ -449,8 +449,8 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
         << " ty: " << allScans[i]->get_rPosTheta()[1]
         << " tz: " << allScans[i]->get_rPosTheta()[2]
         << endl;
-      
-      
+
+
       if (i != gr.getNrScans() - 1) {
         allScans[i]->transformToEuler(rPos, rPosTheta, Scan::LUM, 1);
       } else {
@@ -490,7 +490,7 @@ double simpleRegZ::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 
 
 simpleReg::simpleReg(icp6Dminimizer *my_icp6Dminimizer,
-		   double mdm, double max_dist_match, 
+		   double mdm, double max_dist_match,
 		   int max_num_iterations, bool quiet, bool meta, int rnd,
 		   bool eP, int anim, double epsilonICP, bool use_cache, double epsilonLUM)
   : graphSlam6DL(my_icp6Dminimizer,
@@ -512,11 +512,11 @@ simpleReg::~simpleReg()
 /**
  * This function generates the matrices B and Bd that are used for solving B * c = Bd.
  * This function has to be called once for every linked scan-pair.
- * 
+ *
  * @param firstScanNum The number of the first scan of the linked scan-pair
  * @param secondScanNum The number of the second scan of the linked scan-pair
  * @param ptpairs Vector that holds all point-pairs for the actual scan-pair
- * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1)) 
+ * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1))
  * @param Bd Vector with dimension (6*(number of scans-1))
  * @return returns the sum of square distance
  */
@@ -524,9 +524,9 @@ double simpleReg::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtP
 							    double *centroids_m, double *centroids_d,
 								Matrix *B, ColumnVector *A, double weight )
 {
-	
-  Point cm(centroids_m); 
-  Point cd(centroids_d); 
+
+  Point cm(centroids_m);
+  Point cd(centroids_d);
 
   ColumnVector Ak1(3);
 
@@ -537,8 +537,8 @@ double simpleReg::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtP
   Ak1 *= weight;
 /*
   cout <<  Ak1(1) << " " << Ak1(2) << " "  << Ak1(3) << endl;
-  cout <<  cm.x << " " << cm.y << " "  << cm.z << endl; 
-  cout <<  cd.x << " " << cd.y << " "  << cd.z << endl; 
+  cout <<  cm.x << " " << cm.y << " "  << cm.z << endl;
+  cout <<  cd.x << " " << cd.y << " "  << cd.z << endl;
 */
 #ifdef _OPENMP
 #pragma omp critical (enterB)
@@ -552,8 +552,8 @@ double simpleReg::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtP
       }
     }
     if(secondScanNum != 0) {
-      A->Rows((secondScanNum-1)*3+1, (secondScanNum-1)*3+3) += Ak1; 
-      B->element(secondScanNum - 1, secondScanNum - 1)      += weight;	 
+      A->Rows((secondScanNum-1)*3+1, (secondScanNum-1)*3+3) += Ak1;
+      B->element(secondScanNum - 1, secondScanNum - 1)      += weight;
     }
   }    // of pragma omp critical
 
@@ -613,14 +613,14 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
     }
 
     // Get all point pairs after ICP
-    int end_loop = gr.getNrLinks(); 
+    int end_loop = gr.getNrLinks();
 #ifdef _OPENMP
     omp_set_num_threads(OPENMP_NUM_THREADS);
 #pragma omp parallel for schedule(dynamic)
 #endif
 
     for ( int i = 0; i < end_loop; i++) {
-      cout << "P" << i << flush; 
+      cout << "P" << i << flush;
       LScan * FirstScan  = allScans[gr.getLink(i,0)];
       LScan * SecondScan = allScans[gr.getLink(i,1)];
 #ifdef _OPENMP
@@ -632,7 +632,7 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
       double dummy_centroid_d[3];
 
       LScan::getPtPairs(ptpairs[i], FirstScan, SecondScan, thread_num, (int)my_icp->get_rnd(), (int)max_dist_match2_LUM, dummy_centroid_m, dummy_centroid_d);
-      //  cout << "DM " <<  dummy_centroid_m[0] << " " << dummy_centroid_m[1] << " "  << dummy_centroid_m[2] << endl; 
+      //  cout << "DM " <<  dummy_centroid_m[0] << " " << dummy_centroid_m[1] << " "  << dummy_centroid_m[2] << endl;
       cout << "pt pairs " << ptpairs[i]->size() << endl;
 
       // faulty network
@@ -645,7 +645,7 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 
       } else {
         // cout << "link " << i << ": " << gr.getLink(i,0) << " - " << gr.getLink(i,1) << endl;
-        // build the matrix B and vector bd   
+        // build the matrix B and vector bd
         genBBdForLinkedPair( gr.getLink(i,0), gr.getLink(i,1), ptpairs[i],
             dummy_centroid_m, dummy_centroid_d,
             &B, &A );
@@ -653,7 +653,7 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
       }
     }
     for (unsigned int i = 1; i < allScans.size(); i++) {
-      cout << "I" << i << flush; 
+      cout << "I" << i << flush;
       LScan * FirstScan  = allScans[i-1];
       LScan * SecondScan = allScans[i];
       double dummy_centroid_m[3];
@@ -673,7 +673,7 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 
       } else {
         // cout << "link " << i << ": " << gr.getLink(i,0) << " - " << gr.getLink(i,1) << endl;
-        // build the matrix B and vector bd   
+        // build the matrix B and vector bd
         genBBdForLinkedPair( gr.getLink(i,0), gr.getLink(i,1), ptpairs[i],
             dummy_centroid_m, dummy_centroid_d,
             &B, &A, 0.1 );
@@ -717,7 +717,7 @@ double simpleReg::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
         rPosTheta[k] = allScans[i]->get_rPosTheta()[k];
       }
 
-      //rPos[2] += zs[i]; 
+      //rPos[2] += zs[i];
 
       // Update the Pose
 

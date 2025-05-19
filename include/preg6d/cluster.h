@@ -4,13 +4,13 @@
 /**
  * @file: cluster.h
  * @author: Fabian Arzberger, JMU
- * 
+ *
  * Released under GPL 3 license
- * 
+ *
  * This is the header for the cluster.cc program.
  * The program clusters points based on their planarity,
  * using a region growing approach with normal similarity parameter.
- * 
+ *
  * The program can handle successive scans, as well as empty scans.
  */
 
@@ -71,10 +71,10 @@ int parse_options(  int argc,
                     bool& scanserver,
                     string& scandir,
                     IOType &type,
-                    bool &quiet, 
-                    int &maxDist, 
-                    int &minDist, 
-                    int &octree, 
+                    bool &quiet,
+                    int &maxDist,
+                    int &minDist,
+                    int &octree,
                     double &red,
                     int& start,
                     int& end,
@@ -83,7 +83,7 @@ int parse_options(  int argc,
                     double& d_growth,
                     double& d_growth_max_adapt,
                     int& n_max_clusters,
-                    int& n_min_clusterpoints, 
+                    int& n_min_clusterpoints,
                     int& n_min_clusterpoints_far,
                     double& eps_alpha_similarity,
                     int& eps_thickness,
@@ -146,7 +146,7 @@ int parse_options(  int argc,
             "Else, the program ignores the above and uses params defined in \"bin/hough.cfg\".\n"
             "Choose from {rg, rht, sht, pht, ppht, apht, ran}");
     hidden.add_options()
-        ("input-dir", po::value<string>(&scandir), "input dir");    
+        ("input-dir", po::value<string>(&scandir), "input dir");
     // All options together
     po::options_description alloptions;
     alloptions.add(generic).add(input).add(hidden);
@@ -155,7 +155,7 @@ int parse_options(  int argc,
     po::options_description cmdoptions;
     cmdoptions.add(generic).add(input);
 
-    // positional argument for input directory 
+    // positional argument for input directory
     po::positional_options_description pos;
     pos.add("input-dir", 1); // max 1 pos arg
 
@@ -164,21 +164,21 @@ int parse_options(  int argc,
     po::store( po::command_line_parser(argc, argv).
                 options(alloptions).
                 positional(pos).
-                run(), 
+                run(),
                 vars);
 
     // help display msg
     if ( vars.count("help") )
     {
         cout << cmdoptions;
-        cout << endl << "Example usage:" << endl 
-            << bold_on << "\t bin/cluster -f uosr -s 0 -e 12 -K 20 -t 12 -g 5" << bold_off 
+        cout << endl << "Example usage:" << endl
+            << bold_on << "\t bin/cluster -f uosr -s 0 -e 12 -K 20 -t 12 -g 5" << bold_off
             << endl;
         exit(0);
     }
     po::notify(vars);
 
-    // Add trailing directory slash if there is none. 
+    // Add trailing directory slash if there is none.
     // Works differently when compiling under Windows
 #ifndef _MSC_VER
     if (scandir[ scandir.length()-1 ] != '/') scandir = scandir + "/";

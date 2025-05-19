@@ -7,8 +7,8 @@ namespace calibration {
 
 using namespace cctag;
 
-CCTagDetector::CCTagDetector(size_t nCrowns) 
-    : _params(nCrowns), _bank(nCrowns) { 
+CCTagDetector::CCTagDetector(size_t nCrowns)
+    : _params(nCrowns), _bank(nCrowns) {
     _objectPoints.clear();
 }
 
@@ -53,5 +53,5 @@ void CCTagDetector::readDetectionsFromFile(const std::string& path) {
     for (const auto &p : data)
         _imagePoints.push_back(p);
 }
-    
+
 }

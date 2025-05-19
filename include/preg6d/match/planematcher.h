@@ -13,9 +13,9 @@ typedef std::pair<NormalPlane*, NormalPlane*> PlanePair;
 
 struct EnergyPlanePair {
     EnergyPlanePair(double da, double dh, double dp, PlanePair &p) :
-        delta_alpha(da), delta_hesse(dh), delta_ppd(dp), plane_pair(p) 
+        delta_alpha(da), delta_hesse(dh), delta_ppd(dp), plane_pair(p)
         {
-            // TODO: NORMALIZE SINGLE ENERGIES? 
+            // TODO: NORMALIZE SINGLE ENERGIES?
             total_energy = delta_alpha+delta_hesse+delta_ppd;
         }
     double delta_alpha;
@@ -26,16 +26,16 @@ struct EnergyPlanePair {
     double total_energy;
 };
 
-typedef std::list<EnergyPlanePair> PlanePairs;   
+typedef std::list<EnergyPlanePair> PlanePairs;
 
-class PlaneMatcher : public Matcher 
+class PlaneMatcher : public Matcher
 {
-public: 
+public:
 
     PlaneMatcher(PlaneScan* ps, double eps_hesse, double eps_ppd, double eps_sim);
     void match();
 
-private: 
+private:
     double eps_hesse;
     double eps_ppd;
     double eps_sim; // similarity crit for normals in deg

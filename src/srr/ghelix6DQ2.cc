@@ -1,5 +1,5 @@
 /**
- * @file 
+ * @file
  * @brief The implementation of globally consistent scan matching algorithm by using helix correction
  * @author Peter Schneider. Institute of Computer Science, University of Koblenz, Germany.
  */
@@ -41,7 +41,7 @@ using std::ofstream;
  * @param epsilonLUM Termination criterion for LUM
  */
 ghelix6DQ2L::ghelix6DQ2L(icp6Dminimizer *my_icp6Dminimizer,
-		   double mdm, double max_dist_match, 
+		   double mdm, double max_dist_match,
 		   int max_num_iterations, bool quiet, bool meta, int rnd,
 		   bool eP, int anim, double epsilonICP, bool use_cache, double epsilonLUM)
   : graphSlam6DL(my_icp6Dminimizer,
@@ -63,11 +63,11 @@ ghelix6DQ2L::~ghelix6DQ2L()
 /**
  * This function generates the matrices B and Bd that are used for solving B * c = Bd.
  * This function has to be called once for every linked scan-pair.
- * 
+ *
  * @param firstScanNum The number of the first scan of the linked scan-pair
  * @param secondScanNum The number of the second scan of the linked scan-pair
  * @param ptpairs Vector that holds all point-pairs for the actual scan-pair
- * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1)) 
+ * @param B Matrix with dimension (6*(number of scans-1)) x (6 * (number of scans-1))
  * @param Bd Vector with dimension (6*(number of scans-1))
  * @return returns the sum of square distance
  */
@@ -141,10 +141,10 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
 #ifdef _OPENMP
   #pragma omp critical (enterB)
 #endif
-  { 
+  {
   int matPlace1 = (firstScanNum-1) * 6;
 
-  if(firstScanNum != 0) 
+  if(firstScanNum != 0)
   {
     (*B)(matPlace1+4,matPlace1+4) += n;
     (*B)(matPlace1+5,matPlace1+5) += n;
@@ -154,10 +154,10 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
     (*B)(matPlace1+5,matPlace1+1) += Btemp1[4][0];
     (*B)(matPlace1+2,matPlace1+4) += -Btemp1[4][0];
     (*B)(matPlace1+4,matPlace1+2) += -Btemp1[4][0];
-    (*B)(matPlace1+1,matPlace1+6) += Btemp1[5][0]; 
+    (*B)(matPlace1+1,matPlace1+6) += Btemp1[5][0];
     (*B)(matPlace1+6,matPlace1+1) += Btemp1[5][0];
     (*B)(matPlace1+3,matPlace1+4) += -Btemp1[5][0];
-    (*B)(matPlace1+4,matPlace1+3) += -Btemp1[5][0]; 
+    (*B)(matPlace1+4,matPlace1+3) += -Btemp1[5][0];
     (*B)(matPlace1+3,matPlace1+5) += Btemp1[4][2];
     (*B)(matPlace1+5,matPlace1+3) += Btemp1[4][2];
     (*B)(matPlace1+2,matPlace1+6) += -Btemp1[4][2];
@@ -181,7 +181,7 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
   }
 //-------------------------------------------
   unsigned int matPlace2 = (secondScanNum-1) * 6;
- 
+
   (*B)(matPlace2+4,matPlace2+4) += n;
   (*B)(matPlace2+5,matPlace2+5) += n;
   (*B)(matPlace2+6,matPlace2+6) += n;
@@ -193,7 +193,7 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
   (*B)(matPlace2+1,matPlace2+6) += Btemp1[5][0];
   (*B)(matPlace2+6,matPlace2+1) += Btemp1[5][0];
   (*B)(matPlace2+3,matPlace2+4) += -Btemp1[5][0];
-  (*B)(matPlace2+4,matPlace2+3) += -Btemp1[5][0]; 
+  (*B)(matPlace2+4,matPlace2+3) += -Btemp1[5][0];
   (*B)(matPlace2+3,matPlace2+5) += Btemp1[4][2];
   (*B)(matPlace2+5,matPlace2+3) += Btemp1[4][2];
   (*B)(matPlace2+2,matPlace2+6) += -Btemp1[4][2];
@@ -215,10 +215,10 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
   (*Bd)(matPlace2+4) += bd2[3];
   (*Bd)(matPlace2+5) += bd2[4];
   (*Bd)(matPlace2+6) += bd2[5];
-  
+
 //-------------------------------------------
   if( firstScanNum != 0)
-  {  
+  {
     (*B)(matPlace1+4,matPlace2+4) -= n;
     (*B)(matPlace1+5,matPlace2+5) -= n;
     (*B)(matPlace1+6,matPlace2+6) -= n;
@@ -230,7 +230,7 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
     (*B)(matPlace1+1,matPlace2+6) += -Btemp1[5][0];
     (*B)(matPlace1+6,matPlace2+1) += -Btemp1[5][0];
     (*B)(matPlace1+3,matPlace2+4) += Btemp1[5][0];
-    (*B)(matPlace1+4,matPlace2+3) += Btemp1[5][0]; 
+    (*B)(matPlace1+4,matPlace2+3) += Btemp1[5][0];
     (*B)(matPlace1+3,matPlace2+5) += -Btemp1[4][2];
     (*B)(matPlace1+5,matPlace2+3) += -Btemp1[4][2];
     (*B)(matPlace1+2,matPlace2+6) += Btemp1[4][2];
@@ -248,7 +248,7 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
     (*B)(matPlace2+4,matPlace1+4) -= n;
     (*B)(matPlace2+5,matPlace1+5) -= n;
     (*B)(matPlace2+6,matPlace1+6) -= n;
-  
+
     (*B)(matPlace2+1,matPlace1+5) += -Btemp1[4][0];
     (*B)(matPlace2+5,matPlace1+1) += -Btemp1[4][0];
     (*B)(matPlace2+2,matPlace1+4) += Btemp1[4][0];
@@ -256,7 +256,7 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
     (*B)(matPlace2+1,matPlace1+6) += -Btemp1[5][0];
     (*B)(matPlace2+6,matPlace1+1) += -Btemp1[5][0];
     (*B)(matPlace2+3,matPlace1+4) += Btemp1[5][0];
-    (*B)(matPlace2+4,matPlace1+3) += Btemp1[5][0]; 
+    (*B)(matPlace2+4,matPlace1+3) += Btemp1[5][0];
     (*B)(matPlace2+3,matPlace1+5) += -Btemp1[4][2];
     (*B)(matPlace2+5,matPlace1+3) += -Btemp1[4][2];
     (*B)(matPlace2+2,matPlace1+6) += Btemp1[4][2];
@@ -269,10 +269,10 @@ double ghelix6DQ2L::genBBdForLinkedPair( int firstScanNum, int secondScanNum, vP
     (*B)(matPlace2+3,matPlace1+2) += -Btemp1[2][1];
     (*B)(matPlace2+1,matPlace1+1) += -Btemp1[0][0];
     (*B)(matPlace2+2,matPlace1+2) += -Btemp1[1][1];
-    (*B)(matPlace2+3,matPlace1+3) += -Btemp1[2][2]; 
+    (*B)(matPlace2+3,matPlace1+3) += -Btemp1[2][2];
   }
   }    // of pragma omp critical
-  
+
   return sqrt( sum / (double) n );
 }
 
@@ -295,25 +295,25 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
   static int d = 0;
   cout << "writing graph.dat ....................................." << endl;
   d++;
-  string gfilename = "graph_" + to_string(d, 3) + ".net"; 
-  ofstream out(gfilename.c_str());  
+  string gfilename = "graph_" + to_string(d, 3) + ".net";
+  ofstream out(gfilename.c_str());
   for (int i=0; i < gr.getNrLinks(); i++) {
     int from = gr.getLink(i,0);
     int to = gr.getLink(i,1);
     // shouldn't be necessary, just in case a (out of date) graph file is loaded:
     if (from < (int)allScans.size() && to < (int)allScans.size()) {
-	 out << allScans[from]->get_rPos()[0] << " " 
-	     << allScans[from]->get_rPos()[1] << " " 
+	 out << allScans[from]->get_rPos()[0] << " "
+	     << allScans[from]->get_rPos()[1] << " "
 	     << allScans[from]->get_rPos()[2] << endl
-	     << allScans[to  ]->get_rPos()[0] << " " 
-	     << allScans[to  ]->get_rPos()[1] << " " 
+	     << allScans[to  ]->get_rPos()[0] << " "
+	     << allScans[to  ]->get_rPos()[1] << " "
 	     << allScans[to  ]->get_rPos()[2] << endl << endl;
     }
   }
   out.close();
   out.clear();
 #endif
-  
+
   // the IdentityMatrix to transform some Scans with
   double id[16];
   M4identity(id);
@@ -334,7 +334,7 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
     sum_position_diff = 0;
 
     if (nrIt > 1) cout << "Iteration match " << iteration << endl;
-    
+
     if (ptpairs != 0) delete [] ptpairs;
     ptpairs = new vPtPair*[gr.getNrLinks()];
 
@@ -343,14 +343,14 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
     }
 
     // Get all point pairs after ICP
-    int end_loop = gr.getNrLinks(); 
+    int end_loop = gr.getNrLinks();
 #ifdef _OPENMP
     omp_set_num_threads(OPENMP_NUM_THREADS);
 #pragma omp parallel for schedule(dynamic)
 #endif
 
     for ( int i = 0; i < end_loop; i++) {
-      cout << "P" << i << flush; 
+      cout << "P" << i << flush;
       LScan * FirstScan  = allScans[gr.getLink(i,0)];
       LScan * SecondScan = allScans[gr.getLink(i,1)];
 #ifdef _OPENMP
@@ -361,7 +361,7 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 	 double dummy_centroid_m[3];
 	 double dummy_centroid_d[3];
    LScan::getPtPairs(ptpairs[i], FirstScan, SecondScan, thread_num, (int)my_icp->get_rnd(), (int)max_dist_match2_LUM, dummy_centroid_m, dummy_centroid_d);
-	 
+
       // faulty network
       if (ptpairs[i]->size() <= 1) {
 	   cout << "Error: Link (" << gr.getLink(i,0)
@@ -369,9 +369,9 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 		   << ptpairs[i]->size() << " Corr. points. iteration = "
 		   << iteration << endl;
 	   //	   exit(1);
-                     
+
       } else
-       // build the matrix B and vector bd   
+       // build the matrix B and vector bd
         genBBdForLinkedPair( gr.getLink(i,0), gr.getLink(i,1), ptpairs[i], &B, &bd );
     }
     cout <<" building matrices done! "<<endl;
@@ -393,7 +393,7 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
     {
       vectorOffset = (i-1) * 6;
       icp6D_HELIX::computeRt( &ccs, vectorOffset, alignxfLum);
- 
+
       // Update the Pose
 
 	 cout << "Old pose estimate, Scan " << i << endl;
@@ -404,7 +404,7 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
 		 << " ty: " << allScans[i]->get_rPosTheta()[1]
 		 << " tz: " << allScans[i]->get_rPosTheta()[2]
 		 << endl;
-	 
+
       if (i < loop_end - 1) {
         allScans[i]->transform(alignxfLum, Scan::LUM, 1);
       } else {
@@ -426,7 +426,7 @@ double ghelix6DQ2L::doGraphSlam6D(Graph gr, vector <LScan *> allScans, int nrIt)
   }
   delete [] ptpairs;
   ptpairs = 0;
-  
+
   return ret;
 }
 

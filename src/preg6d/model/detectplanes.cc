@@ -3,7 +3,7 @@
 Detect::Detect(Scan* scan, std::string path, bool quiet, std::string config)
 {
     this->scan = scan;
-    if (path[ path.size() - 1] != '/') 
+    if (path[ path.size() - 1] != '/')
         path += "/";
     this->outpath = path;
     detector = new Hough(scan, quiet, config);
@@ -12,10 +12,10 @@ Detect::Detect(Scan* scan, std::string path, bool quiet, std::string config)
 void Detect::detect(plane_alg algo)
 {
     if (!detector) {
-        cout << "Attention! This detector has already been used for scan" 
+        cout << "Attention! This detector has already been used for scan"
              << scan->getIdentifier() << endl;
         return;
-    } 
+    }
     if (algo >= RANSAC) {
         clusterRansac();
     } else switch (algo) {
@@ -40,11 +40,11 @@ void Detect::detect(plane_alg algo)
     }
     detector->writeColoredPoints( outpath+"scan"+scan->getIdentifier()+".3d" );
     ofstream ofilepose(outpath+"scan"+scan->getIdentifier()+".pose", ios_base::out);
-    ofilepose << scan->get_rPos()[0] << " " 
-              << scan->get_rPos()[1] << " " 
+    ofilepose << scan->get_rPos()[0] << " "
+              << scan->get_rPos()[1] << " "
               << scan->get_rPos()[2] << " ";
-    ofilepose << deg(scan->get_rPosTheta()[0]) << " " 
-              << deg(scan->get_rPosTheta()[1]) << " " 
+    ofilepose << deg(scan->get_rPosTheta()[0]) << " "
+              << deg(scan->get_rPosTheta()[1]) << " "
               << deg(scan->get_rPosTheta()[2]) << endl;
 }
 
@@ -57,7 +57,7 @@ void Detect::clusterRansac()
     int counter = 0;
     while(detector->allPoints->size() > stop &&
             detector->planes.size() < (unsigned int)detector->myConfigFileHough.Get_MaxPlanes() &&
-            counter++ < (int)detector->myConfigFileHough.Get_TrashMax()) 
+            counter++ < (int)detector->myConfigFileHough.Get_TrashMax())
     {
 
         vector<double *> points;
@@ -87,7 +87,7 @@ void Detect::clusterRansac()
     }
 }
 
-Detect::~Detect() 
+Detect::~Detect()
 {
     delete detector;
 }

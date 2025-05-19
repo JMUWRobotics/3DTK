@@ -2,13 +2,13 @@
 
 #define INV_M_PI_2 0.63661977236
 
-PlaneMatcher::PlaneMatcher(PlaneScan* ps, double eps_hesse, double eps_ppd, double eps_sim) 
-: Matcher(ps) 
-{   
+PlaneMatcher::PlaneMatcher(PlaneScan* ps, double eps_hesse, double eps_ppd, double eps_sim)
+: Matcher(ps)
+{
     this->eps_hesse = eps_hesse;
     this->eps_ppd = eps_ppd;
     this->eps_sim = eps_sim;
-   
+
 }
 
 bool PlaneMatcher::sanityPass(EnergyPlanePair &epp) {
@@ -44,23 +44,23 @@ void PlaneMatcher::match()
         // Calculate centroid and normal for each global cluster
         NormalPlane *data_plane = new NormalPlane( *cluster );
         PlanePairs candidates;
-        
+
         // Find maximum distant plane
-        for (NormalPlane* model_plane : PlaneScan::allPlanes) 
-        {    
-            
+        for (NormalPlane* model_plane : PlaneScan::allPlanes)
+        {
+
             double hesse = data_plane->hesseDist2Plane(model_plane);
             double ppd =  data_plane->projDist2Plane(model_plane);
             double alpha = deg(angleBetweenNormals(model_plane->n, data_plane->n));
-            
+
             // Smart skip
             if (eps_sim < alpha
              || eps_hesse < hesse
              || eps_ppd < ppd)
                 continue;
-             
+
             // Else: calc energy for pair and store
-        
+
             double hesse_min, hesse_max, ppd_min, ppd_max;
             data_plane->getMinMaxHesseTo(model_plane, hesse_min, hesse_max);
             double delta_hesse = hesse_max - hesse_min;
@@ -77,13 +77,13 @@ void PlaneMatcher::match()
 
             PlanePair pl_pair(data_plane, model_plane);
             // Store
-            candidates.insert( end(candidates), 
+            candidates.insert( end(candidates),
                 EnergyPlanePair(
                     energy_alpha,
                     energy_hesse,
                     energy_ppd,
                     pl_pair
-                ) 
+                )
             );
         }
 
@@ -116,23 +116,23 @@ void PlaneMatcher::match()
         // Setup correspondences
 #pragma omp critical
 {
-        if ( candidates.size() > 0 ) 
+        if ( candidates.size() > 0 )
         {
-            NormalPlane* best = candidates.front().plane_pair.second; 
+            NormalPlane* best = candidates.front().plane_pair.second;
 
             PointCluster* loc_clust = new PointCluster();
             for (double * p : (*local_cluster))
                 loc_clust->push_back(p);
 
             // Plane-2-Plane Matching
-            
+
             // Local Data -> Global Model Plane-2-Plane Match
             ps->local_matches.insert(
                 Match(
                     best, loc_clust
                 )
             );
-            
+
             // Global Data -> Global Model Plane-2-Plane Match
             ps->global_matches.insert(
                 Match(
@@ -141,7 +141,7 @@ void PlaneMatcher::match()
             );
 
             // Point-based Matching
-            for (size_t index : (*indices)) 
+            for (size_t index : (*indices))
             {
                 double *p = ps->points[index];
                 double p_trans[3];
@@ -175,9 +175,9 @@ void PlaneMatcher::match()
             }
             delete data_plane;
 
-        // Case: No best Match found. 
+        // Case: No best Match found.
         } else {
-            
+
             ps->global_mismatches.insert(
                 glob_clust
             );
@@ -188,5 +188,5 @@ void PlaneMatcher::match()
         ++indices;
         ++cluster;
         ++local_cluster;
-    }   
+    }
 }

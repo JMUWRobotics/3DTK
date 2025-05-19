@@ -11,7 +11,7 @@ class GaussNewton : public Optimizer
 public:
     GaussNewton(PlaneScan* p, Dimensions d); // overrides default constructor
     void operator()(void); // overrides default iteration mechanism
- 
+
     void iterate();
 
     GaussNewton();
@@ -24,7 +24,7 @@ private:
     DiagonalMatrix W;
     ColumnVector R;
     void rematch();
-  
+
 };
 
-#endif 
+#endif

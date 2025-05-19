@@ -35,21 +35,21 @@ AdaDelta::AdaDelta()
     this->alpha = ColumnVector(6);
     /*
      * Typically, a change in orientation has much more impact on
-     * the total error than a change in position. While translating 
+     * the total error than a change in position. While translating
      * the scan in x, y or z, the error grows linearily for all points.
      * However, when rotating about x, y or z, points that are further
-     * away from the robot are moved even more dramatic, leading to 
+     * away from the robot are moved even more dramatic, leading to
      * a higher sensibility on the error function. For this reason,
-     * the alpha applied on orientation must be much smaller than the 
+     * the alpha applied on orientation must be much smaller than the
      * alpha applied on the position.
-     */ 
+     */
     this->a = _alpha;
-    this->alpha << a 
-                << a  
+    this->alpha << a
                 << a
-                << a * _rPos_a_scale 
-                << a * _rPos_a_scale 
-                << a * _rPos_a_scale; 
+                << a
+                << a * _rPos_a_scale
+                << a * _rPos_a_scale
+                << a * _rPos_a_scale;
     this->J = ColumnVector(6);
     this->Ga = ColumnVector(6);
     this->Xa = ColumnVector(6);
@@ -127,7 +127,7 @@ void AdaDelta::relabel()
 
 void AdaDelta::adaptAlpha()
 {
-    // E_SMALL_NUM is a magic number that works quite well, used to avoid division with 0 
+    // E_SMALL_NUM is a magic number that works quite well, used to avoid division with 0
     alpha(1) = a * sqrt(E_SMALL_NUM + Xa(1) ) / sqrt( E_SMALL_NUM + Ga(1) );
     alpha(2) = a * sqrt(E_SMALL_NUM + Xa(2) ) / sqrt( E_SMALL_NUM + Ga(2) );
     alpha(3) = a * sqrt(E_SMALL_NUM + Xa(3) ) / sqrt( E_SMALL_NUM + Ga(3) );
@@ -150,9 +150,9 @@ void AdaDelta::step()
     dX = SP(alpha, J); // compute update step
     lock();
     // cout << "a=" << alpha << endl;
-    //cout << dX << endl; 
+    //cout << dX << endl;
     Xa = P_DECAY*Xa + (1-P_DECAY)*SP(dX, dX); // accumulate averaged squared update
-    X = X - dX; // apply update        
+    X = X - dX; // apply update
     updateScan(); // write new transformation to planescan object
 }
 
@@ -171,7 +171,7 @@ void AdaDelta::updateJacobian()
     double tx = X(4); // x
     double ty = X(5); // y
     double tz = X(6); // z
-        
+
     double sph = sin(phi);
     double st = sin(theta);
     double sps = sin(psi);
@@ -192,7 +192,7 @@ void AdaDelta::updateJacobian()
         double x = cor.first[0];
         double y = cor.first[1];
         double z = cor.first[2];
-        
+
         double nx = cor.second->n[0];
         double ny = cor.second->n[1];
         double nz = cor.second->n[2];
@@ -207,21 +207,21 @@ void AdaDelta::updateJacobian()
         double Tpz = x*(sph*sps-cph*cps*st) + y*(cps*sph+cph*st*sps) + z*cph*ct + tz;
 
         double D = nx*(Tpx - ax)  // as you can see, this represents the distance
-                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite 
+                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite
                  + nz*(Tpz - az); // plane. Called "hesse distance"
 
-        // The first order gradient of that distance is: 
+        // The first order gradient of that distance is:
 
-        double dEdPhi = 
+        double dEdPhi =
               ny*(x*(cps*cph*st-sps*sph) + y*(-sph*cps-cph*st*sps) - z*ct*cph)
             + nz*(x*(cph*sps+sph*cps*st) + y*(cps*cph-sph*st*sps) - z*ct*sph);
 
-        double dEdTheta = 
+        double dEdTheta =
               nx*(-x*st*cps+y*st*sps+z*ct)
             + ny*(x*(ct*cps*sph) + y*(-ct*sph*sps) + z*st*sph)
             + nz*(-x*ct*cph*cps + y*ct*cph*sps - z*st*cph);
-            
-        double dEdPsi = 
+
+        double dEdPsi =
               nx*(-x*sps*ct - y*cps*ct)
             + ny*(x*(cps*cph-sps*sph*st) + y*(-sps*cph-cps*sph*st))
             + nz*(x*(cps*sph+sps*cph*st) + y*(-sps*sph+cps*cph*st));
@@ -229,7 +229,7 @@ void AdaDelta::updateJacobian()
         // centroid gradient
 
         Matrix jacobian = ColumnVector(6);
-        
+
         if (_use_p2p) {
             jacobian << dEdPhi*2*D
                     << dEdTheta*2*D
@@ -238,7 +238,7 @@ void AdaDelta::updateJacobian()
                     << 0//ny*2*D
                     << 0;//nz*2*D;
         } else {
-            
+
             jacobian << dEdPhi*2*D
                     << dEdTheta*2*D
                     << dEdPsi*2*D
@@ -264,7 +264,7 @@ void AdaDelta::updateJacobian()
             double* m = match.second;
 
             if (!m || !c) {
-                cout << "invalid pointer! "; 
+                cout << "invalid pointer! ";
                 if (!m)
                     cout <<"Model set:"<< &m << endl;
                 if (!c)
@@ -286,7 +286,7 @@ void AdaDelta::updateJacobian()
             Tcy = cx*(cph*sps+cps*sph*st) + cy*(cph*cps-sph*st*sps) - cz*ct*sph + ty;
             Tcz = cx*(sph*sps-cph*cps*st) + cy*(cps*sph+cph*st*sps) + cz*cph*ct + tz;
 
-            double Dcx = Tcx - mx;  
+            double Dcx = Tcx - mx;
             double Dcy = Tcy - my;
             double Dcz = Tcz - mz;
 
@@ -308,22 +308,22 @@ void AdaDelta::updateJacobian()
             ColumnVector dDy(6);
             ColumnVector dDz(6);
 
-            
-                dDx << 0//dDcx_dPhi     
+
+                dDx << 0//dDcx_dPhi
                     << 0//dDcx_dTheta
                     << 0//dDcx_dPsi
                     << 1
                     << 0
                     << 0;
 
-                dDy << 0//dDcy_dPhi     
+                dDy << 0//dDcy_dPhi
                     << 0//dDcy_dTheta
                     << 0//dDcy_dPsi
                     << 0
                     << 1
                     << 0;
 
-                dDz << 0//dDcz_dPhi     
+                dDz << 0//dDcz_dPhi
                     << 0//dDcz_dTheta
                     << 0//dDcz_dPsi
                     << 0
@@ -335,7 +335,7 @@ void AdaDelta::updateJacobian()
             ColumnVector dE(6);
             dE << 2 * (Dcx*dDx + Dcy*dDy + Dcz*dDz);
             sum += w*dE;
-        }  
+        }
     }
 
     // double norm = 1.0 / ps->correspondences.size();
@@ -348,7 +348,7 @@ void AdaDelta::iterate(int n)
 {
     if (ps->isEmpty()) return;
     int n_iter = 0;
-    for (int k = 0; k < _update_cor; ++k) 
+    for (int k = 0; k < _update_cor; ++k)
     {
         this->a *= ALPHA_DECAY;
         if (k != 0 && _update_cor != 1) relabel();
@@ -364,7 +364,7 @@ void AdaDelta::iterate(int n)
                 <<  getRSE() << endl;
             }
             step();
-            
+
         }
         if (n_iter == 1) break;
         else n_iter = 0;
@@ -376,7 +376,7 @@ void AdaDelta::operator()(int n)
     this->iterate(n);
 }
 
-// Iterates until convergence. Use with care! 
+// Iterates until convergence. Use with care!
 void AdaDelta::iterate(double eps)
 {
     if (ps->isEmpty()) return;
@@ -390,14 +390,14 @@ void AdaDelta::iterate(double eps)
             if ( !_quiet )
             {
                 cout << "Scan " << ps->identifier;
-                cout << ", RSME = " 
+                cout << ", RSME = "
                 << std::resetiosflags(std::ios::adjustfield) << std::setiosflags(std::ios::internal)
                 << std::resetiosflags(std::ios::floatfield) << std::setiosflags(std::ios::fixed)
                 << std::setw(10) << std::setprecision(7)
                 << getRSE() << endl;
             }
             step();
-            
+
             n_iter++;
         } while ( !stop_condition(X, eps) );
         // After having found the best transformation, label points again and repeat
@@ -416,7 +416,7 @@ void AdaDelta::reset()
     Xa << 0 << 0 << 0 << 0 << 0 << 0;
 }
 
-// Iterates until convergence. Use with care! 
+// Iterates until convergence. Use with care!
 void AdaDelta::operator()(double eps)
 {
     this->iterate(eps);
@@ -427,7 +427,7 @@ void AdaDelta::iterate(int n, double eps)
 {
     if (ps->isEmpty()) return;
     int n_iter = 0;
-    for (int k = 0; k < _update_cor; ++k) 
+    for (int k = 0; k < _update_cor; ++k)
     {
         this->a *= ALPHA_DECAY;
         if (k != 0 && _update_cor != 1) relabel();
@@ -436,7 +436,7 @@ void AdaDelta::iterate(int n, double eps)
             if ( !_quiet )
             {
                 cout << "i = " << i << " in scan " << ps->identifier;
-                cout << ", RSME = " 
+                cout << ", RSME = "
                 << std::resetiosflags(std::ios::adjustfield) << std::setiosflags(std::ios::internal)
                 << std::resetiosflags(std::ios::floatfield) << std::setiosflags(std::ios::fixed)
                 << std::setw(10) << std::setprecision(7)

@@ -6,20 +6,20 @@ void PlaneIO::read(std::string dir)
 {
     string dir2 = dir;
     // check if the given path exists
-    if ( !existsDir( dir.c_str() ) ) 
+    if ( !existsDir( dir.c_str() ) )
     {
         std::cout << "Using path: " << dir << std::endl;
         std::cout << "Invalid plane path. Doesnt exist." << std::endl;
-        exit(0); 
+        exit(0);
     }
     dir += "normals.list";
     dir2 += "planes.list";
 
-    // Read the normals.list file to get all planeXXX.n files 
+    // Read the normals.list file to get all planeXXX.n files
     //std::vector<std::string> planefiles;
     std::vector<std::string> hullfiles;
     std::ifstream input, hinput;
-    std::string line, hline; 
+    std::string line, hline;
     //input.open( dir.c_str() );
     hinput.open( dir2.c_str() );
     // while ( std::getline( input, line ) )
@@ -29,7 +29,7 @@ void PlaneIO::read(std::string dir)
     //     line = line.substr( 7, line.size() ); // remove the "Normal " entry
     //     planefiles.push_back( line );
     // }
-    while (std::getline(hinput, hline)) 
+    while (std::getline(hinput, hline))
     {
         cout << hline << endl;
         cout.flush();

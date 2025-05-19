@@ -10,15 +10,15 @@ KDtreePlanes::KDtreePlanes(PointPlane** pts, size_t n, int bucketSize)
     create(Void(), pts, n, bucketSize);
 }
 
-KDtreePlanes::KDtreePlanes(Planes planes, int bucketSize) 
+KDtreePlanes::KDtreePlanes(Planes planes, int bucketSize)
 {
     int n = 0;
-    for (const NormalPlane* plane : planes) 
+    for (const NormalPlane* plane : planes)
         n += plane->all_pts.size();
 
     PointPlane** pts = new PointPlane*[n];
     int j = 0;
-    for (NormalPlane* plane : planes) 
+    for (NormalPlane* plane : planes)
     {
         for(size_t i = 0; i < plane->all_pts.size(); ++i)
             pts[j++] = new PointPlane( plane->all_pts[i] , plane );

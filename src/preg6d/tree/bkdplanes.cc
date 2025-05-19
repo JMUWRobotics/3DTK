@@ -28,10 +28,10 @@ BkdTreePlanes::BkdTreePlanes(PointPlane** pts, size_t n, int bucketsize)
     forest.push_back( tree );
 }
 
-BkdTreePlanes::BkdTreePlanes(Planes planes, int bucketsize) 
+BkdTreePlanes::BkdTreePlanes(Planes planes, int bucketsize)
 {
     int n = 0;
-    for (const NormalPlane* plane : planes) 
+    for (const NormalPlane* plane : planes)
         n += plane->all_pts.size();
 
     // nr of trees needed for n points with given bucketsize
@@ -96,7 +96,7 @@ std::string BkdTreePlanes::_debug_info() const
 {
     std::string info_str;
     std::stringstream info_ss;
-    
+
     info_ss << "============== BKD DEBUG ==============" << std::endl;
     info_ss << "Buffer [" << std::to_string(buffer.size())
         << "/" << std::to_string(bucketSize) << "]" << std::endl;
@@ -105,7 +105,7 @@ std::string BkdTreePlanes::_debug_info() const
             info_ss << buffer[i]->point[j] << " ";
         info_ss << std::endl;
     }
-    
+
     for (size_t i = 0; i < forest.size(); ++i) {
         info_ss << "Tree " << std::to_string(i) << ": "
             << std::to_string(forest.at(i).nrpts) << " pts." << std::endl;
@@ -140,7 +140,7 @@ std::ostream& operator<<(std::ostream &out, const BkdTreePlanes &t)
     return out;
 }
 
-void BkdTreePlanes::insert(vector<PointPlane*> pts, int threadNum) 
+void BkdTreePlanes::insert(vector<PointPlane*> pts, int threadNum)
 {
     for (PointPlane* p : pts)
         insert(p, threadNum);
@@ -416,7 +416,7 @@ void BkdTreePlanes::mergeTreesLogarithmic(int index, int nrpts, int threadNum)
             newpts[ptindex] = datak[q];
             ptindex++;
         }
-    
+
         // Free previous data fields
         forest.at(k).nrpts = 0;
         forest.at(k).empty = true;
@@ -427,7 +427,7 @@ void BkdTreePlanes::mergeTreesLogarithmic(int index, int nrpts, int threadNum)
         newpts[ptindex] = buffer.at(i);
         ptindex++;
     }
-    
+
     // Allocate new points
     forest.at(index).tree = new KDtreePlanes(newpts, nrpts, bucketSize);
     forest.at(index).nrpts = nrpts;
