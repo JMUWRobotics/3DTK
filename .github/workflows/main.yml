@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: ['debian:buster', 'debian:bullseye', 'debian:sid', 'ubuntu:focal']
+        os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
     container: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -56,12 +56,16 @@ jobs:
           apt-get install --yes --no-install-recommends equivs ninja-build build-essential
       - if: matrix.os == 'ubuntu:focal'
         run: equivs-build doc/equivs/control.ubuntu.focal.ros
-      - if: matrix.os == 'debian:sid'
-        run: equivs-build doc/equivs/control.debian.sid.ros
       - if: matrix.os == 'debian:bullseye'
         run: equivs-build doc/equivs/control.debian.bullseye.ros
       - if: matrix.os == 'debian:buster'
         run: equivs-build doc/equivs/control.debian.buster.ros
+      - if: matrix.os == 'ubuntu:bionic'
+        run: equivs-build doc/equivs/control.ubuntu.bionic
+      - if: matrix.os == 'ubuntu:jammy'
+        run: equivs-build doc/equivs/control.ubuntu.jammy
+      - if: matrix.os == 'ubuntu:noble'
+        run: equivs-build doc/equivs/control.ubuntu.noble    
       - name: Install build dependencies
         run: apt-get install --yes --no-install-recommends ./3dtk-build-deps_1.0_all.deb
       - name: Build
