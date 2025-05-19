@@ -20,17 +20,17 @@ void validate(boost::any& v, const std::vector<std::string>& values,
   }
 }
 
-int parse_options(  
-    int argc, 
-    char** argv, 
-    std::string &scandir, 
+int parse_options(
+    int argc,
+    char** argv,
+    std::string &scandir,
     int& start,
     int& end,
-    IOType &type, 
-    bool &quiet, 
-    int &maxDist, 
-    int &minDist, 
-    int &octree, 
+    IOType &type,
+    bool &quiet,
+    int &maxDist,
+    int &minDist,
+    int &octree,
     double &red,
     bool &scanserver,
     bool &use_frames,
@@ -70,7 +70,7 @@ int parse_options(
             "Use the scanserver as an input method and handling of scan data")
         ("continue", po::bool_switch(&use_frames)->default_value(false),
             "Use pose specified in .frames file instead of .pose file.");
-    reduction.add_options()    
+    reduction.add_options()
         ("max,m", po::value<int>(&maxDist)->default_value(-1),
             "neglegt all data points with a distance larger than <arg> 'units'")
         ("min,M", po::value<int>(&minDist)->default_value(-1),
@@ -81,7 +81,7 @@ int parse_options(
             "Use randomized octree based point reduction (pts per voxel=<arg>)");
     matching.add_options()
         ("dist,d", po::value<double>(&mdm)->default_value(25.0),
-            "Minimum distance for considering valid correspondence for ICP") 
+            "Minimum distance for considering valid correspondence for ICP")
         ("distSLAM,D", po::value<double>(&mdml)->default_value(5.0),
             "Minimum distance for considering valid correspondence for GraphSLAM")
         ("iter,i", po::value<int>(&iter)->default_value(100),
@@ -114,7 +114,7 @@ int parse_options(
     po::options_description cmdoptions;
     cmdoptions.add(generic).add(input).add(reduction).add(matching);
 
-    // positional argument for input directory 
+    // positional argument for input directory
     po::positional_options_description pos;
     pos.add("input-dir", 1); // max 1 pos arg
 
@@ -123,7 +123,7 @@ int parse_options(
     po::store( po::command_line_parser(argc, argv).
                 options(alloptions).
                 positional(pos).
-                run(), 
+                run(),
                 vars);
 
     // help display msg
@@ -135,8 +135,8 @@ int parse_options(
         cout << "The program puts S (--size) subsequent scans into a Graph." << endl;
         cout << "First, GraphSLAM is performed on these so called \"Sub-Graphs\" of size S." << endl;
         cout << "GraphSLAM or plain ICP is then performed on the subsequent Sub-Graphs." << endl;
-        cout << endl << "Example usage:" << endl 
-            << "bin/sgicp dat/yourscans -f uosr -r 10 -O 1 -d 50 -S 5" 
+        cout << endl << "Example usage:" << endl
+            << "bin/sgicp dat/yourscans -f uosr -r 10 -O 1 -d 50 -S 5"
             << endl;
         exit(0);
     }

@@ -1,9 +1,9 @@
-/** 
+/**
  * 	This is the header for the SILENT version (hence the S in the filename).
- *  The "silenced" header comes with its own implementation lum6DeulerS.cc. 
+ *  The "silenced" header comes with its own implementation lum6DeulerS.cc.
  *  This implementation will NOT complain to cout if the covariance matrix couldnt be setup.
  * 	Recommended usecase: If you want to apply GraphSLAM to a ScanVector of MetaScan, use this header.
- * 
+ *
  * 	@file
  *  @brief The 6D Lu Milios style SLAM in 6D
  *

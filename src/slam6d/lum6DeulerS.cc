@@ -1,10 +1,10 @@
 /*
  * lum6Deuler implementation
  *
- * The file is a modified "silent" version of the original (src/slam6d/lum6Deuler.cc) 
+ * The file is a modified "silent" version of the original (src/slam6d/lum6Deuler.cc)
  * This version does not write errors to cout if a covariance matrix can not be formed.
  * I did this to use GraphSLAM on MetaScans (see impl in include/slam6d/metaScan.h::get())
- * 
+ *
  * Copyright (C) Dorit Borrmann, Jan Elseberg, Andreas Nuechter, Kai Lingemann
  *
  * Released under the GPL version 3.
@@ -17,13 +17,13 @@
  *
  * Patch to silence the covariance errors:
  * @author Fabian Arzberger. Inst. of CS, University of Wuerzburg, Germany.
- * 
- * Original authors: 
+ *
+ * Original authors:
  * @author Dorit Borrman. Inst. of CS, University of Osnabrueck, Germany.
  * @author Jan Elseberg. Inst. of CS, University of Osnabrueck, Germany.
  * @author Kai Lingemann. Inst. of CS, University of Osnabrueck, Germany.
  * @author Andreas Nuechter. Inst. of CS, University of Osnabrueck, Germany.
- * 
+ *
  * A description of the algorithms implemented here can be found in the
  * following paper (ras2007.pdf):
  *
