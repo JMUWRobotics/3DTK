@@ -47,11 +47,14 @@ jobs:
     container: ${{ matrix.os }}
     steps:
       # - uses: actions/checkout@v2
+      - name: Install git
+        run: apt-get update && apt-get install --yes git
       - name: Clean workspace 
         run: |
-          rm -rf ./* .[^.] .??*
+          rm -rf -- * .[!.]* ..?*
       - name: Checkout code
         run: git clone https://github.com/JMUWRobotics/3DTK.git .
+
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
