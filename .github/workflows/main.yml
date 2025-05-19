@@ -5,6 +5,7 @@ on:
     branches: [ main, workflow ]
 
 jobs:
+  # FIXME: FIND MAINTAINER FOR WINDOWS BUILD INTEGRATION
   # FIXME: blas FTBFS
   #windows:
   #  strategy:
@@ -21,6 +22,8 @@ jobs:
   #        key: ${{ matrix.toolset }}-${{ hashFiles('windows/build.cmd') }}
   #    - run:
   #        windows/build.cmd ${{github.workspace}} ${{github.workspace}}/build ${{ matrix.toolset }}
+  
+  # FIXME: FIND MAINTAINER FOR MACOS BUILD INTEGRATION
   # FIXME: fails with
   # Could not find a package configuration file provided by "Qt5Widgets"
   #macos:
@@ -43,10 +46,25 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: ['debian:buster', 'debian:bullseye', 'debian:sid', 'ubuntu:focal']
+        os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
     container: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2 ## THIS CHECKOUT USES GLIBC2.28, WHICH IS UNAVAILABLE IN OLD CONTAINERS
+      - name: Install git
+        run: apt-get update && apt-get install --yes git
+      - name: Set noninteractive frontend
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          echo "Etc/UTC" > /etc/timezone
+          ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
+          apt-get update
+          apt-get install --yes --no-install-recommends tzdata
+          dpkg-reconfigure --frontend noninteractive tzdata
+      - name: Clean workspace 
+        run: |
+          rm -rf -- * .[!.]* ..?*
+      - name: Checkout code
+        run: git clone https://github.com/JMUWRobotics/3DTK.git .
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
@@ -56,16 +74,27 @@ jobs:
           apt-get install --yes --no-install-recommends equivs ninja-build build-essential
       - if: matrix.os == 'ubuntu:focal'
         run: equivs-build doc/equivs/control.ubuntu.focal.ros
-      - if: matrix.os == 'debian:sid'
-        run: equivs-build doc/equivs/control.debian.sid.ros
       - if: matrix.os == 'debian:bullseye'
         run: equivs-build doc/equivs/control.debian.bullseye.ros
       - if: matrix.os == 'debian:buster'
         run: equivs-build doc/equivs/control.debian.buster.ros
+      - if: matrix.os == 'ubuntu:bionic'
+        run: equivs-build doc/equivs/control.ubuntu.bionic
+      - if: matrix.os == 'ubuntu:jammy'
+        run: equivs-build doc/equivs/control.ubuntu.jammy
+      - if: matrix.os == 'ubuntu:noble'
+        run: equivs-build doc/equivs/control.ubuntu.noble    
       - name: Install build dependencies
         run: apt-get install --yes --no-install-recommends ./3dtk-build-deps_1.0_all.deb
-      - name: Build
+      - name: Configure CMake (WITH_ROS)
+        if: matrix.os == 'ubuntu:focal'
         run: |
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_ROS=ON -G Ninja
+      - name: Configure CMake
+        if: matrix.os != 'ubuntu:focal'
+        run: |
+          cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
+      - name: Build and Test
+        run: |
           cmake --build .build --config RelWithDebInfo
           CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test

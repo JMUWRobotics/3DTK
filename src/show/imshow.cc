@@ -23,6 +23,7 @@
 #include "imgui.h"
 #include "imgui_impl_glut.h"
 #include "imgui_impl_opengl2.h"
+#include "imgui_internal.h"
 #define GL_SILENCE_DEPRECATION
 #include "imGuIZMOquat.h"
 
@@ -31,6 +32,7 @@
 #include "show/show_gl.h"
 #include "show/callbacks_glut.h"
 
+#include <GL/freeglut_std.h>
 #include <thread>
 #ifdef __linux__
 	#include <linux/input.h>
@@ -442,8 +444,14 @@ void renderImGuiWindows() {
       ImGui::Checkbox("Interpolate by Distance", &interpolate_bool);
       // Check if updated
       inter_by_dist=interpolate_bool;
-      if (ImGui::Button("Animate Path")) pathAnimate(0);
-      if (ImGui::Button("Animate Path and Matching")) pathMatchingAnimate(0);
+      if (ImGui::Button("Animate Path")) {
+        pathAnimate(0);
+        pointmode = 1; // force all points to be drawn
+      }
+      if (ImGui::Button("Animate Path and Matching")) {
+        pathMatchingAnimate(0);
+        pointmode = 1; // force all points to be drawn
+      }
       ImGui::TreePop();
     }
     ImGui::Separator();
@@ -604,7 +612,7 @@ void renderImGuiWindows() {
       static bool cam_mouse_nav_bool = true;
       ImGui::Checkbox("MouseNav", &cam_mouse_nav_bool);
       cameraNavMouseMode = cam_mouse_nav_bool;
-      static bool always_all_pts = false, always_reduce_pts = true;
+      static bool always_all_pts = false, always_reduce_pts = false;
       bool always_tmp = always_all_pts, reduce_tmp = always_reduce_pts;
       ImGui::Checkbox("Always all points", &always_all_pts);
       ImGui::Checkbox("Always reduce points", &always_reduce_pts);
@@ -629,7 +637,6 @@ void renderImGuiWindows() {
         // Change pointmode to display everything
         if (pointmode != 0) {
           pointmode = 0;
-          glutPostRedisplay();
         }
 
       // If non-idle and always reduce
@@ -637,7 +644,6 @@ void renderImGuiWindows() {
         // Change pointmode to always reduce
         if (pointmode != -1) {
           pointmode = -1;
-          glutPostRedisplay();
         }
 
       // If non-idle and always all
@@ -645,26 +651,36 @@ void renderImGuiWindows() {
         // interuptable always_all_pts mode
         checkForInterrupt();
         // Start loading the points, show a modal dialog
-        if (!isInterrupted() && pointmode != 1 && !mousemoving && !keypressed && modal_renderings < 3) {
+        if (!isInterrupted() && pointmode != 1 && !mousemoving && !keypressed && modal_renderings < 2 && haveToUpdate != 6) {
           ImGui::OpenPopup("Please wait");
           if (ImGui::BeginPopupModal("Please wait")){
             ImGui::Text("Loading all the points at once...");
             ImGui::Text("Interact to abort.");
             ImGui::EndPopup();
-            // We need at least 2 modal renderings because of the rendering cycle...
-            modal_renderings++;
           }
-          glutPostRedisplay();
+          modal_renderings++;
+          haveToUpdate = 1;
         // If we are interrupted, reset mode to always_reduce mode internally
         } else if (mousemoving || keypressed || isInterrupted()) {
-          pointmode = -1;
-          glutPostRedisplay();
+          if (pointmode != -1) {
+            pointmode = -1;
+            haveToUpdate = 1;
+          }
+          if (ImGui::IsPopupOpen("Please wait")) {
+            ImGui::CloseCurrentPopup();
+          }
+          modal_renderings = 0;
+
         // If we did not get interrupted and have rendered the modal dialog, start rendering all points
-        } else if (modal_renderings >= 3 && pointmode != 1) {
+        } else if (modal_renderings >= 2 && pointmode != 1) {
           // Change pointmode to always all
           pointmode = 1;
+          if (ImGui::IsPopupOpen("Please wait")) {
+            ImGui::CloseCurrentPopup();
+          }
           modal_renderings = 0;
-          glutPostRedisplay();
+          //haveToUpdate = 1;
+          glutPostRedisplay(); // run one GlutMainLoop cycle to validate display
         }
       // If no idle and no checkbox
       } else if (!always_reduce_pts && !always_all_pts && (mousemoving || keypressed)) {
@@ -1035,62 +1051,64 @@ void DisplayItFuncIm(GLenum mode, bool interruptable)
 displayIm alters the OpenGL rendering cycle from the original 3dtk to include ImGui.*/
 void displayIm() {
 
+  // Render ImGui windows
   renderImGuiWindows();
 
   // GLUT / OpenGL2 camera and aspect handling:
   if (((fabs(cangle_old - cangle) > 0.5)) ||
-    (fabs(pzoom_old - pzoom) > 0.5)) {
+  (fabs(pzoom_old - pzoom) > 0.5)) {
     cangle_old = cangle;
     pzoom_old = pzoom;
     int viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     reshapeIm(viewport[2], viewport[3]);
-#ifdef _WIN32
+    #ifdef _WIN32
     Sleep(5); // legacy show: Sleep(25)
-#else
+    #else
     usleep(50000); // legacy show: usleep(250000)
-#endif
+    #endif
   }
 
-  // Draw the buffer
+  // show the rendered scene
   glDrawBuffer(buffermode);
   DisplayItFuncIm(GL_RENDER, false);
+
   // Finally Draw ImGui contents as well
   ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-  // show the rendered scene
+
+  // Draw the buffer
   glutSwapBuffers();
-  if (pointmode != 0) {
-    glutPostRedisplay();
+  if (pointmode == -1 || ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+    if (pointmode != 0) glutPostRedisplay();
   }
 }
 
-/* Replacement for the GLUT idle function. Instead of wrapping, this needed to be """completly""" changed */
-void idleIm(void) {
+  /* Replacement for the GLUT idle function. Instead of wrapping, this needed to be """completly""" changed */
+  void idleIm(void) {
+    #ifdef _WIN32
+    Sleep(1);
+    #else
+    usleep(1000);
+    #endif
 
-#ifdef _WIN32
-  Sleep(1);
-#else
-  usleep(1000);
-#endif
-
-  if (glutGetWindow() != window_id)
+    if (glutGetWindow() != window_id)
     glutSetWindow(window_id);
 
-  // return as nothing has to be updated
-  if (haveToUpdate == 0) {
-    if (!mousemoving && !keypressed && pointmode == 0) {
-      glDrawBuffer(buffermode);
-      // Call the display function
-      DisplayItFuncIm(GL_RENDER, true); // Attention: Modified for ImGui
+    // return as nothing has to be updated
+    if (haveToUpdate == 0) {
+      if (!fullydisplayed && !mousemoving && !keypressed && pointmode == 0) {
+        glDrawBuffer(buffermode);
+        // Call the display function
+        DisplayItFuncIm(GL_RENDER, true); // Attention: Modified for ImGui
+      }
+      return;
     }
-    return;
-  }
 
-  // case: display is invalid - update it
-  if (haveToUpdate == 1) {
-    update_callback();
-    haveToUpdate = 0;
-    return;
+    // case: display is invalid - update it
+    if (haveToUpdate == 1) {
+      update_callback();
+      haveToUpdate = 0;
+      return;
   }
 
   // case: camera angle is changed - instead of repeating code call Reshape,
@@ -1192,8 +1210,6 @@ void idleIm(void) {
     // check if the user wants to animate both
     // scan matching and the path at the same
     // time
-
-    // cout << "path_iterator: " << path_iterator << endl;
     if (path_iterator < path_vectorX.size()) {   // standard animation case
 
       // call the path animation function
@@ -1320,7 +1336,7 @@ int main(int argc, char **argv)
   // Connect backend and init show window
   initScreenWindowIm();
   initShow(dss, ws, ds);
-
+  pointmode = 0;
   if (takescreenshot) {
     glutTimerFunc(0, &saveImageAndExit, 0);
   }
