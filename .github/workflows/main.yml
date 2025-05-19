@@ -5,6 +5,7 @@ on:
     branches: [ main, workflow ]
 
 jobs:
+  # FIXME: FIND MAINTAINER FOR WINDOWS BUILD INTEGRATION
   # FIXME: blas FTBFS
   #windows:
   #  strategy:
@@ -21,6 +22,8 @@ jobs:
   #        key: ${{ matrix.toolset }}-${{ hashFiles('windows/build.cmd') }}
   #    - run:
   #        windows/build.cmd ${{github.workspace}} ${{github.workspace}}/build ${{ matrix.toolset }}
+  
+  # FIXME: FIND MAINTAINER FOR MACOS BUILD INTEGRATION
   # FIXME: fails with
   # Could not find a package configuration file provided by "Qt5Widgets"
   #macos:
@@ -46,7 +49,7 @@ jobs:
         os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
     container: ${{ matrix.os }}
     steps:
-      # - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2 ## THIS CHECKOUT USES GLIBC2.28, WHICH IS UNAVAILABLE IN OLD CONTAINERS
       - name: Install git
         run: apt-get update && apt-get install --yes git
       - name: Clean workspace 
@@ -54,7 +57,6 @@ jobs:
           rm -rf -- * .[!.]* ..?*
       - name: Checkout code
         run: git clone https://github.com/JMUWRobotics/3DTK.git .
-
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
@@ -77,7 +79,14 @@ jobs:
       - name: Install build dependencies
         run: apt-get install --yes --no-install-recommends ./3dtk-build-deps_1.0_all.deb
       - name: Build
-        run: |
+      - if: matrix.os == 'ubuntu:focal' 
+        run: | # Ubuntu 20.04 focal supports ROS 1 natively, so tested here
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_ROS=ON -G Ninja
           cmake --build .build --config RelWithDebInfo
           CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
+      - if: matrix.os != 'ubuntu:focal'
+        run: | # Non-ROS supporting distros:
+          cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
+          cmake --build .build --config RelWithDebInfo
+          CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
+
