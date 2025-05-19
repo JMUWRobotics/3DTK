@@ -131,6 +131,17 @@ add_executable(slam6D slam6D.cc)
 
 target_link_libraries(slam6D scan ${NEWMAT_LIBRARIES} ${SUITESPARSE_LIBRARIES} ${ANN_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
+### Subgraph ICP
+set(SGICP_SRCS
+  subgraphicp.cc
+  lum6DeulerS.cc
+)
+add_executable(sgicp ${SGICP_SRCS})
+if(WIN32)
+  target_link_libraries(sgicp scan scanio ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+else()
+  target_link_libraries(sgicp scan scanio ${NEWMAT_LIBRARIES_SHARED} ${CXSPARSE_LIBRARIES} ${ANN_LIBRARIES_SHARED} dl ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+endif()
 #if(MSVC)
 #	install(TARGETS slam6D RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/windows)
 #endif()
