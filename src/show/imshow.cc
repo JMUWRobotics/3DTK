@@ -447,7 +447,7 @@ void renderImGuiWindows() {
       if (ImGui::Button("Animate Path")) {
         pathAnimate(0);
         pointmode = 1; // force all points to be drawn
-      } 
+      }
       if (ImGui::Button("Animate Path and Matching")) {
         pathMatchingAnimate(0);
         pointmode = 1; // force all points to be drawn
@@ -541,7 +541,7 @@ void renderImGuiWindows() {
       if(ImGui::Button("Top view")) topView();
       if(ImGui::Button("Rotate view")) rotateView();
       if(ImGui::Button("Reset view")) resetView(0);
-      
+
       // Column 2
       ImGui::TableNextColumn();
       ImGui::Text("Zoom settings");
@@ -1053,7 +1053,7 @@ void displayIm() {
 
   // Render ImGui windows
   renderImGuiWindows();
-  
+
   // GLUT / OpenGL2 camera and aspect handling:
   if (((fabs(cangle_old - cangle) > 0.5)) ||
   (fabs(pzoom_old - pzoom) > 0.5)) {
@@ -1068,21 +1068,21 @@ void displayIm() {
     usleep(50000); // legacy show: usleep(250000)
     #endif
   }
-  
+
   // show the rendered scene
   glDrawBuffer(buffermode);
   DisplayItFuncIm(GL_RENDER, false);
-  
+
   // Finally Draw ImGui contents as well
   ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-  
+
   // Draw the buffer
   glutSwapBuffers();
   if (pointmode == -1 || ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
     if (pointmode != 0) glutPostRedisplay();
   }
 }
-  
+
   /* Replacement for the GLUT idle function. Instead of wrapping, this needed to be """completly""" changed */
   void idleIm(void) {
     #ifdef _WIN32
@@ -1090,10 +1090,10 @@ void displayIm() {
     #else
     usleep(1000);
     #endif
-    
+
     if (glutGetWindow() != window_id)
     glutSetWindow(window_id);
-    
+
     // return as nothing has to be updated
     if (haveToUpdate == 0) {
       if (!fullydisplayed && !mousemoving && !keypressed && pointmode == 0) {
@@ -1103,7 +1103,7 @@ void displayIm() {
       }
       return;
     }
-    
+
     // case: display is invalid - update it
     if (haveToUpdate == 1) {
       update_callback();
