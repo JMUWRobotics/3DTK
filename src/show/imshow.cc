@@ -378,15 +378,10 @@ void renderImGuiWindows()
       // Drawing Controlls
       // Checkboxes
       ImGui::Checkbox("Draw Points", &show_points_bool);
-      show_points = show_points_bool;
       ImGui::Checkbox("Draw Objects", &show_objects_bool);
-      show_objects = show_objects_bool;
       ImGui::Checkbox("Draw Camera", &show_cameras_bool);
-      show_cameras = show_cameras_bool;
       ImGui::Checkbox("Draw Path", &show_path_bool);
-      show_path = show_path_bool;
       ImGui::Checkbox("Draw Poses", &show_poses_bool);
-      show_poses = show_poses_bool;
       ImGui::Separator();
       // Point size
       ImGui::Text("Point size:");
@@ -626,12 +621,15 @@ void renderImGuiWindows()
 
   // 2. Similar to legacy shows controlls panel
   {
-    ImGui::SetNextWindowPos(ImVec2(START_WIDTH_IMGUI * 0.01, START_HEIGHT_IMGUI * 0.01), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(START_WIDTH_IMGUI * 0.655, START_HEIGHT_IMGUI * 0.20), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(START_WIDTH_IMGUI * 0.01, START_HEIGHT_IMGUI * 0.01),
+          ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(START_WIDTH_IMGUI * 0.655, START_HEIGHT_IMGUI * 0.20),
+           ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Controls")) {
 
-      bool table_exists = ImGui::BeginTable("controls_table", 5, ImGuiTableFlags_ScrollX | ImGuiTableFlags_SizingStretchProp);
+      bool table_exists = ImGui::BeginTable(
+          "controls_table", 5, ImGuiTableFlags_ScrollX | ImGuiTableFlags_SizingStretchProp);
 
       // Column 1
       ImGui::TableNextColumn();
@@ -714,7 +712,6 @@ void renderImGuiWindows()
       ImGui::TableNextColumn();
       ImGui::Text("General behaviour");
       ImGui::Checkbox("MouseNav", &cam_mouse_nav_bool);
-      cameraNavMouseMode = cam_mouse_nav_bool;
       bool always_tmp = always_all_pts, reduce_tmp = always_reduce_pts;
       ImGui::Checkbox("Always all points", &always_all_pts);
       ImGui::Checkbox("Always reduce points", &always_reduce_pts);
@@ -786,7 +783,8 @@ void renderImGuiWindows()
     } else if (mousemoving || keypressed || isInterrupted()) {
       if (pointmode != -1) {
         pointmode = -1;
-        haveToUpdate = 1;
+        if (haveToUpdate != 3)
+          haveToUpdate = 1;
       }
       if (ImGui::IsPopupOpen("Please wait")) {
         ImGui::CloseCurrentPopup();
@@ -811,6 +809,14 @@ void renderImGuiWindows()
       glutPostRedisplay();
     }
   }
+
+  // Set show states to ImGui states
+  cameraNavMouseMode = cam_mouse_nav_bool;
+  show_points = show_points_bool;
+  show_objects = show_objects_bool;
+  show_cameras = show_cameras_bool;
+  show_path = show_path_bool;
+  show_poses = show_poses_bool;
 
   // Render IMGUI stuff into ImGuis internal buffer
   ImGui::Render();
@@ -1247,6 +1253,7 @@ void idleIm(void)
   usleep(1000);
 #endif
 
+
   if (glutGetWindow() != window_id)
     glutSetWindow(window_id);
 
@@ -1493,7 +1500,9 @@ int main(int argc, char **argv)
   // Connect backend and init show window
   initScreenWindowIm();
   initShow(dss, ws, ds);
+  // Start in accumulation mode and disable the bottom left label
   pointmode = 0;
+  label = false;
   if (takescreenshot) {
     glutTimerFunc(0, &saveImageAndExit, 0);
   }
