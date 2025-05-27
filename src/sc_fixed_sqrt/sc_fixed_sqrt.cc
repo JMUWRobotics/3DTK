@@ -1,0 +1,40 @@
+#include "sc_fixed_sqrt/sc_fixed_sqrt.h"
+
+// typedef sc_fixed<WL, IWL> fixed_t;
+
+
+fixed_t sc_fixed_heron_sqrt(fixed_t s) {
+
+  fixed_t x = s/2;
+  fixed_t x_n;
+  
+  while(true) {
+    x_n = (x + s / x) / 2;
+
+    fixed_t diff = x - x_n;
+    if(diff < 0) {
+      diff = -diff;
+    }
+
+    fixed_t e = fixed_t(1.0/(1<<(WL-IWL-2)));
+    if (diff < e){
+      break;
+    }
+    x = x_n;
+  }
+
+  return x_n;
+  
+  
+}
+
+int sc_main(int argc, char* argv[]){
+
+  fixed_t s = 5;
+  fixed_t res = sc_fixed_heron_sqrt(s);
+
+  cout << res << endl;
+  
+  return 0;
+
+}
