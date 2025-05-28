@@ -1,38 +1,29 @@
 #include "sc_fixed_math/sc_fixed_math.h"
 
 
-fixed_t sc_fixed_heron_sqrt(fixed_t s) {
+f_float sc_fixed_heron_sqrt(f_float s) {
 
-  fixed_t x = s/2;
-  fixed_t x_n;
+  f_float x = (s+1)/2;
+  f_float x_n;
   
-  while(true) {
+  for(int i = HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
-
-    fixed_t diff = x - x_n;
-    if(diff < 0) {
-      diff = -diff;
-    }
-
-    fixed_t e = fixed_t(1.0/(1<<(WL-IWL-2)));
-    if (diff < e){
-      break;
-    }
     x = x_n;
   }
 
   return x_n;
   
-  
 }
 
+// For testing
 int sc_main(int argc, char* argv[]){
 
-  fixed_t s = 5;
-  fixed_t res = sc_fixed_heron_sqrt(s);
+  f_float s = 163;
+  f_float res = sc_fixed_heron_sqrt(s);
 
   cout << res << endl;
   
   return 0;
 
 }
+// END testing

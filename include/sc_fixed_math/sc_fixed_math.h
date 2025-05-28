@@ -3,18 +3,16 @@
 
 #define SC_INCLUDE_FX
 
-#define WL 16
-#define IWL 8
-
 #include <systemc.h>
 
+constexpr int WORD_LENGTH = 24;
+constexpr int INT_WORD_LENGTH = 16;
+
+constexpr int HERON_ITERATIONS = 5;
 
 using namespace sc_dt;
-using namespace std;
+using f_float = sc_fixed<WORD_LENGTH, INT_WORD_LENGTH>;
 
-typedef sc_fixed<WL, IWL> fixed_t;
-
-fixed_t sc_fixed_heron_sqrt(fixed_t s);
-
+f_float sc_fixed_heron_sqrt(f_float s);
 
 #endif // SC_FIXED_MATH_H
