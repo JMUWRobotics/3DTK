@@ -487,7 +487,6 @@ if(WITH_SYSTEMC)
     include_directories(${SYSTEMC_INCLUDE_DIR})
     add_definitions(-DWITH_SYSTEMC)
     set(SYSTEMC_LINK_LIBS ${SYSTEMC_LIBRARY})
-    # add_subdirectory(src/sc_fixed_sqrt) # deactivated, was just for testing reasons
 
   else()
     message(FATAL_ERROR "SystemC was enabled, but could not be found")
