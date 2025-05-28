@@ -1,3 +1,6 @@
 [submodule "3rdparty/cctag"]
 	path = 3rdparty/cctag
 	url = https://github.com/JMUWRobotics/CCTag.git
+[submodule "3rdparty/paruco"]
+	path = 3rdparty/paruco
+	url = https://github.com/JMUWRobotics/PArUco.git

@@ -1,6 +1,7 @@
 if (WITH_OPENCV AND WITH_EIGEN3)
   include_directories(${APRILTAG_INCLUDE_DIRS})
   include_directories(${CCTag_INCLUDE_DIRS})
+  include_directories(${PArUco_INCLUDE_DIRS})
 
   find_package(Eigen3 REQUIRED)
   include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -15,9 +16,10 @@ if (WITH_OPENCV AND WITH_EIGEN3)
       PinholeModel.cc
       DetectionFileHandler.cpp
       CCTagDetector.cc
+      PArUcoDetector.cc
       )
   add_library(calibration ${CALIBRATION_LIBRARY_SOURCES})
-  target_link_libraries(calibration apriltag CCTag ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+  target_link_libraries(calibration apriltag CCTag paruco ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
   add_executable(detect detect.cc )
   if (WIN32)

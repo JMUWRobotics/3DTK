@@ -12,6 +12,7 @@
 #include "calibration/ChessboardDetector.h"
 #include "calibration/CirclesGridDetector.h"
 #include "calibration/DetectionFileHandler.h"
+#include "calibration/PArUcoDetector.h"
 
 #include <dirent.h>
 
@@ -68,6 +69,7 @@ int main(int argc, const char *argv[]) {
     bool fastCheck;
     bool sectorBasedApproach;
     size_t nCrowns;
+    float tagExpandScale;
 
     // Declare supported options
     po::variables_map vm;
@@ -77,6 +79,7 @@ int main(int argc, const char *argv[]) {
     po::options_description apriltag("AprilTag options");
     po::options_description chessboard("Chessboard and circles grid options");
     po::options_description cctag("CCTag options");
+    po::options_description paruco("PArUco options");
     po::options_description hidden("Hidden options");
 
     generic.add_options()
@@ -86,7 +89,7 @@ int main(int argc, const char *argv[]) {
     input.add_options()
 #if CV_MAJOR_VERSION > 3
             ("patterntype,p", po::value<std::string>(&patternType)->default_value("apriltag"),
-             "set the type of used pattern, default 'apriltag', allowed 'apriltag' or 'aruco' or 'chessboard' or 'circlesgrid' or 'cctag'")
+             "set the type of used pattern, default 'apriltag', allowed 'apriltag' or 'aruco' or 'chessboard' or 'circlesgrid' or 'cctag' or 'paruco'")
 #else
             ("patterntype,p", po::value<std::string>(&patternType)->default_value("apriltag"),
              "set the type of used pattern, default 'apriltag', allowed 'apriltag' or 'chessboard' or 'circlesgrid'")
@@ -102,7 +105,7 @@ int main(int argc, const char *argv[]) {
     apriltag.add_options()
             ("tagfamily,f", po::value<std::string>(&tagFamily)->default_value("tag36h11"), "set AprilTag family, "
                                                                                            "default 'tag36h11'")
-            ("dictionary", po::value<std::string>(&arucoDictionary)->default_value("DICT_6X6_250"), "set Aruco dictionary. DICT_6X6_250, DICT_6X6_1000, DICT_APRILTAG_36h11 are supported")
+            ("dictionary", po::value<std::string>(&arucoDictionary)->default_value("DICT_6X6_250"), "set (P)ArUco dictionary. DICT_6X6_250, DICT_6X6_1000, DICT_APRILTAG_36h11 are supported")
             ("decimate,d", po::value<float>(&decimate)->default_value(0.0), "decimate input image by this factor")
             ("blur,b", po::value<float>(&blur)->default_value(0.0), "apply low-pass blur to input; negative sharpens")
             ("hamming,h", po::value<int>(&hamming)->default_value(0), "detect tags with up to this many bit errors")
@@ -130,12 +133,14 @@ int main(int argc, const char *argv[]) {
 #endif
     cctag.add_options()
             ("n-crowns", po::value<size_t>(&nCrowns)->default_value(3), "number of rings");
+    paruco.add_options()
+            ("tag-expand-scale", po::value<float>(&tagExpandScale)->default_value(0.5f), "ratio of tag-circle distance over tag size");
 
     po::options_description all;
-    all.add(generic).add(hidden).add(input).add(output).add(apriltag).add(chessboard).add(cctag);
+    all.add(generic).add(hidden).add(input).add(output).add(apriltag).add(chessboard).add(cctag).add(paruco);
 
     po::options_description cmdline_options;
-    cmdline_options.add(generic).add(input).add(output).add(apriltag).add(chessboard).add(cctag);
+    cmdline_options.add(generic).add(input).add(output).add(apriltag).add(chessboard).add(cctag).add(paruco);
 
     po::positional_options_description pd;
     pd.add("input", 1);
@@ -228,6 +233,8 @@ int main(int argc, const char *argv[]) {
         }
 
         detector = new calibration::CCTagDetector(nCrowns);
+    } else if (vm["patterntype"].as<std::string>() == "paruco") {
+        detector = new calibration::PArUcoDetector(tagExpandScale, arucoDictionary);
     } else {
         std::cerr << "Patterntype is invalid! use -- help for more information" << std::endl;
         std::cout << cmdline_options << std::endl;
