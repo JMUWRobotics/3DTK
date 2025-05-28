@@ -1,0 +1,9 @@
+if(WITH_SYSTEMC)
+  #Executable erstellen
+  add_executable(sc_fixed_sqrt sc_fixed_sqrt.cc)
+
+  target_link_libraries(sc_fixed_sqrt PRIVATE SystemC::systemc)
+
+  set_target_properties(sc_fixed_sqrt PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+endif()
