@@ -1,7 +1,5 @@
 /*
- * exportPoints implementation
- *
- * Copyright (C) Jochen Sprickerhof
+ * ICP Fixpoint implementation
  *
  * Released under the GPL version 3.
  *
@@ -10,7 +8,7 @@
 
 /**
  * @file
- * @author Jochen Sprickerhof. Institute of Computer Science, University of Osnabrueck, Germany.
+ * @author Tom Fleischmann, Yannik Winzer, Jonas Wiesner. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
 #include <string>
@@ -51,10 +49,9 @@ void validate(boost::any& v, const std::vector<std::string>& values,
   }
 }
 
-int parse_options(int argc, char **argv, std::string &dir, double &red, int &rand,
-            int &start, int &end, int &maxDist, int &minDist, bool &use_pose,
-            bool &use_xyz, bool &use_reflectance, bool &use_type, bool &use_color, int &octree, IOType &type, std::string& customFilter, double &scaleFac,
-	    bool &hexfloat, bool &high_precision, int &frame, bool &use_normals)
+int parse_options(int argc, char **argv, std::string &dir,
+            int &start, int &end, bool &use_pose,
+        IOType &type, double &scaleFac)
 {
 po::options_description generic("Generic options");
   generic.add_options()
@@ -71,40 +68,11 @@ po::options_description generic("Generic options");
      "[ATTENTION: counting naturally starts with 0]")
     ("end,e", po::value<int>(&end)->default_value(-1),
      "end after scan <arg>")
-    ("customFilter,u", po::value<string>(&customFilter),
-    "Apply a custom filter. Filter mode and data are specified as a semicolon-seperated string:"
-    "{filterMode};{nrOfParams}[;param1][;param2][...]\n"
-    "Multiple filters can be specified in a file (syntax in file is same as direct specification\n"
-    "FILE;{fileName}\n"
-    "See filter implementation in src/slam6d/pointfilter.cc for more detail.")
-    ("reduce,r", po::value<double>(&red)->default_value(-1.0),
-    "turns on octree based point reduction (voxel size=<NR>)")
-    ("octree,O", po::value<int>(&octree)->default_value(1),
-    "use randomized octree based point reduction (pts per voxel=<NR>)")
     ("scale,y", po::value<double>(&scaleFac)->default_value(0.01),
     "scale factor for point cloud in m (be aware of the different units for uos (cm) and xyz (m), (default: 0.01 means that input and output remain the same)")
-    ("min,M", po::value<int>(&minDist)->default_value(-1),
-    "neglegt all data points with a distance smaller than NR 'units'")
-    ("max,m", po::value<int>(&maxDist)->default_value(-1),
-    "neglegt all data points with a distance larger than NR 'units'")
-    ("color,c", po::bool_switch(&use_color)->default_value(false),
-     "export in color as RGB")
-    ("reflectance,R", po::bool_switch(&use_reflectance)->default_value(false),
-     "export reflectance values")
-    ("type,T", po::bool_switch(&use_type)->default_value(false),
-     "export type/class values")
-    ("normals,N", po::bool_switch(&use_normals)->default_value(false),
-     "export point normals")
     ("trustpose,p", po::bool_switch(&use_pose)->default_value(false),
-    "Trust the pose file, do not use the transformation from the .frames files.")
-    ("xyz,x", po::bool_switch(&use_xyz)->default_value(false),
-     "export in xyz format (right handed coordinate system in m)")
-    ("hexfloat,0", po::bool_switch(&hexfloat)->default_value(false),
-     "export points with hexadecimal digits")
-    ("highprecision,H", po::bool_switch(&high_precision)->default_value(false),
-     "export points with full double precision")
-    ("frame,n", po::value<int>(&frame)->default_value(-1),
-     "uses frame NR for export");
+    "Trust the pose file, do not use the transformation from the .frames files.");
+  
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
@@ -132,7 +100,7 @@ po::options_description generic("Generic options");
     std::cout << cmdline_options;
     std::cout << std::endl
          << "Example usage:" << std::endl
-         << "\t./bin/exportPoints -s 0 -e 1 /Your/directory" << std::endl;
+         << "\t./bin/icpFixpoint -s 0 -e 1 /Your/directory" << std::endl;
     exit(0);
   }
   po::notify(vm);
@@ -147,8 +115,8 @@ po::options_description generic("Generic options");
 }
 
 /**
- * program for point export
- * Usage: bin/exportPoints 'dir',
+ * program for ICP
+ * Usage: bin/icpFixpoint 'dir',
  * with 'dir' the directory of a set of scans
  * ...
  */
@@ -157,82 +125,18 @@ int main(int argc, char **argv)
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;
-  double red   = -1.0;
-  int    rand  = -1;
   int    start = 0,   end = -1;
-  int    maxDist    = -1;
-  int    minDist    = -1;
   bool   uP         = false;  // should we use the pose information instead of the frames??
-  bool   use_xyz = false;
-  bool   use_color = false;
-  bool   use_reflectance = false;
-  bool   use_type = false;
-  bool   use_normals = false;
-  int octree       = 0;  // employ randomized octree reduction?
   IOType iotype    = UOS;
-  bool rangeFilterActive = false;
-  bool customFilterActive = false;
-  std::string customFilter;
   double scaleFac = 0.01;
-  bool hexfloat = false;
-  bool high_precision = false;
-  int frame = -1;
+
 
   try {
-    parse_options(argc, argv, dir, red, rand, start, end,
-      maxDist, minDist, uP, use_xyz, use_reflectance, use_type, use_color, octree, iotype, customFilter, scaleFac,
-      hexfloat, high_precision, frame, use_normals);
+    parse_options(argc, argv, dir, start, end,
+     uP, iotype, scaleFac);
   } catch (std::exception& e) {
     std::cerr << "Error while parsing settings: " << e.what() << std::endl;
     exit(1);
-  }
-
-  if(!supportsNormals(iotype) && use_normals) {
-    std::cerr << "WARNING File format does not support normals. Normals are not exported" << std::endl;
-    use_normals = false;
-  }
-
-  rangeFilterActive = minDist > 0 || maxDist > 0;
-
-  // custom filter set? quick check, needs to contain at least one ';'
-  // (proper chsecking will be done case specific in pointfilter.cc)
-  size_t pos = customFilter.find_first_of(";");
-  if (pos != std::string::npos){
-      customFilterActive = true;
-
-      // check if customFilter is specified in file
-      if (customFilter.find("FILE;") == 0){
-          std::string selection_file_name = customFilter.substr(5, customFilter.length());
-          std::ifstream selectionfile;
-          // open the input file
-          selectionfile.open(selection_file_name, std::ios::in);
-
-          if (!selectionfile.good()){
-              std::cerr << "Error loading custom filter file " << selection_file_name << "!" << std::endl;
-              std::cerr << "Data will NOT be filtered!" << std::endl;
-              customFilterActive = false;
-          }
-          else {
-              std::string line;
-              std::string custFilt;
-              while (std::getline(selectionfile, line)){
-                  if (line.find("#") == 0) continue;
-                  custFilt = custFilt.append(line);
-                  custFilt = custFilt.append("/");
-              }
-              if (custFilt.length() > 0) {
-                  // last '/'
-                  customFilter = custFilt.substr(0, custFilt.length() - 1);
-              }
-          }
-          selectionfile.close();
-      }
-  }
-  else {
-      // give a warning if custom filter has been inproperly specified
-      if (customFilter.length() > 0){
-          std::cerr << "Custom filter: specifying string has not been set properly, data will NOT be filtered." << std::endl;
-      }
   }
 
   // Get Scans
@@ -243,34 +147,11 @@ int main(int argc, char **argv)
   }
 
   unsigned int types = PointType::USE_NONE;
-  if(supportsReflectance(iotype)) types |= PointType::USE_REFLECTANCE;
-  if(supportsColor(iotype)) types |= PointType::USE_COLOR;
-  if(supportsType(iotype)) types |= PointType::USE_TYPE;
+  
 
-  // if specified, filter scans
-  for (size_t i = 0; i < Scan::allScans.size(); i++)  {
-     if(rangeFilterActive) Scan::allScans[i]->setRangeFilter(maxDist, minDist);
-     if(customFilterActive) Scan::allScans[i]->setCustomFilter(customFilter);
-  }
+  readFramesAndTransform(dir, start, end, -1 , uP, false);
 
-//
-  int end_reduction = (int)Scan::allScans.size();
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
-#endif
-  for (int iterator = 0; iterator < end_reduction; iterator++) {
-    if (red > 0) {
-      PointType pointtype(types);
-      std::cout << "Reducing Scan No. " << iterator << std::endl;
-      Scan::allScans[iterator]->setReductionParameter(red, octree, pointtype);
-      Scan::allScans[iterator]->calcReducedPoints();
-    } else {
-      std::cout << "Copying Scan No. " << iterator << std::endl;
-    }
-    // reduction filter for current scan!
-  }
 
-  readFramesAndTransform(dir, start, end, frame, uP, red > -1);
 
  std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
  std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
@@ -281,88 +162,15 @@ int main(int argc, char **argv)
 
   for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
     Scan *source = Scan::allScans[i];
-    std::string red_string = red > 0 ? " reduced" : "";
+//    std::string red_string = red > 0 ? " reduced" : "";
 
-    DataXYZ xyz  = source->get("xyz" + red_string);
+ DataXYZ xyz  = source->get("xyz" + std::string(""));
 
-    if(use_reflectance) {
-      DataReflectance xyz_reflectance =
-          (((DataReflectance)source->get("reflectance" + red_string)).size() == 0) ?
-
-          source->create("reflectance" + red_string, sizeof(float)*xyz.size()) :
-          source->get("reflectance" + red_string);
-
-      if (!(types & PointType::USE_REFLECTANCE)) {
-        for(unsigned int i = 0; i < xyz.size(); i++) xyz_reflectance[i] = 255;
-      }
-      if(use_xyz) {
-        write_xyzr(xyz, xyz_reflectance, redptsout, scaleFac, hexfloat, high_precision);
-      } else {
-        write_uosr(xyz, xyz_reflectance, redptsout, scaleFac*100.0 , hexfloat, high_precision);
-      }
-
-    } else if(use_type) {
-      DataType xyz_type =
-          (((DataType)source->get("type" + red_string)).size() == 0) ?
-
-          source->create("type" + red_string, sizeof(int)*xyz.size()) :
-          source->get("type" + red_string);
-
-      if (!(types & PointType::USE_TYPE)) {
-        for(unsigned int i = 0; i < xyz.size(); i++) xyz_type[i] = 0;
-      }
-      if(use_xyz) {
-        write_xyzc(xyz, xyz_type, redptsout, scaleFac, hexfloat, high_precision);
-      } else {
-        write_uosc(xyz, xyz_type, redptsout, scaleFac*100.0 , hexfloat, high_precision);
-      }
-
-    } else if(use_color) {
-      std::string data_string = red > 0 ? "color reduced" : "rgb";
-      DataRGB xyz_color =
-          (((DataRGB)source->get(data_string)).size() == 0) ?
-          source->create(data_string, sizeof(unsigned char)*3*xyz.size()) :
-          source->get(data_string);
-      if (!(types & PointType::USE_COLOR)) {
-          for(unsigned int i = 0; i < xyz.size(); i++) {
-            xyz_color[i][0] = 0;
-            xyz_color[i][1] = 0;
-            xyz_color[i][2] = 0;
-        }
-      }
-      if(use_xyz) {
-        write_xyz_rgb(xyz, xyz_color, redptsout, scaleFac, hexfloat, high_precision);
-      } else {
-        write_uos_rgb(xyz, xyz_color, redptsout, scaleFac*100.0, hexfloat, high_precision);
-      }
-
-    } else if(use_normals) {
-      std::string data_string = red > 0 ? "normal reduced" : "normal";
-      DataNormal normals =
-          (((DataNormal)source->get(data_string)).size() == 0) ?
-          source->create(data_string, sizeof(double)*3*xyz.size()) :
-          source->get(data_string);
-      if(use_xyz) {
-        write_xyz_normal(xyz, normals, redptsout, scaleFac, hexfloat, high_precision);
-      } else {
-        write_uos_normal(xyz, normals, redptsout, scaleFac*100.0, hexfloat, high_precision);
-      }
-
-    } else {
-      if(use_xyz) {
-        write_xyz(xyz, redptsout, scaleFac, hexfloat, high_precision);
-      } else {
-        write_uos(xyz, redptsout, scaleFac*100.0, hexfloat, high_precision);
-      }
-
-    }
-    if(use_xyz) {
-      writeTrajectoryXYZ(posesout, source->get_transMat(), false, scaleFac);
-      writeTrajectoryXYZ(matricesout, source->get_transMat(), true, scaleFac);
-    } else {
-      writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
-      writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
-    }
+    
+        write_uos(xyz, redptsout, scaleFac*100.0, false, false);
+        writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
+      	writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
+    
 
   }
 
