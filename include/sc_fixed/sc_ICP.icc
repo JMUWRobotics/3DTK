@@ -1,0 +1,115 @@
+/**
+ * @file
+ * @brief Implementation of 3D scan matching with ICP
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of Wuerzburg, Germany
+ */
+
+
+/**
+ * Will return the maximal number of randomization
+ *
+ * @return the maximal number of iterations
+ */
+inline int sc_ICP::get_rnd()
+{
+  return rnd;
+}
+
+/**
+ * Will return weather to use the meta scan
+ *
+ * @return the maximal number of iterations
+ */
+inline bool sc_ICP::get_meta()
+{
+  return meta;
+}
+
+/**
+ * Sets the meta-parameter
+ *
+ * @param meta if true, use meta
+ */
+inline void sc_ICP::set_meta(bool meta)
+{
+  this->meta = meta;
+}
+/**
+ * Will return the anim flag
+ *
+ * @return the anim flag
+ */
+inline int sc_ICP::get_anim() {
+  return anim;
+}
+
+/**
+ * Will return the used nearest neigbor search method
+ *
+ * @return the nns_method number
+ */
+inline int sc_ICP::get_nns_method()
+{
+  return nns_method;
+}
+
+/**
+ * Set the anim flag
+ *
+ * @param anim Animate which frames?
+ */
+inline void sc_ICP::set_anim(int anim) {
+  this->anim = anim;
+}
+
+/**
+ * Get the maximal distance for matching
+ *
+ * @return the maximal distance for matching
+ */
+inline double sc_ICP::get_max_dist_match2() {
+  return max_dist_match2;
+}
+
+/**
+ * Set the maximal distance for matching
+ *
+ * @param max_dist_match2 the maximal distance (^2 !!!) for matching
+ */
+inline void sc_ICP::set_max_dist_match2(double max_dist_match2) {
+  this->max_dist_match2 = max_dist_match2;
+}
+
+/**
+ * Set the Maximum number of iterations
+ *
+ * @param max_num_iterations Maximum number of iterations
+ */
+inline void sc_ICP::set_max_num_iterations(int max_num_iterations) {
+  this->max_num_iterations = max_num_iterations;
+}
+
+/**
+ * @brief Enable / Disable CAD matching (i.e. matching only against first scan)
+ *
+ * @param cad_matching The new value to determine if CAD matching should
+ * be done
+ */
+inline void sc_ICP::set_cad_matching (bool cad_matching)
+{
+  this->cad_matching = cad_matching;
+}
+
+inline bool sc_ICP::get_cad_matching (void)
+{
+  return this->cad_matching;
+}
+
+/**
+ * Get the nr of point pairs
+ *
+ * @return the nr of point pairs
+ */
+inline int sc_ICP::get_nr_pointPair() {
+  return nr_pointPair;
+}

@@ -1,5 +1,4 @@
-# 3DTK - The 3D Toolkit
-# mit Festkomma-Arithmetik
+# 3DTK - The 3D Toolkit (with SystemC)
 
 [![Build Status](https://travis-ci.org/3DTK/3DTK.svg?branch=master)](https://travis-ci.org/3DTK/3DTK)
 [![Build status](https://ci.appveyor.com/api/projects/status/7f8n86ed859vw8j4/branch/master?svg=true)](https://ci.appveyor.com/project/josch/3dtk/branch/master)
