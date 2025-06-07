@@ -21,10 +21,13 @@ using std::string;
 #include <map>
 
 #include "slam6d/point.h"
+//#include "sc_fixed/sc_Point.h"
 #include "slam6d/scan.h"
 #include "scanio/writer.h"
 #include "scanio/framesreader.h"
 #include "slam6d/globals.icc"
+//#include "sc_fixed/sc_ICP.h"
+//#include "sc_fixed/sc_ICPapx.h"
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -146,7 +149,7 @@ int main(int argc, char **argv)
     exit(-1);
   }
 
-  unsigned int types = PointType::USE_NONE;
+  //unsigned int types = PointType::USE_NONE;
   
 
   readFramesAndTransform(dir, start, end, -1 , uP, false);
