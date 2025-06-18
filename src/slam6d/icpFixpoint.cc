@@ -20,14 +20,16 @@ using std::string;
 #include <vector>
 #include <map>
 
-#include "slam6d/point.h"
-//#include "sc_fixed/sc_Point.h"
-#include "slam6d/scan.h"
+//#include "slam6d/point.h" //wird scheinbar nicht gebraucht
+//#include "slam6d/scan.h" //wird scheinbar nicht gebraucht
 #include "scanio/writer.h"
 #include "scanio/framesreader.h"
-#include "slam6d/globals.icc"
-//#include "sc_fixed/sc_ICP.h"
-//#include "sc_fixed/sc_ICPapx.h"
+#undef int64
+#undef uint64
+//#include "slam6d/globals.icc" //wird scheinbar nicht gebraucht
+#include "sc_fixed/sc_Point.h" //neu, wird aber scheinbar nicht gebraucht
+#include "sc_fixed/sc_ICP.h" //neu
+#include "sc_fixed/sc_ICPapx.h" //neu
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
