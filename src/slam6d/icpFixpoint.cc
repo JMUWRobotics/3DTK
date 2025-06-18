@@ -22,14 +22,21 @@ using std::string;
 
 //#include "slam6d/point.h" //wird scheinbar nicht gebraucht
 //#include "slam6d/scan.h" //wird scheinbar nicht gebraucht
+#define int64 opencv_int64
+#define uint64 opencv_uint64
 #include "scanio/writer.h"
 #include "scanio/framesreader.h"
 #undef int64
 #undef uint64
+#define int64 systemc_int64
+#define uint64 systemc_uint64
 //#include "slam6d/globals.icc" //wird scheinbar nicht gebraucht
 #include "sc_fixed/sc_Point.h" //neu, wird aber scheinbar nicht gebraucht
 #include "sc_fixed/sc_ICP.h" //neu
 #include "sc_fixed/sc_ICPapx.h" //neu
+//#undef int64
+//#undef uint64
+
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
