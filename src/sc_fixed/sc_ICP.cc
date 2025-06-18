@@ -16,7 +16,7 @@
 
 #include "sc_fixed/sc_ICP.h"
 
-#include "slam6d/metaScan.h"			//brauchen wir nicht
+//#include "slam6d/metaScan.h"			//brauchen wir nicht
 #include "slam6d/globals.icc"			//TODO: durch mathematische sc-fixed ersetzen
 #include "sc_fixed/sc_fixed_math.h"
 
@@ -160,10 +160,8 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
     {
       int thread_num = omp_get_thread_num();
 
-      Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan,
-			       thread_num, step,
-			       rnd, max_dist_match2,
-			       sum, centroid_m, centroid_d, pairing_mode);
+      //TODO: ersetzen
+      //Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num, step, rnd, max_dist_match2, sum, centroid_m, centroid_d, pairing_mode);
 
       n[thread_num] = (unsigned int)pairs[thread_num].size();
 
@@ -225,9 +223,9 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
     double centroid_m[3] = {0.0, 0.0, 0.0};
     double centroid_d[3] = {0.0, 0.0, 0.0};
     vector<sc_PtPair> pairs;
-
-    Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd,
-		     max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
+    
+    //TODO: ersetzen
+    //Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
 
     //set the number of point paira
     nr_pointPair = pairs.size();
@@ -319,10 +317,8 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan,
 #pragma omp parallel
   {
     int thread_num = omp_get_thread_num();
-    Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan,
-			     thread_num, step,
-			     rnd, sqr(max_dist_match),
-			     sum, centroid_m, centroid_d, CLOSEST_POINT);
+    //TODO: ersetzen
+    //Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num, step, rnd, sqr(max_dist_match), sum, centroid_m, centroid_d, CLOSEST_POINT);
 
   }
 
@@ -345,10 +341,8 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan,
   double centroid_d[3] = {0.0, 0.0, 0.0};
   vector<sc_PtPair> pairs;
 
-  Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0,
-		   rnd, sqr(max_dist_match),
-		   error, centroid_m, centroid_d,
-		   CLOSEST_POINT);
+  //TODO: ersetzen
+  //Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, sqr(max_dist_match), error, centroid_m, centroid_d, CLOSEST_POINT);
 
   // getPtPairs computes error as sum of squared distances
   error = 0;
@@ -376,8 +370,8 @@ void sc_ICP::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
   double id[16];
   M4identity(id);
 
-  vector < Scan* > meta_scans;
-  Scan* my_MetaScan = 0;
+  //vector < Scan* > meta_scans;
+  //Scan* my_MetaScan = 0;
 
 
   for(unsigned int i = 0; i < allScans.size(); i++) {

@@ -67,15 +67,20 @@ if (WITH_OPENCV)
   add_executable(exportPoints exportPoints.cc ../scanio/writer.cc ../scanio/framesreader.cc)
   target_include_directories(exportPoints PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(exportPoints scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
-  add_executable(icpFixpoint icpFixpoint.cc ../scanio/writer.cc ../scanio/framesreader.cc)
-  target_include_directories(icpFixpoint PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
-  target_link_libraries(icpFixpoint scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
+
+  
   add_executable(condense condense.cc)
   target_include_directories(condense PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(condense scan scanio ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
   add_executable(atomize atomize.cc)
   target_include_directories(atomize PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(atomize scan scanio ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
+endif()
+
+if (WITH_SYSTEMC)
+  add_executable(icpFixpoint icpFixpoint.cc ../scanio/writer.cc ../scanio/framesreader.cc ../sc_fixed/sc_ICP.cc ../sc_fixed/sc_ICPapx.cc)
+  target_include_directories(icpFixpoint PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
+  target_link_libraries(icpFixpoint scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} ${SYSTEMC_LIBRARY} rply)
 endif()
 
 target_link_libraries(graph_balancer scan ${Boost_GRAPH_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_REGEX_LIBRARY} ${Boost_SYSTEM_LIBRARY})
