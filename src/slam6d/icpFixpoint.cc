@@ -132,7 +132,7 @@ po::options_description generic("Generic options");
  * with 'dir' the directory of a set of scans
  * ...
  */
-int main(int argc, char **argv)
+int sc_main(int argc, char **argv)
 {
   // parsing the command line parameters
   // init, default values if not specified
