@@ -67,8 +67,6 @@ if (WITH_OPENCV)
   add_executable(exportPoints exportPoints.cc ../scanio/writer.cc ../scanio/framesreader.cc)
   target_include_directories(exportPoints PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(exportPoints scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
-
-  
   add_executable(condense condense.cc)
   target_include_directories(condense PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(condense scan scanio ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
