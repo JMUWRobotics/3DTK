@@ -172,6 +172,22 @@ int sc_main(int argc, char **argv)
  std::ofstream posesout("positions.txt");
  std::ofstream matricesout("poses.txt");
 
+ //ab hier ICP
+ sc_ICPminimizer *minimizer = new sc_ICPminimizer();
+ sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
+
+  for(unsigned int i = 1; i < Scan::allScans.size(); i++){
+    Scan *prevScan = Scan::allScans[i-1];
+    Scan *nextScan = Scan::allScans[i];
+    DataXYZ prevDat = prevScan->get("xyz" + std::string(""));
+    TripleArray<f_float> prevFixed;
+    DataXYZ nextDat = nextScan->get("xyz" + std::string(""));
+    TripleArray<f_float> nextFixed;
+    //icp.match(...)
+  }
+
+
+//ab hier wieder Ausgabe
   for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
     Scan *source = Scan::allScans[i];
 //    std::string red_string = red > 0 ? " reduced" : "";
