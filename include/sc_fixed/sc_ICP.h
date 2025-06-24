@@ -36,7 +36,7 @@ public:
 	   bool eP = true,
 	   int anim = -1,
 	   double epsilonICP = 0.0000001,
-	   int nns_method = simpleKD,
+	   int nns_method = BruteForce,
 	   bool cuda_enabled = false,
 	   bool cad_matching = false,
      int max_num_metascans = -1);
