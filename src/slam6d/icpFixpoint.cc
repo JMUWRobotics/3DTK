@@ -37,6 +37,8 @@ using std::string;
 //#undef int64
 //#undef uint64
 
+#include "sc_fixed/sc_fixed_converter.h" //include DataXYZ to vector array converter and otherwise
+
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -141,6 +143,7 @@ int sc_main(int argc, char **argv)
   bool   uP         = false;  // should we use the pose information instead of the frames??
   IOType iotype    = UOS;
   double scaleFac = 0.01;
+  bool quiet = false;
 
 
   try {
@@ -173,16 +176,16 @@ int sc_main(int argc, char **argv)
  std::ofstream matricesout("poses.txt");
 
  //ab hier ICP
- sc_ICPminimizer *minimizer = new sc_ICPminimizer();
+ sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
  sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
 
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     Scan *prevScan = Scan::allScans[i-1];
     Scan *nextScan = Scan::allScans[i];
     DataXYZ prevDat = prevScan->get("xyz" + std::string(""));
-    TripleArray<f_float> prevFixed;
+    std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);
     DataXYZ nextDat = nextScan->get("xyz" + std::string(""));
-    TripleArray<f_float> nextFixed;
+    std::vector<std::array<f_float, 3>> nextFixed = array2fixedArray(nextDat);
     //icp.match(...)
   }
 
