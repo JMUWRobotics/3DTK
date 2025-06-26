@@ -145,7 +145,6 @@ int sc_main(int argc, char **argv)
   double scaleFac = 0.01;
   bool quiet = false;
 
-
   try {
     parse_options(argc, argv, dir, start, end,
      uP, iotype, scaleFac);
@@ -173,7 +172,7 @@ int sc_main(int argc, char **argv)
   FILE *redptsout = fopen("points.pts", "wb");
   std::ofstream posesout("positions.txt");
   std::ofstream matricesout("poses.txt");
-
+ 
   //ab hier ICP
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
   sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
@@ -181,7 +180,6 @@ int sc_main(int argc, char **argv)
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
-  
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     std::cout << std::to_string(i) + " match iteration" << std::endl;
     Scan *prevScan = Scan::allScans[i-1];
@@ -204,7 +202,8 @@ int sc_main(int argc, char **argv)
     //icp.match(...)
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
-
+ 
+  
   //ab hier wieder Ausgabe
   /*
   for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
@@ -216,11 +215,14 @@ int sc_main(int argc, char **argv)
     //writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
     //writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
   }
-  */
 
   //fclose(redptsout);
   //posesout.close();
   //posesout.clear();
   //matricesout.close();
   //matricesout.clear();
+  */
+  
+  cout << "alles klar spooki" << endl;
+  return 0;
 }
