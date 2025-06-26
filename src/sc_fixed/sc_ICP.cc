@@ -164,29 +164,30 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
       //Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num, step, rnd, max_dist_match2, sum, centroid_m, centroid_d, pairing_mode);
 
       n[thread_num] = (unsigned int)pairs[thread_num].size();
-
-      if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
-          (my_sc_ICPminimizer->getAlgorithmID() == 2)) {
-        for (unsigned int i = 0; i < n[thread_num]; i++) {
-
-          double pp[3] = {pairs[thread_num][i].p1.x - centroid_m[thread_num][0],
-			  pairs[thread_num][i].p1.y - centroid_m[thread_num][1],
-			  pairs[thread_num][i].p1.z - centroid_m[thread_num][2]};
-          double qq[3] = {pairs[thread_num][i].p2.x - centroid_d[thread_num][0],
-			  pairs[thread_num][i].p2.y - centroid_d[thread_num][1],
-			  pairs[thread_num][i].p2.z - centroid_d[thread_num][2]};
-          // formula (6)
-          Si[thread_num][0] += pp[0] * qq[0];
-          Si[thread_num][1] += pp[0] * qq[1];
-          Si[thread_num][2] += pp[0] * qq[2];
-          Si[thread_num][3] += pp[1] * qq[0];
-          Si[thread_num][4] += pp[1] * qq[1];
-          Si[thread_num][5] += pp[1] * qq[2];
-          Si[thread_num][6] += pp[2] * qq[0];
-          Si[thread_num][7] += pp[2] * qq[1];
-          Si[thread_num][8] += pp[2] * qq[2];
-        }
-      }
+      
+      //AlgorihmID == 6 für sc_ICPapx
+    //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
+    //      (my_sc_ICPminimizer->getAlgorithmID() == 2)) {
+      //  for (unsigned int i = 0; i < n[thread_num]; i++) {
+//
+          //double pp[3] = {pairs[thread_num][i].p1.x - centroid_m[thread_num][0],
+	//		  pairs[thread_num][i].p1.y - centroid_m[thread_num][1],
+	//		  pairs[thread_num][i].p1.z - centroid_m[thread_num][2]};
+          //double qq[3] = {pairs[thread_num][i].p2.x - centroid_d[thread_num][0],
+	//		  pairs[thread_num][i].p2.y - centroid_d[thread_num][1],
+	//		  pairs[thread_num][i].p2.z - centroid_d[thread_num][2]};
+     //     // formula (6)
+     //     Si[thread_num][0] += pp[0] * qq[0];
+     //     Si[thread_num][1] += pp[0] * qq[1];
+     //     Si[thread_num][2] += pp[0] * qq[2];
+     //     Si[thread_num][3] += pp[1] * qq[0];
+     //     Si[thread_num][4] += pp[1] * qq[1];
+     //     Si[thread_num][5] += pp[1] * qq[2];
+     //     Si[thread_num][6] += pp[2] * qq[0];
+     //     Si[thread_num][7] += pp[2] * qq[1];
+     //     Si[thread_num][8] += pp[2] * qq[2];
+     //   }
+     // }
     } // end parallel
 
     // do we have enough point pairs?
@@ -198,13 +199,14 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
     nr_pointPair = pairssize;
 
     if (pairssize > 3) {
-      if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
-          (my_sc_ICPminimizer->getAlgorithmID() == 2) ) {
-        ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
-						n, sum,
-						centroid_m, centroid_d,
-						Si, alignxf);
-      } else if (my_sc_ICPminimizer->getAlgorithmID() == 6) {
+    //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
+    //      (my_sc_ICPminimizer->getAlgorithmID() == 2) ) {
+    //    ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
+	//					n, sum,
+	//					centroid_m, centroid_d,
+	//					Si, alignxf);
+     // } else if (my_sc_ICPminimizer->getAlgorithmID() == 6) {
+     // dies ist der Fall, in dem wir uns befinden (6)
         ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
 						n, sum,
 						centroid_m, centroid_d,
@@ -232,10 +234,10 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
 
     // do we have enough point pairs?
     if (pairs.size() > 3) {
-      if (my_sc_ICPminimizer->getAlgorithmID() == 3 ||
-	  my_sc_ICPminimizer->getAlgorithmID() == 8 ) {
-        memcpy(alignxf, CurrentScan->get_transMat(), sizeof(alignxf));
-      }
+    //  if (my_sc_ICPminimizer->getAlgorithmID() == 3 ||
+	//  my_sc_ICPminimizer->getAlgorithmID() == 8 ) {
+       // memcpy(alignxf, CurrentScan->get_transMat(), sizeof(alignxf));
+     // }
       ret = my_sc_ICPminimizer->Align(pairs, alignxf, centroid_m, centroid_d);
     } else {
       break;
