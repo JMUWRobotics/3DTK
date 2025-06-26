@@ -167,47 +167,60 @@ int sc_main(int argc, char **argv)
   readFramesAndTransform(dir, start, end, -1 , uP, false);
 
 
+  std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
+  std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
+  std::cout << "Export all 6DoF matrices to file \"poses.txt\"" << std::endl;
+  FILE *redptsout = fopen("points.pts", "wb");
+  std::ofstream posesout("positions.txt");
+  std::ofstream matricesout("poses.txt");
 
- std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
- std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
- std::cout << "Export all 6DoF matrices to file \"poses.txt\"" << std::endl;
- FILE *redptsout = fopen("points.pts", "wb");
- std::ofstream posesout("positions.txt");
- std::ofstream matricesout("poses.txt");
+  //ab hier ICP
+  sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
+  sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
 
- //ab hier ICP
- sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
- sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
+  std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
+  std::cout << Scan::allScans.size() << " scans detected" << std::endl;
+  
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
+    std::cout << std::to_string(i) + " match iteration" << std::endl;
     Scan *prevScan = Scan::allScans[i-1];
     Scan *nextScan = Scan::allScans[i];
-    DataXYZ prevDat = prevScan->get("xyz" + std::string(""));
+    if(!prevScan || !nextScan) {
+      std::cerr << "Scan" << i << " oder " << i-1 << " ist null!" <<std::endl;
+      continue;
+    }
+    DataPointer prevXYZ = prevScan->get("xyz");
+    DataPointer nextXYZ = nextScan->get("xyz");
+    if(!prevXYZ.valid() || !nextXYZ.valid()) {
+      std::cerr << " Leere Daten bei Index " << i << std::endl;
+    }
+
+    DataXYZ prevDat(prevXYZ);
+    DataXYZ nextDat(nextXYZ);
+    
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);
-    DataXYZ nextDat = nextScan->get("xyz" + std::string(""));
     std::vector<std::array<f_float, 3>> nextFixed = array2fixedArray(nextDat);
     //icp.match(...)
+    std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
 
-
-//ab hier wieder Ausgabe
+  //ab hier wieder Ausgabe
+  /*
   for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
     Scan *source = Scan::allScans[i];
-//    std::string red_string = red > 0 ? " reduced" : "";
-
- DataXYZ xyz  = source->get("xyz" + std::string(""));
-
+    //std::string red_string = red > 0 ? " reduced" : "";
+    DataXYZ xyz  = source->get("xyz" + std::string(""));
     
-        write_uos(xyz, redptsout, scaleFac*100.0, false, false);
-        writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
-      	writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
-    
-
+    // write_uos(xyz, redptsout, scaleFac*100.0, false, false);
+    //writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
+    //writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
   }
+  */
 
-  fclose(redptsout);
-  posesout.close();
-  posesout.clear();
-  matricesout.close();
-  matricesout.clear();
+  //fclose(redptsout);
+  //posesout.close();
+  //posesout.clear();
+  //matricesout.close();
+  //matricesout.clear();
 }
