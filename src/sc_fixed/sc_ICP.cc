@@ -212,11 +212,11 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
 						centroid_m, centroid_d,
 						pairs,
 						alignxf);
-      } else {
-        cout << "This parallel minimization algorithm is not implemented !!!"
-	     << endl;
-        exit(-1);
-      }
+      //} else {
+      //  cout << "This parallel minimization algorithm is not implemented !!!"
+	//     << endl;
+       // exit(-1);
+    //  }
     } else {
       //break;
     }
