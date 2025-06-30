@@ -95,6 +95,74 @@ sc_ICP::sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer, double max_dist_match,
   nr_pointPair = 0;
 }
 
+// match Methode mit konvertiertem Datentyp als Übergabeparameter 
+int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,                                //fehlende includes Array und vector, Methode match überladen sollte funktionieren 
+		  const std::vector<std::array<f_float, 3>>& target){
+
+ std::vector<std::array<f_float, 3>> matchedTarget;
+// TO-DO validierung der übergebenen Listen 
+// nns brute forece 
+for(const auto& src: source){
+
+	f_float minDist;
+	bool first = true; 
+	std::array<f_float, 3> closest; 
+
+	for(const auto& tgt : target) {
+		
+		f_float dx = src[0] - tgt[0];
+		f_float dy = src[1] - tgt[1];
+		f_float dz = src[2] - tgt[2];
+		f_float dist2 = dx * dx + dy * dy + dz * dz;
+		f_float dist = sc_fixed_heron_sqrt(dist2);
+
+		if(first){
+			minDist = dist;
+			closest = tgt;
+			first = false;
+		} else if (dist < minDist) {
+			minDist = dist; 
+			closest = tgt;
+		}
+		}
+	matchedTarget.push_back(closest);
+	}
+
+// TO-DO Test matchedTarget 
+	
+//Schwerpunkte bestimmen 
+std::array<f_float, 3> centerSource = {0,0,0};
+std::array<f_float, 3> centerTarget = {0,0,0};
+
+for (size_t i = 0; i < source.size(); ++i){                   //size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>. 
+	centerSource[0] += source[i][0];
+	centerSource[1] += source[i][1];
+	centerSource[2] += source[i][2];
+
+	centerTarget[0] += target[i][0];                     //Fehler wenn source > target 
+	centerTarget[1] += target[i][1];
+	centerTarget[2] += target[i][2];
+}
+
+f_float srcSize = static_cast<f_float>(source.size());     //typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen 
+centerSource[0] /= srcSize;  
+centerSource[1] /= srcSize; 
+centerSource[2] /= srcSize; 
+
+centerTarget[0] /= srcSize; 
+centerTarget[1] /= srcSize; 
+centerTarget[2] /= srcSize; 
+
+//TO-Do Roation berechnen 
+//TO_DO Translation berechnen 
+// 4 x 4 Matix auf Konsole ausgeben 
+	return 0; 					// Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4 Matrix ändern 
+}
+}
+
+
+
+
 /**
  * Matches a 3D Scan against a 3D Scan
  * @param PreviousScan The scan or metascan forming the model
