@@ -23,7 +23,9 @@ protected:
 public:
     typedef openvdb::Vec3R value_type;
     typedef openvdb::Vec3R PosType;
-    ParticleList(openvdb::Real radiusScale=1) : _radiusScale(radiusScale) {}
+  
+    ParticleList(openvdb::Real radiusScale=10) : _radiusScale(radiusScale) {}
+  //    ParticleList(openvdb::Real radiusScale=1) : _radiusScale(radiusScale) {}  
     void add(const openvdb::Vec3R &p, const openvdb::Real &r) {
         Particle pa;
         pa.p = p;
@@ -59,6 +61,7 @@ int main(int argc, char **argv)
     int startIndex;
     int endIndex;
     float voxelSize;
+    float radiusSphere;
 
     po::options_description generic("Generic options");
     generic.add_options()
@@ -71,6 +74,9 @@ int main(int argc, char **argv)
              "[ATTENTION: counting naturally starts with 0]")
             ("end,e", po::value<int>(&endIndex)->default_value(-1),
              "end after scan <arg>")
+            ("radiusscale,r", po::value<float>(&radiusSphere)->default_value(1.0),
+             "sets the radius of the spheres <arg>")
+      
             ("format,f", po::value<IOType>(&iotype)->default_value(UOS),
              "using shared library <arg> for input. (chose F from {uos, uos_map, "
              "uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, "
@@ -127,7 +133,7 @@ int main(int argc, char **argv)
 
         DataXYZ xyz(scan->get("xyz reduced"));
 
-        ParticleList particleList;
+        ParticleList particleList(radiusSphere);
 
         for (uint i = 0; i < xyz.size(); i++) {
             particleList.add(openvdb::Vec3R(xyz[i][2] / 100.0, xyz[i][1] / 100.0, xyz[i][0] / 100.0), voxelSize * halfWidth);
