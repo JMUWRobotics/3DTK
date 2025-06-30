@@ -1,7 +1,6 @@
 # 3DTK - The 3D Toolkit
 
-[![Build Status](https://travis-ci.org/3DTK/3DTK.svg?branch=master)](https://travis-ci.org/3DTK/3DTK)
-[![Build status](https://ci.appveyor.com/api/projects/status/7f8n86ed859vw8j4/branch/master?svg=true)](https://ci.appveyor.com/project/josch/3dtk/branch/master)
+[![CI](https://github.com/JMUWRobotics/3DTK/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/JMUWRobotics/3DTK/actions/workflows/main.yml)
 
 ## About
 _The 3D Toolkit_ provides algorithms and methods to process 3D point clouds. It includes automatic high-accurate registration (6D simultaneous localization and mapping, 6D SLAM) and other tools, e.g., a fast 3D viewer, plane extraction software, etc. Several file formats for the point clouds are natively supported, new formats can be implemented easily. Check out our [website (threedtk.de)](http://threedtk.de) for more information.
@@ -18,6 +17,27 @@ For **Microsoft Windows**, use the _cmake-gui_ application provided by _cmake_ t
 Alternatively on **Windows**, execute the batch script `build.cmd` either from the command line or from the Explorer. It will download and extract the right versions of _boost_ and _opencv_ and then run _cmake_ with the right configuration options.
 
 Some Boost libraries (_graph, regex, serialization, filesystem, interprocess_) are needed to compile the slam6D program. **_3DTK_ is not compatible with boost version 1.49.** Please make sure to use a different version.
+
+### ROS Support
+3DTK currently supports ROS1 distributions like Kinetic, Melodic, and Noetic. Compile the project with the `WITH_ROS` flag. You can call `make config` from the project root directory to set this flag. We are working on support for ROS2. 
+
+Dependency list for compiling with ROS:
+- catkin
+- ros-std-msgs
+- ros-std-srvs
+- librosbag-dev
+- libnav-msgs-dev
+- libstd-srvs-dev
+- libtf2-sensor-msgs-dev
+- libtf2-eigen-dev
+- libtf2-kdl-dev
+- libtf-conversions-dev
+- libpcl-conversions-dev
+- liblaser-geometry-dev
+- libkdl-parser-dev
+- liburdf-dev
+- librobot-state-publisher-dev
+- liborocos-bfl-dev
 
 ### 3DConnexion Space Mouse Support
 The Applications `show` and `qtshow` supports navigation with the _3DConnexion SpaceMouse_. The left key on the _SpaceMouse Wireless/Compact_ fixes the rotation and the right key fixes the translation.

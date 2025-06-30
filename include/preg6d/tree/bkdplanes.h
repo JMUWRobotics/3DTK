@@ -20,7 +20,7 @@ struct PForestElem
     size_t nrpts;
 };
 
-class BkdTreePlanes : public KDtreePlanes 
+class BkdTreePlanes : public KDtreePlanes
 {
 public:
     BkdTreePlanes(PointPlane** pts, size_t n, int bucketSize = 20);

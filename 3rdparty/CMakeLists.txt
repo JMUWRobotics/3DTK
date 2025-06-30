@@ -140,7 +140,7 @@ endif()
 add_subdirectory(rply-1.1.4)
 
 if(WITH_CALIB)
-  if(NOT EXISTS ${PROJECT_SOURCE_DIR}/3rdparty/cctag/CMakeLists.txt)
+  if(NOT EXISTS ${PROJECT_SOURCE_DIR}/3rdparty/cctag/CMakeLists.txt OR NOT EXISTS ${PROJECT_SOURCE_DIR}/3rdparty/paruco/CMakeLists.txt)
     message(FATAL_ERROR "CCTag submodule is missing. Please run `git submodule update --init --recursive` in the project root.")
   endif()
 
@@ -157,6 +157,8 @@ if(WITH_CALIB)
   set(CCTAG_BUILD_DOC OFF)
   set(BUILD_SHARED_LIBS OFF)
   add_subdirectory(cctag EXCLUDE_FROM_ALL)
+
+  add_subdirectory(paruco EXCLUDE_FROM_ALL)
 endif()
 
 IF(WITH_E57)

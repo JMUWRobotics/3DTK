@@ -1,6 +1,6 @@
 # Installation
 
-## Ubuntu 20.04 Focal Fossa
+## Debian based Linux
 
 The easiest way to make sure that you install the right dependencies for
 unpackaged software like _3DTK_ on Debian based distributions is to build a
@@ -37,13 +37,15 @@ To download 3DTK and install its dependencies, run:
 
 ```
 $ sudo apt-get install --no-install-recommends equivs subversion
-$ svn checkout svn://svn.code.sf.net/p/slam6d/code/trunk slam6d-code
-$ cd slam6d-code
+$ git clone https://github.com/JMUWRobotics/3DTK.git
+$ cd 3DTK
 $ equivs-build doc/equivs/control.ubuntu.focal
 $ sudo apt install ./3dtk-build-deps_1.0_all.deb
 $ make
 ```
 
+If you dont run a Debian based Linux like Ubuntu, you may install the dependencies manually. 
+For further information have a look at the dependencies in doc/equivs/
 You can now use 3DTK, for example by running these tools:
 
 ```

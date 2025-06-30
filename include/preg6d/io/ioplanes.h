@@ -1,16 +1,16 @@
 /** @file: ioplanes.h
- *  
+ *
  * @brief: This class should never actually be instanced.
  * It has only static members, such as read() and write() which provide
  * IO functionality.
- * 
+ *
  * When using read(), every plane will be stored in PlaneIO::allPlanes,
  * which is a vector of NormalPlane pointers (see normalplane.h)
  * The class can read multiple planes from entire directories, as specified
  * in the "normals.list" and "planes.list" files.
- * 
+ *
  * @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  * Released under the GPL version 3.
  */
 
@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fstream>
-#include <sstream> 
+#include <sstream>
 
 class PlaneIO {
 
@@ -33,7 +33,7 @@ public:
 
     static int write(Planes&, std::string&);
 
-private: 
+private:
     static int existsDir(const char* path)
     {
         struct stat info;

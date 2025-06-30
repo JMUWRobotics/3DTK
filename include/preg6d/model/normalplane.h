@@ -1,18 +1,18 @@
 /** @file
  *  @brief Representation of a plane in multiple formats.
- * 
+ *
  * This class adapts to:
  *      - Planes that are defined by normal and reference point vector.
  *      - Planes that are defined by their convex hull.
  *      - Planes that are defined by the bestfit through a cluster of points.
- * See contructor briefings for reference how to do so.  
+ * See contructor briefings for reference how to do so.
  *
- * The class is self-backwards compatible, which means that you can, e.g., construct  
- * a plane by a cluster of points while normal, reference point, and convex hull 
+ * The class is self-backwards compatible, which means that you can, e.g., construct
+ * a plane by a cluster of points while normal, reference point, and convex hull
  * representation get also automaticaly infered.
- * 
+ *
  * @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  * Released under the GPL version 3.
  */
 
@@ -55,7 +55,7 @@ public:
      * @param convex_hull: A vector of double* containing the points of the convex hull.
      */
     NormalPlane(vector<double*> &convex_hull);
-    
+
     /**
      * @brief: Constructs a Plane from normal and reference point.
      * Note: Convex hull will be missing. Can be added at runtime using member functions.
@@ -63,27 +63,27 @@ public:
      * @param x: The reference point of the plane.
      */
     NormalPlane(double* n, double* x);
-    
+
     /**
      * @brief: Constructs a Plane from normal and reference point.
-     * Then, the Convex Hull is added without sanity checking for n and x. 
+     * Then, the Convex Hull is added without sanity checking for n and x.
      * @param n: The normal vector of the plane.
      * @param x: The reference point of the plane.
      * @param convex_hull: The vector containing the points of the convex hull.
      */
     NormalPlane(double* n, double* x, vector<double*> &convex_hull);
-    
+
     /**
      * @brief: Fits a Plane through a cluster of Points.
      * If this constructor is used, all member attributes are well defined.
      * @param point_cluster: A vector of Points containing all points of the cluster.
      */
     //NormalPlane(vector<Point> &point_cluster);
-    
+
     ~NormalPlane();
 
     /*
-     * Plane Attributes. Not all of them are defined at runtime! 
+     * Plane Attributes. Not all of them are defined at runtime!
      * TODO: Make availability checks in member functions.
      */
 
@@ -96,16 +96,16 @@ public:
     // if created by a cluster, the normalplane stores all pts from the cluster
     vector<double*> hull; // convexhull
 
-    vector<double*> all_pts; // all points 
+    vector<double*> all_pts; // all points
     BkdTree *search_tree; // all points in a search tree
 
     double& operator()(int); // get normal xyz at index
     double& operator[](int); // get reference xyz at index
 
-    // Adds a 3D convexhull 
+    // Adds a 3D convexhull
     void addConvexHull(vector<double*> &ps);
 
-    /** 
+    /**
      * @brief: Calculates the 3D convexhull from a given cluster.
      * Note: The function does what it says:
      * Calling this function does NOT create the all_pts attribute.
@@ -119,7 +119,7 @@ public:
      * @return: Value between 0 and 1, representing the amount of overlap.
      */
     double overlap(NormalPlane* other);
-    
+
     /**
      * @brief Calculates the hesse distance between to planes.
      * @param p: Pointer to the plane to calculate distance to.
@@ -135,7 +135,7 @@ public:
     double projDist2Plane(NormalPlane* other);
 
     /**
-     * @brief Merges a plane with the current one. 
+     * @brief Merges a plane with the current one.
      * @param p: Plane that should be merged to this.
      */
     void mergeWith(NormalPlane* other);
@@ -192,7 +192,7 @@ public:
     // BEGIN COPYRIGHT
 
     // Copyright 2001, 2012, 2021 Dan Sunday
-    // for the following code snippet: 
+    // for the following code snippet:
 
     // isLeft(): tests if a point is Left|On|Right of an infinite line.
     //    Input:  three points P0, P1, and P2
@@ -201,7 +201,7 @@ public:
     //            <0 for P2  right of the line
     static inline int
     isLeft( Point, Point, Point );
-   
+
     //===================================================================
 
     // cn_PnPoly(): crossing number test for a point in a polygon
@@ -219,13 +219,13 @@ public:
     //      Return:  wn = the winding number (=0 only when P is outside)
     static int
     wn_PnPoly( Point P, Point* V, int n );
-    
+
     //===================================================================
 
     // END COPYRIGHT
 
     /**
-    * @brief Calculates the nearest line segment of point <p> to <polygon>. 
+    * @brief Calculates the nearest line segment of point <p> to <polygon>.
     * @param p - input: The point <p> that is checked.
     * @param poly - input: The <polygon> to check with.
     * @param p1 - output: start point of nearest line segment.
@@ -252,7 +252,7 @@ public:
     static void convert3Dto2D(Point* ps, int n, char dir, Point* out);
 
 private:
-    
+
     Point* _hull_parr;
 };
 

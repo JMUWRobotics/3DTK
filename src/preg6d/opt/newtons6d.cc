@@ -23,7 +23,7 @@ Newtons::Newtons(PlaneScan* pScan) : Newtons()
       << pScan->rPosTheta[2] // left-handed yaw (rotZ)
       << pScan->rPos[0] //x
       << pScan->rPos[1] //y
-      << pScan->rPos[2];//z 
+      << pScan->rPos[2];//z
     updateScan();
     updateHesseGradient();
     updateCentroidGradient();
@@ -31,14 +31,14 @@ Newtons::Newtons(PlaneScan* pScan) : Newtons()
 }
 
 // OVERRIDE from Optimizer base class
-Newtons::Newtons(PlaneScan* pScan, Dimensions d) 
-: Newtons(pScan) // call PlaneScan constructor, which calls base 
+Newtons::Newtons(PlaneScan* pScan, Dimensions d)
+: Newtons(pScan) // call PlaneScan constructor, which calls base
 {
     dim = d;
 }
 
 // OVERRIDE from Optimizer base class
-void Newtons::operator()(void) 
+void Newtons::operator()(void)
 {
     iterate();
     size_t scans_size = PlaneScan::allPlaneScans.size();
@@ -69,10 +69,10 @@ void Newtons::rematch()
     ps->labelPoints( ps->_match_type, true );
 }
 
-void Newtons::iterate() 
+void Newtons::iterate()
 {
     if (ps->isEmpty()) return;
-    int iter = 0;  
+    int iter = 0;
     int break_iter = 0;
     size_t lastNrCor, nrCor_max = 0;
     ColumnVector jacobian(6);
@@ -84,11 +84,11 @@ void Newtons::iterate()
     do {
         jacobian = JJ;
         hessian = HH;
-        
+
         // update matches
         rematch();
         lastNrCor = ps->correspondences.size();
-        
+
         // If 3 subsequent iterations ONLY increased error, break.
         // if (ps->calcErr() > lastErr) {
         //     if (break_iter++ >= 3) {
@@ -122,12 +122,12 @@ void Newtons::iterate()
         bool is_positive_definite = true;
         {
             SymmetricMatrix H_s(6);
-            H_s << hessian;    
+            H_s << hessian;
             int nr = H_s.Nrows();
             LowerTriangularMatrix T(nr);
-            Real* s = H_s.Store(); Real* t = T.Store(); Real* ti = t;    
+            Real* s = H_s.Store(); Real* t = T.Store(); Real* ti = t;
             for (int i=0; i<nr; i++)
-            {   
+            {
                 Real* tj = t; Real sum; int k;
                 for (int j=0; j<i; j++)
                 {
@@ -155,7 +155,7 @@ void Newtons::iterate()
 
         // If hessian is not positive definite, we use AdaDelta as fallback
         // if (!is_positive_definite) {
-            
+
         //     bool exec_fallback = false;
 
         //     // Perform line search in the specified direction (Armijo conditions)
@@ -220,7 +220,7 @@ void Newtons::iterate()
 
         // Apply newton step
         X = X - a*dX;
-        
+
         // Update Scan
         updateScan();
         // if ( ps->calcErr() > lastErr ) {
@@ -237,15 +237,15 @@ void Newtons::iterate()
         //     updateScan();
         //     rematch();
         //     break;
-        // } 
+        // }
 
         // Update Jacobian and Hessian
         updateHesseGradient();
         updateCentroidGradient();
         overlapGradients();
 
-    } while (  
-        !stop_condition(X, _eps_convergence) 
+    } while (
+        !stop_condition(X, _eps_convergence)
         && iter < _max_iter
     );
 
@@ -276,11 +276,11 @@ void Newtons::updateHesseGradient()
     for (size_t i = 0; i < ps->correspondences.size(); ++i)
     {
         Correspondence cor = ps->correspondences[i];
-    
+
         double x = cor.first[0];
         double y = cor.first[1];
         double z = cor.first[2];
-        
+
         double nx = cor.second->n[0];
         double ny = cor.second->n[1];
         double nz = cor.second->n[2];
@@ -295,7 +295,7 @@ void Newtons::updateHesseGradient()
         double tx = X(4); // x
         double ty = X(5); // y
         double tz = X(6); // z
-        
+
         double sph = sin(phi);
         double st = sin(theta);
         double sps = sin(psi);
@@ -309,21 +309,21 @@ void Newtons::updateHesseGradient()
         double Tpz = x*(sph*sps-cph*cps*st) + y*(cps*sph+cph*st*sps) + z*cph*ct + tz;
 
         double D = nx*(Tpx - ax)  // as you can see, this represents the distance
-                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite 
+                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite
                  + nz*(Tpz - az); // plane. Called "hesse distance"
 
-        // The first order gradient of that distance is: 
+        // The first order gradient of that distance is:
 
-        double dDdPhi = 
+        double dDdPhi =
               ny*(x*(cps*cph*st-sps*sph) + y*(-sph*cps-cph*st*sps) - z*ct*cph)
             + nz*(x*(cph*sps+sph*cps*st) + y*(cps*cph-sph*st*sps) - z*ct*sph);
 
-        double dDdTheta = 
+        double dDdTheta =
               nx*(-x*st*cps+y*st*sps+z*ct)
             + ny*(x*(ct*cps*sph) + y*(-ct*sph*sps) + z*st*sph)
             + nz*(-x*ct*cph*cps + y*ct*cph*sps - z*st*cph);
 
-        double dDdPsi = 
+        double dDdPsi =
               nx*(-x*sps*ct - y*cps*ct)
             + ny*(x*(cps*cph-sps*sph*st) + y*(-sps*cph-cps*sph*st))
             + nz*(x*(cps*sph+sps*cph*st) + y*(-sps*sph+cps*cph*st));
@@ -355,7 +355,7 @@ void Newtons::updateHesseGradient()
                H51, H52, H53, H54, H55, H56,
                H61, H62, H63, H64, H65, H66;
 
-        // d2D/(dPhi*dPhi) = 
+        // d2D/(dPhi*dPhi) =
         H11 = ny*(x*(-cps*sph*st-sps*cph) + y*(-cph*cps+sph*st*sps) + z*ct*sph)
             + nz*(x*(-sph*sps+cph*cps*st) + y*(-cps*sph-cph*st*sps) - z*ct*cph);
 
@@ -425,7 +425,7 @@ void Newtons::updateHesseGradient()
         H44 = 0; // dD/(dtx*dtx)
         H45 = 0; // dD/(dtx*dty)
         H46 = 0; // dD/(dtx*dtz)
-        
+
         H51 = H15;
         H52 = H25;
         H53 = H35;
@@ -439,7 +439,7 @@ void Newtons::updateHesseGradient()
         H64 = H46;
         H65 = H56;
         H66 = 0; // dD/(dtz*dtz)
-        
+
         Matrix D2 = Matrix(6,6);
         D2 << H11 << H12 << H13 << H14 << H15 << H16
            << H21 << H22 << H23 << H24 << H25 << H26
@@ -447,29 +447,29 @@ void Newtons::updateHesseGradient()
            << H41 << H42 << H43 << H44 << H45 << H46
            << H51 << H52 << H53 << H54 << H55 << H56
            << H61 << H62 << H63 << H64 << H65 << H66;
-        
+
         // Assert symetric matrix
         Matrix D2t(6,6);
         D2t << D2.t();
         assertm( (D2.IsEqual(D2t)) , "Second order of distance not symmetric." );
-        
+
         // pure first order distance derivative
         ColumnVector D1(6);
-        
+
         if (_use_p2p) {
             D1 << dDdPhi
             << dDdTheta
             << dDdPsi
             << 0//nx
             << 0//ny
-            << 0;//nz;   
+            << 0;//nz;
         } else {
             D1 << dDdPhi
             << dDdTheta
             << dDdPsi
             << nx
             << ny
-            << nz; 
+            << nz;
         }
 
         // Transpose first order distance derivative
@@ -479,22 +479,22 @@ void Newtons::updateHesseGradient()
         // Setup hessian of error function
         Matrix hessian = Matrix(6,6);
         hessian << 2 * ( (D1*D1_t) + (D*D2) );
-        
+
         // Tukey loss
-        double w = fabs(D) <= _eps_kernel ? sqr(1-sqr(D*inv_kernel)) : 0; 
-            
+        double w = fabs(D) <= _eps_kernel ? sqr(1-sqr(D*inv_kernel)) : 0;
+
 #pragma omp critical
 {
         sum += w*jacobian;
         sum2 += w*hessian;
 }
-        
+
     }
     J = sum;
-    H = sum2;      
+    H = sum2;
 }
 
-void Newtons::updateCentroidGradient() 
+void Newtons::updateCentroidGradient()
 {
     //cout << "update centroid" << endl;
     if (ps->isEmpty() || !_use_p2p) return;
@@ -531,7 +531,7 @@ void Newtons::updateCentroidGradient()
         double* m = match.second;
 
         if (!m || !c) {
-            cout << "invalid pointer! "; 
+            cout << "invalid pointer! ";
             if (!m)
                 cout <<"Model set:"<< &m << endl;
             if (!c)
@@ -553,7 +553,7 @@ void Newtons::updateCentroidGradient()
         Tcy = cx*(cph*sps+cps*sph*st) + cy*(cph*cps-sph*st*sps) - cz*ct*sph + ty;
         Tcz = cx*(sph*sps-cph*cps*st) + cy*(cps*sph+cph*st*sps) + cz*cph*ct + tz;
 
-        double Dcx = Tcx - mx;  
+        double Dcx = Tcx - mx;
         double Dcy = Tcy - my;
         double Dcz = Tcz - mz;
 
@@ -572,7 +572,7 @@ void Newtons::updateCentroidGradient()
         // double dDcz_dPsi = cx*(sph*cps+cph*sps*st) + cy*(-sps*sph+cph*st*cps);
 
         ColumnVector dDx(6);
-        dDx << 0//dDcx_dPhi     
+        dDx << 0//dDcx_dPhi
             << 0//dDcx_dTheta
             << 0//dDcx_dPsi
             << 1
@@ -580,7 +580,7 @@ void Newtons::updateCentroidGradient()
             << 0;
 
         ColumnVector dDy(6);
-        dDy << 0//dDcy_dPhi     
+        dDy << 0//dDcy_dPhi
             << 0//dDcy_dTheta
             << 0//dDcy_dPsi
             << 0
@@ -588,7 +588,7 @@ void Newtons::updateCentroidGradient()
             << 0;
 
         ColumnVector dDz(6);
-        dDz << 0//dDcz_dPhi     
+        dDz << 0//dDcz_dPhi
             << 0//dDcz_dTheta
             << 0//dDcz_dPsi
             << 0
@@ -606,14 +606,14 @@ void Newtons::updateCentroidGradient()
         // Second order derivatives
 
         // dDcx_dPhi = 0;
-        
+
         //dDcx_dTheta = -cx*st*cps + cy*st*sps + cz*ct
         double d2Dx22 = -cx*ct*cps + cy*ct*sps - cz*st;
         double d2Dx23 = cx*st*sps + cy*st*cps;
         //dDcx_dPsi = -cx*ct*sps - cy*ct*cps;
         double d2Dx32 = d2Dx23;
         double d2Dx33 = -cx*ct*cps + cy*ct*sps;
-    
+
         // dDcx_dT = const. -> d2Dcx_dT^2 = 0 for all x,y,z
 
         Matrix d2Dx(6,6);
@@ -645,10 +645,10 @@ void Newtons::updateCentroidGradient()
         d2Dy << d2Dy11 << d2Dy12 << d2Dy13 << 0 << 0 << 0
              << d2Dy21 << d2Dy22 << d2Dy23 << 0 << 0 << 0
              << d2Dy31 << d2Dy32 << d2Dy33 << 0 << 0 << 0
-             <<   0    <<    0   <<    0   << 0 << 0 << 0 
-             <<   0    <<    0   <<    0   << 0 << 0 << 0 
+             <<   0    <<    0   <<    0   << 0 << 0 << 0
+             <<   0    <<    0   <<    0   << 0 << 0 << 0
              <<   0    <<    0   <<    0   << 0 << 0 << 0;
-        
+
         //dDcz_dPhi = cx*(cph*sps+sph*cps*st) + cy*(cps*cph-sph*st*sps) - cz*sph*ct;
         double d2Dz11 = cx*(-sph*sps+cph*cps*st) + cy*(-cps*sph-cph*st*sps) - cz*cph*ct;
         double d2Dz12 = cx*(sph*cps*ct) + cy*(-sph*ct*sps) + cz*sph*st;
@@ -668,9 +668,9 @@ void Newtons::updateCentroidGradient()
         d2Dz << d2Dz11 << d2Dz12 << d2Dz13 << 0 << 0 << 0
              << d2Dz21 << d2Dz22 << d2Dz23 << 0 << 0 << 0
              << d2Dz31 << d2Dz32 << d2Dz33 << 0 << 0 << 0
-             <<   0    <<    0   <<    0   << 0 << 0 << 0 
-             <<   0    <<    0   <<    0   << 0 << 0 << 0 
-             <<   0    <<    0   <<    0   << 0 << 0 << 0;   
+             <<   0    <<    0   <<    0   << 0 << 0 << 0
+             <<   0    <<    0   <<    0   << 0 << 0 << 0
+             <<   0    <<    0   <<    0   << 0 << 0 << 0;
 
 
          // Jacobian of centroid error function:
@@ -678,20 +678,20 @@ void Newtons::updateCentroidGradient()
         dE << 2 * (Dcx*dDx + Dcy*dDy + Dcz*dDz);
 
         // Tukey loss
-        double D = sqrt(sqr(Dcx)+sqr(Dcy)+sqr(Dcz));   
-        double w = fabs(D) <= _eps_kernel ? sqr(1-sqr(D*inv_kernel)) : 0; 
-            
+        double D = sqrt(sqr(Dcx)+sqr(Dcy)+sqr(Dcz));
+        double w = fabs(D) <= _eps_kernel ? sqr(1-sqr(D*inv_kernel)) : 0;
+
         ColumnVector dE_trans(6);
         dE_trans << 0 << 0 << 0 << dE(4) << dE(5) << dE(6);
         sum += w*dE_trans;
 
         // Hessian of centroid error function:
         Matrix d2E(6, 6);
-        // d2E << 2 * ( (dDx*dDx.t()) + Dcx*d2Dx 
-        //            + (dDy*dDy.t()) + Dcy*d2Dy 
+        // d2E << 2 * ( (dDx*dDx.t()) + Dcx*d2Dx
+        //            + (dDy*dDy.t()) + Dcy*d2Dy
         //            + (dDz*dDz.t()) + Dcz*d2Dz );
-        d2E << 2 * ( (dDx_trans*dDx_trans.t()) + Dcx*d2Dx 
-                   + (dDy_trans*dDy_trans.t()) + Dcy*d2Dy 
+        d2E << 2 * ( (dDx_trans*dDx_trans.t()) + Dcx*d2Dx
+                   + (dDy_trans*dDy_trans.t()) + Dcy*d2Dy
                    + (dDz_trans*dDz_trans.t()) + Dcz*d2Dz );
         sum2 += d2E;
     }
@@ -703,7 +703,7 @@ void Newtons::overlapGradients()
 {
     if (_use_p2p) {
         JJ = J +  J_c;
-        HH = H +  H_c; 
+        HH = H +  H_c;
     } else {
         JJ = J;
         HH = H;

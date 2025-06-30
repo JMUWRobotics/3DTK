@@ -1,6 +1,6 @@
 #include "match/matcher.h"
 
-Matcher::Matcher(PlaneScan* p) 
+Matcher::Matcher(PlaneScan* p)
 {
     setPlaneScan(p);
 }
@@ -8,6 +8,6 @@ Matcher::Matcher(PlaneScan* p)
 void Matcher::setPlaneScan(PlaneScan* p)
 {
     this->ps = p;
-    
+
 }
 

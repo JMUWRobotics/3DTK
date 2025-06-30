@@ -1,11 +1,11 @@
 /** @file
  *  @brief Representation of a plane with normal and reference point.
  *  Optionally stores the convex hull of the plane.
- *  This class also holds some static members to check if a point is 
+ *  This class also holds some static members to check if a point is
  *  inside the convex hull.
- * 
+ *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
  */
 
@@ -14,7 +14,7 @@
 #include "math.h"
 #include "slam6d/normals.h"
 #include <cassert>
- 
+
 // Use (void) to silent unused warnings.
 #define assertm(exp, msg) assert(((void)msg, exp))
 
@@ -22,13 +22,13 @@
 
 NormalPlane::NormalPlane(double *n, double *x)
 {
-    for(int i = 0; i < 3; i++) 
+    for(int i = 0; i < 3; i++)
     {
         this->n[i] = n[i];
         this->x[i] = x[i];
     }
     rho = Dot(n,x);
-    if(rho < 0) 
+    if(rho < 0)
     {
         rho = -rho;
         for(int i = 0; i < 3; i++) {
@@ -62,7 +62,7 @@ NormalPlane::NormalPlane(vector<double*> &ps)
 
     // convert to ordered point array:
     _hull_parr = new Point[hull.size()];
-    for ( size_t i = 0; i < hull.size(); ++i) 
+    for ( size_t i = 0; i < hull.size(); ++i)
     {
         _hull_parr[i].x = hull[i][0];
         _hull_parr[i].y = hull[i][1];
@@ -71,14 +71,14 @@ NormalPlane::NormalPlane(vector<double*> &ps)
 }
 
 NormalPlane::NormalPlane(double *n, double *x, vector<double*> &ps)
-    : NormalPlane(n, x) 
+    : NormalPlane(n, x)
 {
     addConvexHull(ps);
 }
 
 // Calculate the Convex Hull from a cluster
 // NormalPlane::NormalPlane(vector<Point> &cluster)
-// {   
+// {
 //     std::vector<double*> tmp_pts;
 //     for (const Point& p : cluster) {
 //         double *d = new double[3]{p.x, p.y, p.z};
@@ -92,7 +92,7 @@ NormalPlane::NormalPlane(double *n, double *x, vector<double*> &ps)
 
 //     // convert to ordered point array:
 //     _hull_parr = new Point[hull.size()];
-//     for ( size_t i = 0; i < hull.size(); ++i) 
+//     for ( size_t i = 0; i < hull.size(); ++i)
 //     {
 //         _hull_parr[i].x = hull[i][0];
 //         _hull_parr[i].y = hull[i][1];
@@ -119,7 +119,7 @@ void NormalPlane::addConvexHull(std::vector<double*> &ps)
     hull = ps;
     // Convert to Point array.
     _hull_parr = new Point[ps.size()];
-    for ( size_t i = 0; i < ps.size(); ++i) 
+    for ( size_t i = 0; i < ps.size(); ++i)
     {
         _hull_parr[i].x = ps[i][0];
         _hull_parr[i].y = ps[i][1];
@@ -149,12 +149,12 @@ void NormalPlane::calculateConvexHullFromCluster(vector<Point> &cluster)
     //cout << "Calc normal" << endl;
     calculateNormal(cluster, n, eigen);
     rho = Dot(x, n);
-    
+
     // TODO: ADD PLANE UNCERTAINTY HERE!
     // See: https://www.ipb.uni-bonn.de/pdfs/foerstner17efficient.pdf
-    // 
+    //
 
-    if(rho < 0) 
+    if(rho < 0)
     {
         rho = -rho;
         for(int i = 0; i < 3; i++) {
@@ -173,7 +173,7 @@ void NormalPlane::calculateConvexHullFromCluster(vector<Point> &cluster)
         direction = 'z';
     }
     //cout << "Done" << endl;
-    
+
     //cout << "Make convex hull 2d" << endl;
     // Calculating 2d convex hull
     std::list<double *> point_list;
@@ -195,13 +195,13 @@ void NormalPlane::calculateConvexHullFromCluster(vector<Point> &cluster)
 
         point_list.push_back(point);
     }
-    //cout << "List of 2d Points created. Convexing now..." << endl; 
+    //cout << "List of 2d Points created. Convexing now..." << endl;
     vector<double*> hull2d;
-    if (point_list.size() > 0) 
+    if (point_list.size() > 0)
         ConvexPlane::JarvisMarchConvexHull(point_list, hull2d);
     //cout << "Done." << endl;
 
-    // TODO: calc area 
+    // TODO: calc area
 
     //cout << "Embedd 2d convex hull in 3d space" << endl;
     // Convert back to 3d
@@ -235,7 +235,7 @@ void NormalPlane::calculateConvexHullFromCluster(vector<Point> &cluster)
     return ;
 }
 
-void NormalPlane::getBBox(double *mins, double *maxs) 
+void NormalPlane::getBBox(double *mins, double *maxs)
 {
     size_t hsize = hull.size();
     assertm( (hsize > 0), "Convex hull has no pts.");
@@ -255,10 +255,10 @@ void NormalPlane::getBBox(double *mins, double *maxs)
 
 double NormalPlane::projDist2Plane(NormalPlane *other)
 {
-    // Attention: ppd is order sensitive, as the direction of 
+    // Attention: ppd is order sensitive, as the direction of
     // projection matters. Therefore, take max of those.
-    assertm( (this->hull.size() != 0 
-           && other->hull.size() != 0), 
+    assertm( (this->hull.size() != 0
+           && other->hull.size() != 0),
            "There exists no hull." );
     double res;
     double res1 = __DBL_MAX__, res2 = __DBL_MAX__;
@@ -274,14 +274,14 @@ double NormalPlane::projDist2Plane(NormalPlane *other)
     return res;
 }
 
-// Check convex hull overlap by 
+// Check convex hull overlap by
 // querying every point of the convex hull of this object into "isInPlane",
 // checking the convex hull of the other plane.
 double NormalPlane::overlap(NormalPlane *other)
-{   
+{
     assertm( (this->all_pts.size() != 0
           && other->all_pts.size() != 0),
-            "Plane doesnt contain any pts." ); 
+            "Plane doesnt contain any pts." );
     double ratio1, ratio2;
     size_t hit = 0, all = 0;
     double Mid[16];
@@ -304,7 +304,7 @@ double NormalPlane::overlap(NormalPlane *other)
 
 void NormalPlane::getMinMaxHesseTo(NormalPlane* other, double &mind, double &maxd)
 {
-    assertm( (this->hull.size() != 0), 
+    assertm( (this->hull.size() != 0),
            "There exists no hull." );
     mind = __DBL_MAX__;
     maxd = 0;
@@ -317,7 +317,7 @@ void NormalPlane::getMinMaxHesseTo(NormalPlane* other, double &mind, double &max
 
 void NormalPlane::getMinMaxProjDistTo(NormalPlane* other, double &mind, double &maxd)
 {
-    assertm( (this->hull.size() != 0), 
+    assertm( (this->hull.size() != 0),
            "There exists no hull." );
     mind = __DBL_MAX__;
     maxd = 0;
@@ -330,10 +330,10 @@ void NormalPlane::getMinMaxProjDistTo(NormalPlane* other, double &mind, double &
 
 double NormalPlane::hesseDist2Plane(NormalPlane *other)
 {
-    // Attention: hesse is order sensitive, as the direction of 
+    // Attention: hesse is order sensitive, as the direction of
     // projection matters. Therefore, take max of those.
-    assertm( (this->hull.size() != 0 
-           && other->hull.size() != 0), 
+    assertm( (this->hull.size() != 0
+           && other->hull.size() != 0),
            "There exists no hull." );
     double res;
     double res1 = __DBL_MAX__, res2 = __DBL_MAX__;
@@ -350,24 +350,24 @@ double NormalPlane::hesseDist2Plane(NormalPlane *other)
 }
 
 
-void NormalPlane::mergeWith(NormalPlane *other) 
+void NormalPlane::mergeWith(NormalPlane *other)
 {
     assertm( (this != other), "Trying to merge plane with itself.");
     vector<Point> pts;
     pts.insert( end(pts), begin(hull), end(hull));
-    pts.insert( end(pts), begin(other->hull), end(other->hull)); 
-    
+    pts.insert( end(pts), begin(other->hull), end(other->hull));
+
     this->hull.clear();
     delete[] _hull_parr;
-    
+
     this->all_pts.insert( end(all_pts), begin(other->all_pts), end(other->all_pts) );
     this->search_tree->insert(other->all_pts);
-    
+
     calculateConvexHullFromCluster(pts);
-    
+
     // convert to ordered point array:
     _hull_parr = new Point[hull.size()];
-    for ( size_t i = 0; i < hull.size(); ++i) 
+    for ( size_t i = 0; i < hull.size(); ++i)
     {
         _hull_parr[i].x = hull[i][0];
         _hull_parr[i].y = hull[i][1];
@@ -402,7 +402,7 @@ void NormalPlane::writePlane(string path)
       case 'z':
         out << (*it)[0] << " ";
         out << (*it)[1] << " ";
-        out << (*it)[2] << std::endl; 
+        out << (*it)[2] << std::endl;
         break;
       default: throw std::runtime_error("default branch taken");
     }
@@ -499,12 +499,12 @@ double NormalPlane::nearestLineSegment(const Point& p, const Point* polygon, int
         p_pch1 = p - polygon[j];
         pch2_1 = polygon[i] - polygon[j];
         pch2_p = polygon[i] - p;
-        
+
         // Projection factor onto the line segment. if between 0 and 1,
         // point projection is on the line segment. Else its not in the linesegment.
         double r = dot( pch2_1, p_pch1 ) / dot( pch2_1, pch2_1 );
         // Clamping between 0 and 1. If 0, calc distance to polygon[j].
-        // If 1, calc distance to polygon[i] 
+        // If 1, calc distance to polygon[i]
         double t = min( max(r, 0.0), 1.0);
         // Parametrization of a line, starting at polygon[j] ending at polygon[i]
         s = polygon[j] + t*pch2_1 - p;
@@ -514,7 +514,7 @@ double NormalPlane::nearestLineSegment(const Point& p, const Point* polygon, int
             D_min = D;
             j_min = j;
             i_min = i;
-        } 
+        }
         j++;
         i++;
     }

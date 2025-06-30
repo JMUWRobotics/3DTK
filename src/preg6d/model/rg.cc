@@ -11,7 +11,7 @@ int PlaneScan::readClusters(DataRGB &scan_color)
 
     // Init colors with size 1 for the first point
     vector<rgb> colors(0);
-    rgb color = {   
+    rgb color = {
         (double)scan_color[0][0],   // I know. These are some
         (double)scan_color[0][1],   // dirty "unsigned char" to "double" conversions.
         (double)scan_color[0][2]    // Your compiler may complain about that.
@@ -22,13 +22,13 @@ int PlaneScan::readClusters(DataRGB &scan_color)
     clusters = Clusters(1);
     clusters[0].push_back(0);
     for (size_t i = 1; i < nrclusterpts; ++i)
-    {   
+    {
         bool rgb_equals = false;
-        rgb color1 = {   
-            (double)scan_color[i][0],   // However, i ensure you that 
+        rgb color1 = {
+            (double)scan_color[i][0],   // However, i ensure you that
             (double)scan_color[i][1],   // they will always work in that usecase,
             (double)scan_color[i][2]    // so you don't actually have to worry about it.
-        }; 
+        };
         for (size_t j = 0; j < colors.size(); ++j)
         {
             rgb color2 = colors[j];
@@ -44,7 +44,7 @@ int PlaneScan::readClusters(DataRGB &scan_color)
             colors.push_back(color1);
             clusters[ clusters.size() - 1].push_back(i);
         }
-    }  
+    }
     //cout << clusters.size() << " clusters found." << endl;
     return 0;
 }
@@ -85,11 +85,11 @@ int PlaneScan::readClusters(DataType &scan_type)
 /**
  * @brief Calculates the distance between two clusters.
  * It does so by looking at each point of the first cluster, calculate its
- * closest point in the second cluster and store the min distance. Thus, the 
+ * closest point in the second cluster and store the min distance. Thus, the
  * complexity of the algorithm is O(nlog(k)) when n is the number of points in
  * the first cluster, and k is the number of points in the second cluster.
  * @param c1: The first cluster with n pts.
- * @param c2: The second cluster with k pts. 
+ * @param c2: The second cluster with k pts.
  */
 double PlaneScan::clusterDistBkd(Cluster &c1, BkdTree *c2, int threadNum)
 {
@@ -101,7 +101,7 @@ double PlaneScan::clusterDistBkd(Cluster &c1, BkdTree *c2, int threadNum)
     return min_dist;
 }
 
-// Uses brute force to calculate cluster to cluster distance. 
+// Uses brute force to calculate cluster to cluster distance.
 // Thus, its complexity is O(n*k) (which is shit)
 double PlaneScan::clusterDistBF(Cluster &c1, Cluster &c2)
 {
@@ -119,15 +119,15 @@ double PlaneScan::clusterDistBF(Cluster &c1, Cluster &c2)
 
 void PlaneScan::update_centroid_cache(int idxc, size_t idxp)
 {
-    for(int i = 0; i < 3; i++) 
+    for(int i = 0; i < 3; i++)
         centroid_cache[idxc][i] += points[idxp][i];
 }
 
 double * PlaneScan::centroidClusterMeanCached(int idxc)
 {
-    double *centroid = new double[3]; // Code smell, have to free mem manually 
+    double *centroid = new double[3]; // Code smell, have to free mem manually
     for (int i = 0; i < 3; i++)
-        centroid[i] = 0; 
+        centroid[i] = 0;
     const size_t csize = clusters[idxc].size();
     if (csize == 0) return centroid;
     for (int i = 0; i < 3; i++)
@@ -147,7 +147,7 @@ void PlaneScan::update_ncm_cache(int idxc, size_t idxp)
 double * PlaneScan::normalClusterMeanCached(int idxc)
 {
     double *nmean = new double[3]; // Code smell... have to free mem manually
-    nmean[0] = 0; nmean[1] = 0; nmean[2] = 0; 
+    nmean[0] = 0; nmean[1] = 0; nmean[2] = 0;
     const size_t csize = clusters[idxc].size();
     if (csize == 0) return nmean;
     nmean[0] = ncm_cache[idxc][0] / csize;
@@ -161,8 +161,8 @@ double * PlaneScan::normalClusterMeanCached(int idxc)
 double* PlaneScan::calcNormalOnDemand(Cluster &indices)
 {
     vector<Point> temp;
-    for (size_t i : indices) 
-    {   
+    for (size_t i : indices)
+    {
         double tmp[3];
         transform3(transMat, points[i], tmp);
         temp.push_back( Point(tmp) );
@@ -177,9 +177,9 @@ double* PlaneScan::calcNormalOnDemand(Cluster &indices)
 double* PlaneScan::normalClusterMean(Cluster &indices)
 {
     double *nmean = new double[3];
-    nmean[0] = 0; nmean[1] = 0; nmean[2] = 0; 
+    nmean[0] = 0; nmean[1] = 0; nmean[2] = 0;
     if (indices.size() == 0) return nmean;
-    
+
     // When clusters are read, there is no normal information.
     if (read_clusters) return calcNormalOnDemand(indices);
 
@@ -187,7 +187,7 @@ double* PlaneScan::normalClusterMean(Cluster &indices)
         nmean[0] += normals[indices[i]][0];
         nmean[1] += normals[indices[i]][1];
         nmean[2] += normals[indices[i]][2];
-    } 
+    }
     nmean[0] /= indices.size();
     nmean[1] /= indices.size();
     nmean[2] /= indices.size();
@@ -195,7 +195,7 @@ double* PlaneScan::normalClusterMean(Cluster &indices)
 }
 
 // Calculates the distance from point "p" to the cluster "cluster",
-// i.e. the distance from the point "p" to a point in the cluster, where the distance is minimal 
+// i.e. the distance from the point "p" to a point in the cluster, where the distance is minimal
 double PlaneScan::clusterPointDist(Cluster &cluster, double *p)
 {
     double dist = DBL_MAX, d;
@@ -218,7 +218,7 @@ void PlaneScan::initRG()
 
     // Setup clusters, initialize with one clusterlabelUseNorm
     clusters = Clusters();
-    // Setup cluster caches 
+    // Setup cluster caches
     ncm_cache = vector<double*>();
     centroid_cache = vector<double*>();
     // Setup dynamic cluster search-trees which support insertion of points
@@ -230,8 +230,8 @@ void PlaneScan::initRG()
     // clusters[0].push_back(0);
     // bkd_forest.push_back( new BkdTree() );
     // bkd_forest[0]->insert(points[0]);
-    // // Also init caches 
-    // update_ncm_cache(0, 0); 
+    // // Also init caches
+    // update_ncm_cache(0, 0);
     // update_centroid_cache(0, 0);
 }
 
@@ -254,9 +254,9 @@ void PlaneScan::regionGrowing(int threadNum)
     for (size_t i = 0; i < nrpts; ++i) {
         labled[i] = false;
         inqueue[i] = false;
-        visited[i] = false;  
+        visited[i] = false;
         searched[i] = false;
-    } 
+    }
     // Only allow one cluster to grow at a time
     int current_growing_cluster = 0;
     double d2 = sqr(d_growth); // squared region growing param..
@@ -264,7 +264,7 @@ void PlaneScan::regionGrowing(int threadNum)
     /**
      * This outer for-loop ensures we always hit points where we can grow a region.
      * The selection of a new starting point for region growing happens if a cluster
-     * is completed, i.e. it can no longer grow. Then, we pick the next best point. 
+     * is completed, i.e. it can no longer grow. Then, we pick the next best point.
      */
     for (size_t k = 0; k < nrpts; ++k) {
 
@@ -274,7 +274,7 @@ void PlaneScan::regionGrowing(int threadNum)
         // Visited points that have not been labeld are usually edge points (where normals suck)
         // Skip them, too.
         if (visited[k]) continue;
-        
+
         // Put back the edge points, as they could potentially belong to another cluster
         for (size_t i = 0; i < nrpts; ++i) visited[i] = false;
         visited[k] = true;
@@ -287,7 +287,7 @@ void PlaneScan::regionGrowing(int threadNum)
         clusters.push_back( Cluster() );
         // Each cluster gets a BkdTree (dynamicaly scalable kd-tree)
         bkd_forest.push_back( new BkdTree() );
-        
+
         // Open new Normal Cache for cluster
         double *ncm_tail = new double[3];
         for(int i = 0; i < 3; i++)
@@ -318,26 +318,26 @@ void PlaneScan::regionGrowing(int threadNum)
                 inqueue[i] = true;
             }
         }
-        
+
         /*
          * Queue points to grow a single cluster.
          * Once the cluster becomes full and can no longer grow, break this loop.
          */
         size_t grown = 0;
         while( !idx_queue.empty() ) {
-            
-            // Look at current point (front of the queue): 
+
+            // Look at current point (front of the queue):
             int j = idx_queue.front(); idx_queue.pop_front();
             inqueue[j] = false;
-       
-            // Case: Point with index j is last element in the queue.  
+
+            // Case: Point with index j is last element in the queue.
             // Then, we have to start a new growing process as follows
             if ( idx_queue.empty() ) {
 
                 // We did not cluster any point: Finished cluster, break loop
                 if (grown == 0) {
                     idx_queue.clear();
-                    for (size_t i = 0; i < nrpts; ++i) 
+                    for (size_t i = 0; i < nrpts; ++i)
                         inqueue[i] = false;
                     break;
 
@@ -354,8 +354,8 @@ void PlaneScan::regionGrowing(int threadNum)
                         // Grow remaining (newly aquired) clusterpoints...
                         double *p = points[ growing_idx ];
                         vector<size_t> knns = tree->kNearestNeighbors( p, k_neighbours, threadNum );
-                        // mark them as grown. 
-                        searched[growing_idx] = true; 
+                        // mark them as grown.
+                        searched[growing_idx] = true;
 
                         // For all the new points in the range search...
                         for (size_t const index : knns) {
@@ -364,16 +364,16 @@ void PlaneScan::regionGrowing(int threadNum)
                                 // add them to the iteration queue.
                                 idx_queue.push_front( index );
                                 // mark point as 'in queue'
-                                inqueue[index] = true; 
+                                inqueue[index] = true;
                             }
                         }
-                    } 
+                    }
                 }
                 // Reset, count growing points for new region-grow now.
                 grown = 0;
             }
-            
-            // The point is already labled, skip! 
+
+            // The point is already labled, skip!
             if (labled[j]) continue;
             if (visited[j]) continue;
             visited[j] = true;
@@ -384,11 +384,11 @@ void PlaneScan::regionGrowing(int threadNum)
             // Get point p with normal n
             double *p = points[j];
             double *n = normals[j];
-            
+
             // Get BkdTree of current cluster for distance calculation
             BkdTree *clust = bkd_forest[current_growing_cluster];
 
-            // Calculate angle alpha between point normal and mean cluster normal 
+            // Calculate angle alpha between point normal and mean cluster normal
             double *ncm = normalClusterMeanCached( current_growing_cluster );
             double alpha = angleBetweenNormals(ncm, n);
 
@@ -396,15 +396,15 @@ void PlaneScan::regionGrowing(int threadNum)
             double cpd2;
             if (use_bruteforce)
                 cpd2 = clusterPointDist( clusters[current_growing_cluster], p );
-            else 
+            else
                 cpd2 = clusterPointDist2( clust, p, threadNum );
 
             // Check distance of the point in normal direction (should be small)
-            //TODO: DEBUG THIS LOCAL/GLOBAL MESS. SHOULD BE LOCAL! 
+            //TODO: DEBUG THIS LOCAL/GLOBAL MESS. SHOULD BE LOCAL!
             // double hesse2cluster = 0;
             // if (clusters[current_growing_cluster].size() >= (size_t)n_min_clusterpoints) {
             //     double* x = centroidClusterMeanCached( current_growing_cluster );
-            //     // take cached cluster normal   
+            //     // take cached cluster normal
             //     double v[3];
             //     for (int i = 0; i < 3; i++)
             //         v[i] = p[i] - x[i];
@@ -426,7 +426,7 @@ void PlaneScan::regionGrowing(int threadNum)
             //cout << "CPD: " << sqrt(cpd2) << ", Hesse: " << hesse2cluster << endl;
             // Check if we have found a good cluster for current point with index j
             if (deg(alpha) <= eps_similarity && cpd2 <= d2) { // && fabs(hesse2cluster) <= d_thickness) {
-                
+
                 // Update the clusters
                 clusters[current_growing_cluster].push_back(j);
                 if (!use_bruteforce){
@@ -444,13 +444,13 @@ void PlaneScan::regionGrowing(int threadNum)
                 labled[j] = true;
                 grown++;
             }
-        } 
+        }
     }
 }
 
-void PlaneScan::filter(Planes &hulls) 
+void PlaneScan::filter(Planes &hulls)
 {
-    // delete clusters that have too few points or bad eigenvals 
+    // delete clusters that have too few points or bad eigenvals
     cout << "Deleting low quality clusters." << endl;
 
     Cache::iterator ncm_it = ncm_cache.begin();
@@ -464,18 +464,18 @@ void PlaneScan::filter(Planes &hulls)
         //double *ncm = (*hulls_it)->n;
         double *eig = (*hulls_it)->eigen;
         double *ncm_cached = new double[3];
-        for (int i = 0; i < 3; i++) 
+        for (int i = 0; i < 3; i++)
             ncm_cached[i] = (*ncm_it)[i] / it->size();
         Normalize3(ncm_cached);
 
         // "Too few points for a cluster" can have a different meaning according to scanned distance,
-        // for some sensors. Ususally, far measurements are less dense, and cover larger areas. 
+        // for some sensors. Ususally, far measurements are less dense, and cover larger areas.
         int n_thresh = n_min_clusterpoints;
-        if ( n_min_clusterpoints_far != -1 
-            && (size_t)n_min_clusterpoints_far < it->size() 
+        if ( n_min_clusterpoints_far != -1
+            && (size_t)n_min_clusterpoints_far < it->size()
             && it->size() < (size_t)n_min_clusterpoints )
         {
-            double origin[3] = {0, 0, 0}; 
+            double origin[3] = {0, 0, 0};
             double centroid[3] = {0, 0, 0};
             for (size_t i = 0; i < it->size(); ++i) {
                 centroid[0] += points[ it->at(i) ][0];
@@ -491,7 +491,7 @@ void PlaneScan::filter(Planes &hulls)
 
         // TODO: ADD AREA FILTER HERE maybe
         // We put a threshold on cluster size because we want big, planar areas, not non-feature gibberish
-        if (it->size() < (size_t)n_thresh 
+        if (it->size() < (size_t)n_thresh
             // we check eigenvalue of the plane. if the plane is not "thin" enough, delete it
             || !eigenValueOK(eig, eigratio) )
         {
@@ -499,26 +499,26 @@ void PlaneScan::filter(Planes &hulls)
             ncm_it = ncm_cache.erase( ncm_it );
             bkd_it = bkd_forest.erase(bkd_it);
             hulls_it = hulls.erase(hulls_it);
-        } 
+        }
         else
         {
             ++it; // increment as usual only if you dont delete the elem
             ++ncm_it;
             ++bkd_it;
             ++hulls_it;
-        } 
+        }
     }
 }
 
 void PlaneScan::filterPercentile(vector<NormalPlane*> &hulls, vector<size_t> &histogram, double percentile)
 {
-    // delete clusters that have too few points or bad eigenvals 
+    // delete clusters that have too few points or bad eigenvals
     cout << "Apply histogram percentile filter. Keeping " << percentile_filter*100 << "% of pts" << endl;
 
     int hist_idx = 0;
     size_t nr_all_pts = 0;
     size_t nr_current_pts = 0;
-    // Calculate Maximum number of points for each cluster 
+    // Calculate Maximum number of points for each cluster
     for (uint i = 0; i < histogram.size(); ++i)
         nr_all_pts += histogram.at(i);
 
@@ -532,21 +532,21 @@ void PlaneScan::filterPercentile(vector<NormalPlane*> &hulls, vector<size_t> &hi
         // Check condition, if true -> delete cluster
         nr_current_pts += histogram.at(hist_idx);
         hist_idx++;
-        if ( nr_current_pts > percentile * nr_all_pts 
-          || (hist_idx > n_max_clusters && n_max_clusters != -1) ) 
+        if ( nr_current_pts > percentile * nr_all_pts
+          || (hist_idx > n_max_clusters && n_max_clusters != -1) )
         {
             it = clusters.erase(it);
             ncm_it = ncm_cache.erase( ncm_it );
             bkd_it = bkd_forest.erase(bkd_it);
             hulls_it = hulls.erase(hulls_it);
-        } 
+        }
         else
         {
             ++it; // increment as usual only if you dont delete the elem
             ++ncm_it;
             ++bkd_it;
             ++hulls_it;
-        } 
+        }
     }
 }
 
@@ -555,7 +555,7 @@ void PlaneScan::filterPercentile(vector<NormalPlane*> &hulls, vector<size_t> &hi
  * Normals get calculated automatically if not read beforehand.
  */
 void PlaneScan::detectRG()
-{   
+{
     cout << "Calculating clusters for scan" << identifier << endl;
     initRG();
 
@@ -575,7 +575,7 @@ void PlaneScan::detectRG()
     // Calculate and write histogram
     sortClustersBySize(clusters);
     std::vector<size_t> histogram = clusterHist(clusters);
-    if (cluster_outpath[ cluster_outpath.size() - 1] != '/') 
+    if (cluster_outpath[ cluster_outpath.size() - 1] != '/')
             cluster_outpath += "/";
     string hist_path = cluster_outpath + "hist" + identifier + ".dat";
     std::cout << "Writing histogram to " << hist_path << std::endl;
@@ -585,34 +585,34 @@ void PlaneScan::detectRG()
     vector<NormalPlane*> hulls(0);
     for (size_t i = 0; i < clusters.size(); ++i) {
         vector<double*> hull;
-        for (size_t j = 0; j < clusters[i].size(); ++j) 
+        for (size_t j = 0; j < clusters[i].size(); ++j)
             hull.push_back(points[clusters[i][j]]);
-        
+
         hulls.push_back(new NormalPlane(hull));
     }
 
     // Filter the clusters
     if (percentile_filter == -1.0)
         filter(hulls);
-    else 
+    else
         filterPercentile(hulls, histogram, percentile_filter);
-    
+
     // Write clusters to scanfile
     cout << clusters.size() << " clusters found for scan" << identifier << endl;
     if ( cluster_outpath != "")
     {
-        if (cluster_outpath[ cluster_outpath.size() - 1] != '/') 
+        if (cluster_outpath[ cluster_outpath.size() - 1] != '/')
             cluster_outpath += "/";
-        if (export_cluster_rgb) 
+        if (export_cluster_rgb)
             writeClustersToScanfileRGB(cluster_outpath);
-        
+
         else
             writeClustersToScanfileType(cluster_outpath);
-    } 
+    }
 }
 
 /**
- * Saves the result of Clustering to a scanfile. 
+ * Saves the result of Clustering to a scanfile.
  * Can be visualized with "show -f uos_rgb -c"
  */
 void PlaneScan::writeClustersToScanfileRGB(string path)
@@ -628,12 +628,12 @@ void PlaneScan::writeClustersToScanfileRGB(string path)
             ofile << points[clusters[i][j]][0] << " "
                 << points[clusters[i][j]][1] << " "
                 << points[clusters[i][j]][2] << " "
-                << (int) (color_rgb.r*255) << " " 
-                << (int) (color_rgb.g*255) << " " 
+                << (int) (color_rgb.r*255) << " "
+                << (int) (color_rgb.g*255) << " "
                 << (int) (color_rgb.b*255) << endl;
         }
         //color_hsv.h += sign*180.0;
-        color_hsv.h += 360.0 / (double)clusters.size(); 
+        color_hsv.h += 360.0 / (double)clusters.size();
         //sign *= -1;
     }
     // Write corresponding pose.
@@ -643,7 +643,7 @@ void PlaneScan::writeClustersToScanfileRGB(string path)
 }
 
 // Use this function to export clusters.
-void PlaneScan::writeClustersToScanfileType(string path) 
+void PlaneScan::writeClustersToScanfileType(string path)
 {
     ofstream ofile((path+"scan"+identifier+".3d").c_str(), ios_base::out);
     for (uint i = 0; i < clusters.size(); ++i)
@@ -654,7 +654,7 @@ void PlaneScan::writeClustersToScanfileType(string path)
                 << points[clusters[i][j]][1] << " "
                 << points[clusters[i][j]][2] << " "
                 << i << endl; // cluster index as type
-        } 
+        }
     }
     // Write corresponding pose.
     ofstream ofilepose((path+"scan"+identifier+".pose").c_str(), ios_base::out);
@@ -665,7 +665,7 @@ void PlaneScan::writeClustersToScanfileType(string path)
 vector<vector<double*> > PlaneScan::getGlobalClusters()
 {
     vector<vector<double*> > result;
-    for (size_t i = 0; i < clusters.size(); i++) 
+    for (size_t i = 0; i < clusters.size(); i++)
     {
         vector<double*> cluster;
         for (size_t j = 0; j < clusters[i].size(); j++)
@@ -682,14 +682,14 @@ vector<vector<double*> > PlaneScan::getGlobalClusters()
 vector<vector<double*> > PlaneScan::getLocalClusters()
 {
     vector<vector<double*> > result;
-    for (size_t i = 0; i < clusters.size(); i++) 
+    for (size_t i = 0; i < clusters.size(); i++)
     {
         vector<double*> cluster;
         for (size_t j = 0; j < clusters[i].size(); j++)
             cluster.push_back( points[clusters[i][j]] );
         result.push_back(cluster);
     }
-    return result;   
+    return result;
 }
 
 
@@ -697,7 +697,7 @@ vector<vector<double*> > PlaneScan::getLocalClusters()
 
 // void PlaneScan::merge(Planes &hulls, int threadNum)
 // {
-//     // Cleanup, merge clusters with similar normal if they are near enough    
+//     // Cleanup, merge clusters with similar normal if they are near enough
 //     cout << "Merge similar clusters" << endl;
 
 //     // We need all cluster iterators, since we have indexed clusters:
@@ -710,7 +710,7 @@ vector<vector<double*> > PlaneScan::getLocalClusters()
 //     // Convex hull iterators
 //     Hulls::iterator it_hull = hulls.begin();
 //     Hulls::iterator it_hull2 = hulls.begin();
-    
+
 //     // Iterate the clusters
 //     for (Clusters::iterator it = clusters.begin();
 //          it != clusters.end();
@@ -742,7 +742,7 @@ vector<vector<double*> > PlaneScan::getLocalClusters()
 //                 // ...have small inter-point distance to each other...
 //                 && clusterDistBkd((*it), (*it_bkd2), threadNum) <= sqr(d_growth)
 //                 // ...and overlap...
-//                 && hull1->overlaps(hull2) ) 
+//                 && hull1->overlaps(hull2) )
 //             {
 //             // Case "merge" (delete current, and set next elem)
 //                 merge(it, it2);
@@ -753,7 +753,7 @@ vector<vector<double*> > PlaneScan::getLocalClusters()
 //                 // Merge bkd trees
 //                 size_t npts_new = it->size();
 //                 double **data_new = new double*[npts_new];
-//                 for (size_t i = 0; i < npts_new; ++i) 
+//                 for (size_t i = 0; i < npts_new; ++i)
 //                     data_new[i] = points[it->at(i)];
 //                 (*it_bkd) = new BkdTree(data_new, npts_new);
 

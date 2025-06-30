@@ -1,23 +1,23 @@
 #include "opt/gaussnewton.h"
 
-// TODO: 
+// TODO:
 /*
  * Optimize in the following manner:
- * 
+ *
  * X_k+1 = X_k - (J^t * W * J)^-1 * J^t * W * r
  * J should be a vector of N Jacobians (ColumnVector)
  * J^t is then a RowVector of the N Jacobians
  * W is the weight matrix containing N weights
  * r is a ColumnVector of N residuals (point2plane err)
- * 
+ *
  * weights are:
  * w_i = 1 / r_i * p'(r_i)
  * where p' is the first order derivative of loss p
- * 
+ *
  * For loss function table, see:
  * P. Babin et al.
  * https://arxiv.org/pdf/1810.01474.pdf
- * 
+ *
  */
 
 GaussNewton::GaussNewton() {
@@ -37,10 +37,10 @@ GaussNewton::GaussNewton(PlaneScan* p) : GaussNewton() {
       << ps->rPosTheta[2] // left-handed yaw (rotZ)
       << ps->rPos[0] //x
       << ps->rPos[1] //y
-      << ps->rPos[2];//z 
+      << ps->rPos[2];//z
     updateScan();
     updateGradient();
-    this->dim = Dimensions::ALL; 
+    this->dim = Dimensions::ALL;
 }
 
 GaussNewton::GaussNewton(PlaneScan *p, Dimensions d): GaussNewton(p)
@@ -74,17 +74,17 @@ void GaussNewton::iterate()
             <<  lastErr  << endl;
 
         updateGradient();
-        
+
 
         try {
             //cout << "Without residual we get: " << endl;
             LinearEquationSolver H = (J.t() * J);
-            RowVector S = H.i() * J.t(); 
-            //cout << S.t() << endl; 
+            RowVector S = H.i() * J.t();
+            //cout << S.t() << endl;
             dX = S.t() * lastErr;
         } catch(NEWMAT::SingularException &e) {
             break;
-        } 
+        }
         //cout << "dX= " << endl << dX << endl;
         lock();
 
@@ -92,11 +92,11 @@ void GaussNewton::iterate()
 
         updateScan();
 
-    } while ( !stop_condition(X) 
+    } while ( !stop_condition(X)
         && iter < _max_iter);
 }
 
-void GaussNewton::operator()(void) 
+void GaussNewton::operator()(void)
 {
     iterate();
 }
@@ -115,7 +115,7 @@ void GaussNewton::updateGradient()
     double tx = X(4); // x
     double ty = X(5); // y
     double tz = X(6); // z
-        
+
     double sph = sin(phi);
     double st = sin(theta);
     double sps = sin(psi);
@@ -136,7 +136,7 @@ void GaussNewton::updateGradient()
         double x = cor.first[0];
         double y = cor.first[1];
         double z = cor.first[2];
-        
+
         double nx = cor.second->n[0];
         double ny = cor.second->n[1];
         double nz = cor.second->n[2];
@@ -151,21 +151,21 @@ void GaussNewton::updateGradient()
         double Tpz = x*(sph*sps-cph*cps*st) + y*(cps*sph+cph*st*sps) + z*cph*ct + tz;
 
         double D = nx*(Tpx - ax)  // as you can see, this represents the distance
-                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite 
+                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite
                  + nz*(Tpz - az); // plane. Called "hesse distance"
 
-        // The first order gradient of that distance is: 
+        // The first order gradient of that distance is:
 
-        double dEdPhi = 
+        double dEdPhi =
               ny*(x*(cps*cph*st-sps*sph) + y*(-sph*cps-cph*st*sps) - z*ct*cph)
             + nz*(x*(cph*sps+sph*cps*st) + y*(cps*cph-sph*st*sps) - z*ct*sph);
 
-        double dEdTheta = 
+        double dEdTheta =
               nx*(-x*st*cps+y*st*sps+z*ct)
             + ny*(x*(ct*cps*sph) + y*(-ct*sph*sps) + z*st*sph)
             + nz*(-x*ct*cph*cps + y*ct*cph*sps - z*st*cph);
-            
-        double dEdPsi = 
+
+        double dEdPsi =
               nx*(-x*sps*ct - y*cps*ct)
             + ny*(x*(cps*cph-sps*sph*st) + y*(-sps*cph-cps*sph*st))
             + nz*(x*(cps*sph+sps*cph*st) + y*(-sps*sph+cps*cph*st));
@@ -197,7 +197,7 @@ void GaussNewton::updateGradient()
     //     double* m = match.second;
 
     //     if (!m || !c) {
-    //         cout << "invalid pointer! "; 
+    //         cout << "invalid pointer! ";
     //         if (!m)
     //             cout <<"Model set:"<< &m << endl;
     //         if (!c)
@@ -219,7 +219,7 @@ void GaussNewton::updateGradient()
     //     Tcy = cx*(cph*sps+cps*sph*st) + cy*(cph*cps-sph*st*sps) - cz*ct*sph + ty;
     //     Tcz = cx*(sph*sps-cph*cps*st) + cy*(cps*sph+cph*st*sps) + cz*cph*ct + tz;
 
-    //     double Dcx = Tcx - mx;  
+    //     double Dcx = Tcx - mx;
     //     double Dcy = Tcy - my;
     //     double Dcz = Tcz - mz;
 
@@ -238,7 +238,7 @@ void GaussNewton::updateGradient()
     //     double dDcz_dPsi = cx*(sph*cps+cph*sps*st) + cy*(-sps*sph+cph*st*cps);
 
     //     ColumnVector dDx(6);
-    //     dDx << 0//dDcx_dPhi     
+    //     dDx << 0//dDcx_dPhi
     //         << 0//dDcx_dTheta
     //         << 0//dDcx_dPsi
     //         << 1
@@ -246,7 +246,7 @@ void GaussNewton::updateGradient()
     //         << 0;
 
     //     ColumnVector dDy(6);
-    //     dDy << 0//dDcy_dPhi     
+    //     dDy << 0//dDcy_dPhi
     //         << 0//dDcy_dTheta
     //         << 0//dDcy_dPsi
     //         << 0
@@ -254,7 +254,7 @@ void GaussNewton::updateGradient()
     //         << 0;
 
     //     ColumnVector dDz(6);
-    //     dDz << 0//dDcz_dPhi     
+    //     dDz << 0//dDcz_dPhi
     //         << 0//dDcz_dTheta
     //         << 0//dDcz_dPsi
     //         << 0

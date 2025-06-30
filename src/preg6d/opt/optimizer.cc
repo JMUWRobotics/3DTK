@@ -8,9 +8,9 @@ int Optimizer::_anim;
 bool Optimizer::_quiet;
 bool Optimizer::_use_p2p = true;
 
-void Optimizer::setMaxIter(int val) 
-{ 
-    _max_iter = val; 
+void Optimizer::setMaxIter(int val)
+{
+    _max_iter = val;
 }
 
 void Optimizer::setEpsConvergence(double val)
@@ -47,7 +47,7 @@ double Optimizer::getRSE()
 {
     if (_use_p2p)
         return ps->calcErr() + ps->calcErrPtPairs();
-    else    
+    else
         return ps->calcErr();
 }
 
@@ -78,27 +78,27 @@ bool* Optimizer::convertDimensionsToBoolArray(Dimensions d)
 /* weights are:
  * w_i = 1 / r_i * p'(r_i)
  * where p' is the first order derivative of loss p
- * 
+ *
  * For loss function table, see:
  * P. Babin et al.
  * https://arxiv.org/pdf/1810.01474.pdf
  */
 double Optimizer::weightLoss(double e) {
-    
+
     return 1; // L2
-    
+
     //return 1/fabs(e); // L1
-    
+
     // return fabs(e) <= _eps_kernel ? 1 : _eps_kernel / fabs(e); // Huber
-    
+
     // return 1 / (1 + sqr(e/_eps_kernel)); // Cauchy
-    
+
     // return fabs(e) <= _eps_kernel ? sqr(1-sqr(e/_eps_kernel)) : 0; // Tukey
 }
 
 void Optimizer::lock()
 {
-    // 
+    //
     double drPosTheta[3] = {dX(1), dX(2), dX(3)};
     double drPos[3] = {dX(4), dX(5), dX(6)};
     switch(dim)
@@ -155,7 +155,7 @@ void Optimizer::updateScan()
 {
     ps->rPosTheta[0] = X(1); // roll
     ps->rPosTheta[1] = X(2); // pitch
-    ps->rPosTheta[2] = X(3); // yaw 
+    ps->rPosTheta[2] = X(3); // yaw
     ps->rPos[0] = X(4);
     ps->rPos[1] = X(5);
     ps->rPos[2] = X(6);
@@ -182,26 +182,26 @@ void Optimizer::updateScan()
 bool Optimizer::stop_condition(ColumnVector state, double eps)
 {
     // Default false -> do not stop
-    bool result = false; 
-    
+    bool result = false;
+
     //cout << "States: " << endl;
     // Compare current state with other states
     for (ColumnVector& s : Xk) {
-        
-        //cout << "State" << s << " "; 
+
+        //cout << "State" << s << " ";
         ColumnVector ds = state - s;
 
-        // Loop or too small change detected 
+        // Loop or too small change detected
         if (ds.SumAbsoluteValue() <= eps) {
             cout << endl << "Loop or too small change detected for state " << endl << state;
             result = true;
             break;
-        }        
+        }
     }
 
     // Add state to deque
     Xk.push_back(state);
-    if (Xk.size() > COMP_N_FRAMES) 
+    if (Xk.size() > COMP_N_FRAMES)
         Xk.pop_front();
 
     return result;

@@ -1,4 +1,4 @@
-/** @file 
+/** @file
  *  @brief The global correction based upon 6D Lu Milios style SLAM in 6D but with a helix correction step
  *
  *  @author Peter Schneider. Institute of Computer Science, University of Koblenz , Germany.
@@ -22,7 +22,7 @@ using std::vector;
  * @brief Representation of 3D scan matching based upon Lu/Milios in 6D but using helix correction step.
  *
  *            H. Pottman, et al., Simultaneous registration of multiple
- *            views of a 3D object, 
+ *            views of a 3D object,
  */
 class ghelix6DQ2L : public graphSlam6DL {
 
@@ -45,11 +45,11 @@ public:
 	   double epsilonLUM = 0.5);
 
   virtual ~ghelix6DQ2L();
-  
+
   double doGraphSlam6D(Graph gr, vector <LScan*> MetaScan, int nrIt);
   double doGraphSlam6D(Graph gr, vector <Scan*> MetaScan, int nrIt) {return 0.0;}
   static double LUM[4];
-  
+
 private:
 
   double genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtPair *ptpairs,

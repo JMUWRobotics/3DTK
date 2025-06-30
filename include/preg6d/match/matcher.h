@@ -3,7 +3,7 @@
 
 class PlaneScan; // forward-declaration of planescan class
 
-class Matcher 
+class Matcher
 {
 
 protected:

@@ -18,9 +18,9 @@ public:
     double eps_ppd;
     double eps_sim;
     double eigratio;
-    ClusterMatcher(PlaneScan* p, double w_overlap = 0.8, 
-                                 double w_alpha = 1.0,   
-                                 double w_hesse =1.0,  
+    ClusterMatcher(PlaneScan* p, double w_overlap = 0.8,
+                                 double w_alpha = 1.0,
+                                 double w_hesse =1.0,
                                  double w_ppd = 0.3,
                                  double w_eigen = 0.1,
                                  double eps_dist = 25,

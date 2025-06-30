@@ -57,7 +57,7 @@ inline hsv rgb2hsv(rgb in)
     if( max > 0.0 ) { // NOTE: if Max is == 0, this divide would cause a crash
         out.s = (delta / max);                  // s
     } else {
-        // if max is 0, then r = g = b = 0              
+        // if max is 0, then r = g = b = 0
         // s = 0, h is undefined
         out.s = 0.0;
         out.h = -1;                            // its now undefined
@@ -135,9 +135,9 @@ inline rgb hsv2rgb(hsv in)
         out.b = q;
         break;
     }
-    return out;     
+    return out;
 }
-// End copyright 
+// End copyright
 
 // Check if a directory exists
 inline int existsDir(const char* path)
@@ -148,10 +148,10 @@ inline int existsDir(const char* path)
     else return 0;
 }
 
-inline bool rgbEquals(rgb c1, rgb c2) 
-{   
+inline bool rgbEquals(rgb c1, rgb c2)
+{
     // yanky but works
-    return 
+    return
         fabs(c1.r - c2.r) < 0.01 &&
         fabs(c1.g - c2.g) < 0.01 &&
         fabs(c1.b - c2.b) < 0.01;
@@ -159,11 +159,11 @@ inline bool rgbEquals(rgb c1, rgb c2)
 
 inline bool eigenValueOK( double *eigen, double thresh)
 {
-    // i.e. the ratio between extent of normal (z) direction 
+    // i.e. the ratio between extent of normal (z) direction
     // and extent in all (xyz) directions -> Measure of planarity.
     double den = (eigen[0] + eigen[1] + eigen[2]);
     if (den == 0.0) return false;
-    return eigen[0]/den < thresh; 
+    return eigen[0]/den < thresh;
 }
 
 inline bool intervalOverlap(int x1, int x2, int y1, int y2)
@@ -181,20 +181,20 @@ class Timer
     using timep_t = decltype(ClockT::now());
     timep_t _start, _end;
   public:
-    void tick() { 
+    void tick() {
         _end = timep_t{};
-        _start = ClockT::now(); 
+        _start = ClockT::now();
     }
-    
+
     void tock() {
-        _end = ClockT::now(); 
+        _end = ClockT::now();
     }
-    
+
     template <class TT = TimeT>
-    TT duration() const { 
+    TT duration() const {
         // Use gsl_Expects if your project supports it.
-        assert(_end != timep_t{} && "Timer must toc before reading the time"); 
-        return std::chrono::duration_cast<TT>(_end - _start); 
+        assert(_end != timep_t{} && "Timer must toc before reading the time");
+        return std::chrono::duration_cast<TT>(_end - _start);
     }
 };
 
@@ -243,54 +243,54 @@ inline std::vector<size_t> clusterHist(std::vector<std::vector<size_t> > const &
     return histogram;
 }
 
-inline void writeHist(std::vector<size_t> const &histogram, std::string path) 
+inline void writeHist(std::vector<size_t> const &histogram, std::string path)
 {
     std::ofstream file;
     file.open( path.c_str() );
     for (uint i = 0; i < histogram.size(); ++i)
         file << i+1 << " " << histogram[i] << "\n";
     file.flush();
-    file.close(); 
+    file.close();
 }
 
 enum InterpolType {
-    LINEAR, 
-    QUADRATIC, 
+    LINEAR,
+    QUADRATIC,
     CUBIC
 };
 /**
  * Handles growrate adaption.
  */
 struct InterpolMap {
-    
+
     double _imin; // Input, left border
-    double _imax; // Input, right border 
+    double _imax; // Input, right border
     double _omin; // Output, left border
-    double _omax; // Output, right border 
+    double _omax; // Output, right border
     InterpolType _t; // type of adaption
 
     InterpolMap(){} // dummy constructor. you should never use it
 
     // Use this constructor instead
-    InterpolMap(double imin, double imax, double omin, double omax, InterpolType t) 
+    InterpolMap(double imin, double imax, double omin, double omax, InterpolType t)
         : _imin(imin), _imax(imax), _omin(omin), _omax(omax), _t(t) {}
-    
+
     // Takes any input between imin and imax, spits out mapped output
     inline double operator()(double i) const {
         double tmp = (i - _imin) / (_imax - _imin);
         switch (_t)
         {
         case LINEAR:
-            return _omin + (_omax - _omin)*tmp;    
+            return _omin + (_omax - _omin)*tmp;
         case QUADRATIC:
             return _omin + (_omax - _omin)*sqr( tmp );
-        case CUBIC: 
+        case CUBIC:
             return _omin + (_omax - _omin)*tmp*tmp*tmp;
         default:
             cout << "ERR: this AdaptType enum has not been implemented." << endl;
             return -1;
         }
-    } 
+    }
 };
 
 /**
@@ -299,11 +299,11 @@ struct InterpolMap {
  * @param nrpts: Number of points in the array.
  * @return Minimum distance.
  */
-inline double minD2(double **pts, int nrpts) 
+inline double minD2(double **pts, int nrpts)
 {
     double mind2 = __DBL_MAX__;
     double origin[3] = {0, 0 ,0};
-    for (int i = 0; i < nrpts; i++) 
+    for (int i = 0; i < nrpts; i++)
         mind2 = min( mind2, Dist2( pts[i], origin ) );
     return mind2;
 }
@@ -318,7 +318,7 @@ inline double maxD2(double **pts, int nrpts)
 {
     double maxd2 = 0.0;
     double origin[3] = {0, 0 ,0};
-    for (int i = 0; i < nrpts; i++) 
+    for (int i = 0; i < nrpts; i++)
         maxd2 = max( maxd2, Dist2( pts[i], origin ) );
     return maxd2;
 }
@@ -329,7 +329,7 @@ inline double maxD2(double **pts, int nrpts)
  * @param nrpts: Number of points in the array.
  * @param rPos: Pointer to the origin as double[3] array.
  * @param min: Ref. to variable where min result gets stored.
- * @param max: Ref. to variable where max result gets stored. 
+ * @param max: Ref. to variable where max result gets stored.
  */
 inline void minMaxD2(double **pts, int nrpts, double &mind2, double &maxd2)
 {
@@ -361,7 +361,7 @@ inline void minMaxD2(DataXYZ xyz, double &mind2, double &maxd2) {
 }
 
 inline double eigendiff(double *eig1, double *eig2) {
-    return fabs(eig1[0] - eig2[0]) 
+    return fabs(eig1[0] - eig2[0])
         + fabs(eig1[1] - eig2[1])
         + fabs(eig1[2] - eig2[2]);
 }
