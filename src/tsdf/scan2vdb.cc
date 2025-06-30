@@ -23,9 +23,10 @@ protected:
 public:
     typedef openvdb::Vec3R value_type;
     typedef openvdb::Vec3R PosType;
-  
+
     ParticleList(openvdb::Real radiusScale=10) : _radiusScale(radiusScale) {}
-  //    ParticleList(openvdb::Real radiusScale=1) : _radiusScale(radiusScale) {}  
+  //    ParticleList(openvdb::Real radiusScale=1) : _radiusScale(radiusScale) {}
+
     void add(const openvdb::Vec3R &p, const openvdb::Real &r) {
         Particle pa;
         pa.p = p;
@@ -76,7 +77,6 @@ int main(int argc, char **argv)
              "end after scan <arg>")
             ("radiusscale,r", po::value<float>(&radiusSphere)->default_value(1.0),
              "sets the radius of the spheres <arg>")
-      
             ("format,f", po::value<IOType>(&iotype)->default_value(UOS),
              "using shared library <arg> for input. (chose F from {uos, uos_map, "
              "uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, "
