@@ -183,52 +183,32 @@ int sc_main(int argc, char **argv)
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     std::cout << std::to_string(i) + " match iteration" << std::endl;
     Scan *prevScan = Scan::allScans[i-1];
-    Scan *nextScan = Scan::allScans[i];
-    if(!prevScan || !nextScan) {
+    Scan *currentScan = Scan::allScans[i];
+    if(!prevScan || !currentScan) {
       std::cerr << "Scan" << i << " oder " << i-1 << " ist null!" <<std::endl;
       continue;
     }
     DataPointer prevXYZ = prevScan->get("xyz");
-    DataPointer nextXYZ = nextScan->get("xyz");
-    if(!prevXYZ.valid() || !nextXYZ.valid()) {
+    DataPointer currentXYZ = currentScan->get("xyz");
+    if(!prevXYZ.valid() || !currentXYZ.valid()) {
       std::cerr << " Leere Daten bei Index " << i << std::endl;
     }
     
     DataXYZ prevDat(prevXYZ);
-    DataXYZ nextDat(nextXYZ);
+    DataXYZ currentDat(currentXYZ);
     
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
-    std::vector<std::array<f_float, 3>> nextFixed = array2fixedArray(nextDat);
+    std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
 
     // std::cout << "prevFixed points for check" << std::endl;
     //printPoints(prevFixed);
     //std::cout << "nextFixed points for check" << std::endl;
-    //printPoints(nextFixed);
+    //printPoints(currentFixed);
 
-    icp.match(prevFixed, nextFixed);
+    icp.match(prevFixed, currentFixed);
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
  
-  
-  //ab hier wieder Ausgabe
-  /*
-  for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
-    Scan *source = Scan::allScans[i];
-    //std::string red_string = red > 0 ? " reduced" : "";
-    DataXYZ xyz  = source->get("xyz" + std::string(""));
-    
-    // write_uos(xyz, redptsout, scaleFac*100.0, false, false);
-    //writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
-    //writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
-  }
-
-  //fclose(redptsout);
-  //posesout.close();
-  //posesout.clear();
-  //matricesout.close();
-  //matricesout.clear();
-  */
-  
   cout << "alles klar spooki" << endl;
   return 0;
 }

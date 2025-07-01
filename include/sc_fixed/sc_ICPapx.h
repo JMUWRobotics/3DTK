@@ -29,13 +29,6 @@ public:
 			double *alignxf,
 			const double centroid_m[3],
 			const double centroid_d[3]);
-  double Align_Parallel(const int openmp_num_threads,
-				    const unsigned int n[OPENMP_NUM_THREADS],
-				    const double sum[OPENMP_NUM_THREADS],
-				    const double centroid_m[OPENMP_NUM_THREADS][3],
-				    const double centroid_d[OPENMP_NUM_THREADS][3],
-				    const std::vector<sc_PtPair> pairs[OPENMP_NUM_THREADS],
-				    double *alignxf);
 
   static void computeRt(const double *x, const double *dx, double *alignxf);
 
