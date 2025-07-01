@@ -6,7 +6,7 @@
 #include <systemc.h>
 
 const int WORD_LENGTH = 24;
-const int INT_WORD_LENGTH = 16;
+const int INT_WORD_LENGTH = 8;
 
 const int HERON_ITERATIONS = 5;
 

@@ -103,47 +103,66 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
   // TO-DO validierung der übergebenen Listen
   // nns brute forece
   for (const auto& src : source) {
+    std::cout << "source iteration" << std::endl;
     f_float minDist;
     bool first = true;
     std::array<f_float, 3> closest;
 
     for (const auto& tgt : target) {
+      std::cout << "target iteration" << std::endl;
       f_float dx = src[0] - tgt[0];
       f_float dy = src[1] - tgt[1];
       f_float dz = src[2] - tgt[2];
-      f_float dist2 = dx * dx + dy * dy + dz * dz;
-      f_float dist = sc_fixed_heron_sqrt(dist2);
+      f_float dist = dx * dx + dy * dy + dz * dz;
 
       if (first) {
+	std::cout << "if first" << std::endl;
         minDist = dist;
         closest = tgt;
         first = false;
       } else if (dist < minDist) {
+	std::cout << "else if first" <<std::endl;
         minDist = dist;
         closest = tgt;
       }
     }
+    std::cout << "before matchedTarget.push" << std::endl;
     matchedTarget.push_back(closest);
+    std::cout << "after matchedTarget.push" << std::endl;
   }
 
   // TO-DO Test matchedTarget
 
   // Schwerpunkte bestimmen
+  std::cout << "Schwerpunkte" << std::endl;
+  
   std::array<f_float, 3> centerSource = {0, 0, 0};
   std::array<f_float, 3> centerTarget = {0, 0, 0};
 
   // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
-  for (size_t i = 0; i < source.size(); ++i) {  
+
+  if (source.size() != target.size()) {
+    std::cerr << "warning: source size does not match target size" << std::endl;
+    if (source.size() > target.size()) {
+      std::cerr << "source size is greater than target size" << std::endl;
+    }
+  }
+
+  size_t count = std::min(source.size(), target.size());
+  
+  for (size_t i = 0; i < count; ++i) {
     centerSource[0] += source[i][0];
     centerSource[1] += source[i][1];
     centerSource[2] += source[i][2];
 
-    centerTarget[0] += target[i][0];  // Fehler wenn source > target
+    centerTarget[0] += target[i][0];
     centerTarget[1] += target[i][1];
     centerTarget[2] += target[i][2];
   }
+  std::cout << "Schwerpunkte Ende" << std::endl;
 
   // typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
+  std::cout << "type cast" << std::endl;
   f_float srcSize = static_cast<f_float>(source.size());  
   centerSource[0] /= srcSize;
   centerSource[1] /= srcSize;

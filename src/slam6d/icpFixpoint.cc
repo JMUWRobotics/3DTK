@@ -200,10 +200,10 @@ int sc_main(int argc, char **argv)
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
     std::vector<std::array<f_float, 3>> nextFixed = array2fixedArray(nextDat);
 
-    std::cout << "prevFixed points for check" << std::endl;
-    printPoints(prevFixed);
-    std::cout << "nextFixed points for check" << std::endl;
-    printPoints(nextFixed);
+    // std::cout << "prevFixed points for check" << std::endl;
+    //printPoints(prevFixed);
+    //std::cout << "nextFixed points for check" << std::endl;
+    //printPoints(nextFixed);
 
     icp.match(prevFixed, nextFixed);
     std::cout << std::to_string(i) + " match iteration" << std::endl;
