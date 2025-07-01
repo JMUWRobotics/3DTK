@@ -20,14 +20,25 @@ using std::string;
 #include <vector>
 #include <map>
 
-#include "slam6d/point.h"
-//#include "sc_fixed/sc_Point.h"
-#include "slam6d/scan.h"
+//#include "slam6d/point.h" //wird scheinbar nicht gebraucht
+//#include "slam6d/scan.h" //wird scheinbar nicht gebraucht
+#define int64 opencv_int64
+#define uint64 opencv_uint64
 #include "scanio/writer.h"
 #include "scanio/framesreader.h"
-#include "slam6d/globals.icc"
-//#include "sc_fixed/sc_ICP.h"
-//#include "sc_fixed/sc_ICPapx.h"
+#undef int64
+#undef uint64
+#define int64 systemc_int64
+#define uint64 systemc_uint64
+//#include "slam6d/globals.icc" //wird scheinbar nicht gebraucht
+#include "sc_fixed/sc_Point.h" //neu, wird aber scheinbar nicht gebraucht
+#include "sc_fixed/sc_ICP.h" //neu
+#include "sc_fixed/sc_ICPapx.h" //neu
+//#undef int64
+//#undef uint64
+
+#include "sc_fixed/sc_fixed_converter.h" //include DataXYZ to vector array converter and otherwise
+
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -123,7 +134,7 @@ po::options_description generic("Generic options");
  * with 'dir' the directory of a set of scans
  * ...
  */
-int main(int argc, char **argv)
+int sc_main(int argc, char **argv)
 {
   // parsing the command line parameters
   // init, default values if not specified
@@ -132,7 +143,7 @@ int main(int argc, char **argv)
   bool   uP         = false;  // should we use the pose information instead of the frames??
   IOType iotype    = UOS;
   double scaleFac = 0.01;
-
+  bool quiet = false;
 
   try {
     parse_options(argc, argv, dir, start, end,
@@ -155,31 +166,69 @@ int main(int argc, char **argv)
   readFramesAndTransform(dir, start, end, -1 , uP, false);
 
 
+  std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
+  std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
+  std::cout << "Export all 6DoF matrices to file \"poses.txt\"" << std::endl;
+  FILE *redptsout = fopen("points.pts", "wb");
+  std::ofstream posesout("positions.txt");
+  std::ofstream matricesout("poses.txt");
+ 
+  //ab hier ICP
+  sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
+  sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
 
- std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
- std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
- std::cout << "Export all 6DoF matrices to file \"poses.txt\"" << std::endl;
- FILE *redptsout = fopen("points.pts", "wb");
- std::ofstream posesout("positions.txt");
- std::ofstream matricesout("poses.txt");
+  std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
+  std::cout << Scan::allScans.size() << " scans detected" << std::endl;
+  for(unsigned int i = 1; i < Scan::allScans.size(); i++){
+    std::cout << std::to_string(i) + " match iteration" << std::endl;
+    Scan *prevScan = Scan::allScans[i-1];
+    Scan *nextScan = Scan::allScans[i];
+    if(!prevScan || !nextScan) {
+      std::cerr << "Scan" << i << " oder " << i-1 << " ist null!" <<std::endl;
+      continue;
+    }
+    DataPointer prevXYZ = prevScan->get("xyz");
+    DataPointer nextXYZ = nextScan->get("xyz");
+    if(!prevXYZ.valid() || !nextXYZ.valid()) {
+      std::cerr << " Leere Daten bei Index " << i << std::endl;
+    }
+    
+    DataXYZ prevDat(prevXYZ);
+    DataXYZ nextDat(nextXYZ);
+    
+    std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
+    std::vector<std::array<f_float, 3>> nextFixed = array2fixedArray(nextDat);
+
+    std::cout << "prevFixed points for check" << std::endl;
+    printPoints(prevFixed);
+    std::cout << "nextFixed points for check" << std::endl;
+    printPoints(nextFixed);
+
+    //icp.match(...)
+    std::cout << std::to_string(i) + " match iteration" << std::endl;
+  }
+ 
+  
+  //ab hier wieder Ausgabe
+  /*
   for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
     Scan *source = Scan::allScans[i];
-//    std::string red_string = red > 0 ? " reduced" : "";
-
- DataXYZ xyz  = source->get("xyz" + std::string(""));
-
+    //std::string red_string = red > 0 ? " reduced" : "";
+    DataXYZ xyz  = source->get("xyz" + std::string(""));
     
-        write_uos(xyz, redptsout, scaleFac*100.0, false, false);
-        writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
-      	writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
-    
-
+    // write_uos(xyz, redptsout, scaleFac*100.0, false, false);
+    //writeTrajectoryUOS(posesout, source->get_transMat(), false, scaleFac*100.0);
+    //writeTrajectoryUOS(matricesout, source->get_transMat(), true, scaleFac*100.0);
   }
 
-  fclose(redptsout);
-  posesout.close();
-  posesout.clear();
-  matricesout.close();
-  matricesout.clear();
+  //fclose(redptsout);
+  //posesout.close();
+  //posesout.clear();
+  //matricesout.close();
+  //matricesout.clear();
+  */
+  
+  cout << "alles klar spooki" << endl;
+  return 0;
 }

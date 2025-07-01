@@ -5,10 +5,10 @@
 
 #include <systemc.h>
 
-constexpr int WORD_LENGTH = 24;
-constexpr int INT_WORD_LENGTH = 16;
+const int WORD_LENGTH = 24;
+const int INT_WORD_LENGTH = 16;
 
-constexpr int HERON_ITERATIONS = 5;
+const int HERON_ITERATIONS = 5;
 
 using namespace sc_dt;
 using f_float = sc_fixed<WORD_LENGTH, INT_WORD_LENGTH>;
