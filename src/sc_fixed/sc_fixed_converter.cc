@@ -25,3 +25,11 @@ DataXYZ fixedArray2array(TripleArray<f_float>) {
   
 }
 */
+
+void printPoints(const std::vector<std::array<f_float, 3>>& points) {
+  for (const auto& point : points) {
+    std::cout << "x: " << point[0]
+              << ", y: " << point[1]
+              << ", z: " << point[2] << std::endl;
+  }
+}

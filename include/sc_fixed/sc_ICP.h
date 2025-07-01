@@ -7,6 +7,7 @@
 #define __SC_ICP_H__
 
 #include <vector>
+#include <array>
 
 #include "sc_fixed/sc_fixed_math.h"
 #include "newmat/newmat.h"			//ggf. TODO: ersetzen?
@@ -51,6 +52,7 @@ public:
   virtual int match(Scan* PreviousScan,
 				Scan* CurrentScan,
 				PairingMode pairing_mode = CLOSEST_POINT);
+  virtual int match(const std::vector<std::array<f_float, 3>>&, const std::vector<std::array<f_float, 3>>&);
   void covarianceEuler(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
   void covarianceQuat(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
   double Point_Point_Error(Scan* PreviousScan,
@@ -152,4 +154,4 @@ protected:
 
 #include "sc_fixed/sc_ICP.icc"
 
-#endif
+#endif //__SC_ICP_H__

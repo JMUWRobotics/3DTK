@@ -76,7 +76,7 @@ if (WITH_OPENCV)
 endif()
 
 if (WITH_SYSTEMC)
-  add_executable(icpFixpoint icpFixpoint.cc ../scanio/writer.cc ../scanio/framesreader.cc ../sc_fixed/sc_ICP.cc ../sc_fixed/sc_ICPapx.cc ../sc_fixed/sc_fixed_converter.cc)
+  add_executable(icpFixpoint icpFixpoint.cc ../scanio/writer.cc ../scanio/framesreader.cc ../sc_fixed/sc_ICP.cc ../sc_fixed/sc_ICPapx.cc ../sc_fixed/sc_fixed_converter.cc ../sc_fixed/sc_fixed_math.cc)
   target_include_directories(icpFixpoint PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
   target_link_libraries(icpFixpoint scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} ${SYSTEMC_LIBRARY} rply)
 endif()

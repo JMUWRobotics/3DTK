@@ -11,4 +11,6 @@ std::vector<std::array<f_float, 3>> array2fixedArray(const DataXYZ &input);
 
 DataXYZ fixedArray2array(TripleArray<f_float>);
 
+void printPoints(const std::vector<std::array<f_float, 3>>& points);
+
 #endif //SC_FIXED_CONVERTER

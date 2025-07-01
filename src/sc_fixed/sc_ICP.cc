@@ -7,20 +7,20 @@
  *
  */
 
-
 /**
  * @file
  * @brief Implementation of 3D scan matching with ICP
- * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of Wuerzburg, Germany
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of
+ * Wuerzburg, Germany
  */
 
 #include "sc_fixed/sc_ICP.h"
 
-//#include "slam6d/metaScan.h"			//brauchen wir nicht
-#include "slam6d/globals.icc"			//TODO: durch mathematische sc-fixed ersetzen
-#include "sc_fixed/sc_fixed_math.h"
-
+// #include "slam6d/metaScan.h"			//brauchen wir nicht
 #include <iomanip>
+
+#include "sc_fixed/sc_fixed_math.h"
+#include "slam6d/globals.icc"  //TODO: durch mathematische sc-fixed ersetzen
 using std::cerr;
 
 #include <string.h>
@@ -48,42 +48,40 @@ using std::cerr;
  * @param epsilonICP Termination criterion
  * @param nns_method Selects NNS method to be used
  */
-sc_ICP::sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer, double max_dist_match,
-	     int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
-	     int anim, double epsilonICP, int nns_method, bool cuda_enabled,
-	     bool cad_matching, int max_num_metascans)
-{
+sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
+               int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
+               int anim, double epsilonICP, int nns_method, bool cuda_enabled,
+               bool cad_matching, int max_num_metascans) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
-  this->anim              = anim;
-  this->cuda_enabled      = cuda_enabled;
-  this->nns_method        = nns_method;
+  this->anim = anim;
+  this->cuda_enabled = cuda_enabled;
+  this->nns_method = nns_method;
 
   if (!quiet) {
     cout << "Maximal distance match      : " << max_dist_match << endl
-	 << "Maximal number of iterations: " << max_num_iterations << endl << endl;
+         << "Maximal number of iterations: " << max_num_iterations << endl
+         << endl;
   }
 
   // checks
   if (max_dist_match < 0.0) {
     cerr << "ERROR [SC_ICP]: first parameter (max_dist_match) "
-	 << "has to be >= 0,"
-	 << endl;
+         << "has to be >= 0," << endl;
     exit(1);
   }
   if (max_num_iterations < 0) {
     cerr << "ERROR [SC_ICP]: second parameter (max_num_iterations)"
-	 << "has to be >= 0."
-	 << endl;
+         << "has to be >= 0." << endl;
     exit(1);
   }
 
-  this->max_dist_match2    = sqr(max_dist_match);
+  this->max_dist_match2 = sqr(max_dist_match);
   this->max_num_iterations = max_num_iterations;
-  this->quiet              = quiet;
-  this->meta               = meta;
-  this->rnd                = rnd;
-  this->eP                 = eP;
-  this->epsilonICP         = epsilonICP;
+  this->quiet = quiet;
+  this->meta = meta;
+  this->rnd = rnd;
+  this->eP = eP;
+  this->epsilonICP = epsilonICP;
 
   // Set initial seed (for "real" random numbers)
   //  srand( (unsigned)time( NULL ) );
@@ -91,77 +89,76 @@ sc_ICP::sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer, double max_dist_match,
 
   this->max_num_metascans = max_num_metascans;
 
-  //set the number of point pairs to zero
+  // set the number of point pairs to zero
   nr_pointPair = 0;
 }
 
-// match Methode mit konvertiertem Datentyp als Übergabeparameter 
-int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,                                //fehlende includes Array und vector, Methode match überladen sollte funktionieren 
-		  const std::vector<std::array<f_float, 3>>& target){
+// match Methode mit konvertiertem Datentyp als Übergabeparameter
+// fehlende includes Array und vector, Methode
+// match überladen sollte funktionieren
+int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,  
+                  const std::vector<std::array<f_float, 3>>& target) {
+  
+  std::vector<std::array<f_float, 3>> matchedTarget;
+  // TO-DO validierung der übergebenen Listen
+  // nns brute forece
+  for (const auto& src : source) {
+    f_float minDist;
+    bool first = true;
+    std::array<f_float, 3> closest;
 
- std::vector<std::array<f_float, 3>> matchedTarget;
-// TO-DO validierung der übergebenen Listen 
-// nns brute forece 
-for(const auto& src: source){
+    for (const auto& tgt : target) {
+      f_float dx = src[0] - tgt[0];
+      f_float dy = src[1] - tgt[1];
+      f_float dz = src[2] - tgt[2];
+      f_float dist2 = dx * dx + dy * dy + dz * dz;
+      f_float dist = sc_fixed_heron_sqrt(dist2);
 
-	f_float minDist;
-	bool first = true; 
-	std::array<f_float, 3> closest; 
+      if (first) {
+        minDist = dist;
+        closest = tgt;
+        first = false;
+      } else if (dist < minDist) {
+        minDist = dist;
+        closest = tgt;
+      }
+    }
+    matchedTarget.push_back(closest);
+  }
 
-	for(const auto& tgt : target) {
-		
-		f_float dx = src[0] - tgt[0];
-		f_float dy = src[1] - tgt[1];
-		f_float dz = src[2] - tgt[2];
-		f_float dist2 = dx * dx + dy * dy + dz * dz;
-		f_float dist = sc_fixed_heron_sqrt(dist2);
+  // TO-DO Test matchedTarget
 
-		if(first){
-			minDist = dist;
-			closest = tgt;
-			first = false;
-		} else if (dist < minDist) {
-			minDist = dist; 
-			closest = tgt;
-		}
-		}
-	matchedTarget.push_back(closest);
-	}
+  // Schwerpunkte bestimmen
+  std::array<f_float, 3> centerSource = {0, 0, 0};
+  std::array<f_float, 3> centerTarget = {0, 0, 0};
 
-// TO-DO Test matchedTarget 
-	
-//Schwerpunkte bestimmen 
-std::array<f_float, 3> centerSource = {0,0,0};
-std::array<f_float, 3> centerTarget = {0,0,0};
+  // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
+  for (size_t i = 0; i < source.size(); ++i) {  
+    centerSource[0] += source[i][0];
+    centerSource[1] += source[i][1];
+    centerSource[2] += source[i][2];
 
-for (size_t i = 0; i < source.size(); ++i){                   //size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>. 
-	centerSource[0] += source[i][0];
-	centerSource[1] += source[i][1];
-	centerSource[2] += source[i][2];
+    centerTarget[0] += target[i][0];  // Fehler wenn source > target
+    centerTarget[1] += target[i][1];
+    centerTarget[2] += target[i][2];
+  }
 
-	centerTarget[0] += target[i][0];                     //Fehler wenn source > target 
-	centerTarget[1] += target[i][1];
-	centerTarget[2] += target[i][2];
+  // typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
+  f_float srcSize = static_cast<f_float>(source.size());  
+  centerSource[0] /= srcSize;
+  centerSource[1] /= srcSize;
+  centerSource[2] /= srcSize;
+
+  centerTarget[0] /= srcSize;
+  centerTarget[1] /= srcSize;
+  centerTarget[2] /= srcSize;
+
+  // TO-Do Roation berechnen
+  // TO_DO Translation berechnen
+  //  4 x 4 Matix auf Konsole ausgeben
+  return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
+             // Matrix ändern
 }
-
-f_float srcSize = static_cast<f_float>(source.size());     //typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen 
-centerSource[0] /= srcSize;  
-centerSource[1] /= srcSize; 
-centerSource[2] /= srcSize; 
-
-centerTarget[0] /= srcSize; 
-centerTarget[1] /= srcSize; 
-centerTarget[2] /= srcSize; 
-
-//TO-Do Roation berechnen 
-//TO_DO Translation berechnen 
-// 4 x 4 Matix auf Konsole ausgeben 
-	return 0; 					// Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4 Matrix ändern 
-}
-}
-
-
-
 
 /**
  * Matches a 3D Scan against a 3D Scan
@@ -170,8 +167,7 @@ centerTarget[2] /= srcSize;
  * @return The number of iterations done in this matching run
  */
 int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
-                 PairingMode pairing_mode)
-{
+                  PairingMode pairing_mode) {
   double id[16];
   M4identity(id);
   CurrentScan->transform(id, Scan::ICP, 0);  // write end pose
@@ -188,7 +184,6 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
   long time = GetCurrentTimeInMilliSec();
 
   for (iter = 0; iter < max_num_iterations; iter++) {
-
     prev_prev_ret = prev_ret;
     prev_ret = ret;
 
@@ -228,84 +223,85 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
     {
       int thread_num = omp_get_thread_num();
 
-      //TODO: ersetzen
-      //Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num, step, rnd, max_dist_match2, sum, centroid_m, centroid_d, pairing_mode);
+      // TODO: ersetzen
+      // Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num,
+      // step, rnd, max_dist_match2, sum, centroid_m, centroid_d, pairing_mode);
 
       n[thread_num] = (unsigned int)pairs[thread_num].size();
-      
-      //AlgorihmID == 6 für sc_ICPapx
-    //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
-    //      (my_sc_ICPminimizer->getAlgorithmID() == 2)) {
+
+      // AlgorihmID == 6 für sc_ICPapx
+      //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
+      //      (my_sc_ICPminimizer->getAlgorithmID() == 2)) {
       //  for (unsigned int i = 0; i < n[thread_num]; i++) {
-//
-          //double pp[3] = {pairs[thread_num][i].p1.x - centroid_m[thread_num][0],
-	//		  pairs[thread_num][i].p1.y - centroid_m[thread_num][1],
-	//		  pairs[thread_num][i].p1.z - centroid_m[thread_num][2]};
-          //double qq[3] = {pairs[thread_num][i].p2.x - centroid_d[thread_num][0],
-	//		  pairs[thread_num][i].p2.y - centroid_d[thread_num][1],
-	//		  pairs[thread_num][i].p2.z - centroid_d[thread_num][2]};
-     //     // formula (6)
-     //     Si[thread_num][0] += pp[0] * qq[0];
-     //     Si[thread_num][1] += pp[0] * qq[1];
-     //     Si[thread_num][2] += pp[0] * qq[2];
-     //     Si[thread_num][3] += pp[1] * qq[0];
-     //     Si[thread_num][4] += pp[1] * qq[1];
-     //     Si[thread_num][5] += pp[1] * qq[2];
-     //     Si[thread_num][6] += pp[2] * qq[0];
-     //     Si[thread_num][7] += pp[2] * qq[1];
-     //     Si[thread_num][8] += pp[2] * qq[2];
-     //   }
-     // }
-    } // end parallel
+      //
+      // double pp[3] = {pairs[thread_num][i].p1.x - centroid_m[thread_num][0],
+      //		  pairs[thread_num][i].p1.y - centroid_m[thread_num][1],
+      //		  pairs[thread_num][i].p1.z -
+      //centroid_m[thread_num][2]}; double qq[3] = {pairs[thread_num][i].p2.x -
+      // centroid_d[thread_num][0],
+      //		  pairs[thread_num][i].p2.y - centroid_d[thread_num][1],
+      //		  pairs[thread_num][i].p2.z -
+      //centroid_d[thread_num][2]};
+      //     // formula (6)
+      //     Si[thread_num][0] += pp[0] * qq[0];
+      //     Si[thread_num][1] += pp[0] * qq[1];
+      //     Si[thread_num][2] += pp[0] * qq[2];
+      //     Si[thread_num][3] += pp[1] * qq[0];
+      //     Si[thread_num][4] += pp[1] * qq[1];
+      //     Si[thread_num][5] += pp[1] * qq[2];
+      //     Si[thread_num][6] += pp[2] * qq[0];
+      //     Si[thread_num][7] += pp[2] * qq[1];
+      //     Si[thread_num][8] += pp[2] * qq[2];
+      //   }
+      // }
+    }  // end parallel
 
     // do we have enough point pairs?
     unsigned int pairssize = 0;
     for (int i = 0; i < OPENMP_NUM_THREADS; i++) {
       pairssize += n[i];
     }
-    //add the number of point pair
+    // add the number of point pair
     nr_pointPair = pairssize;
 
     if (pairssize > 3) {
-    //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
-    //      (my_sc_ICPminimizer->getAlgorithmID() == 2) ) {
-    //    ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
-	//					n, sum,
-	//					centroid_m, centroid_d,
-	//					Si, alignxf);
-     // } else if (my_sc_ICPminimizer->getAlgorithmID() == 6) {
-     // dies ist der Fall, in dem wir uns befinden (6)
-        ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
-						n, sum,
-						centroid_m, centroid_d,
-						pairs,
-						alignxf);
+      //  if ((my_sc_ICPminimizer->getAlgorithmID() == 1) ||
+      //      (my_sc_ICPminimizer->getAlgorithmID() == 2) ) {
+      //    ret = my_sc_ICPminimizer->Align_Parallel(OPENMP_NUM_THREADS,
+      //					n, sum,
+      //					centroid_m, centroid_d,
+      //					Si, alignxf);
+      // } else if (my_sc_ICPminimizer->getAlgorithmID() == 6) {
+      // dies ist der Fall, in dem wir uns befinden (6)
+      ret = my_sc_ICPminimizer->Align_Parallel(
+          OPENMP_NUM_THREADS, n, sum, centroid_m, centroid_d, pairs, alignxf);
       //} else {
       //  cout << "This parallel minimization algorithm is not implemented !!!"
-	//     << endl;
-       // exit(-1);
-    //  }
+      //     << endl;
+      // exit(-1);
+      //  }
     } else {
-      //break;
+      // break;
     }
 #else
 
     double centroid_m[3] = {0.0, 0.0, 0.0};
     double centroid_d[3] = {0.0, 0.0, 0.0};
     vector<sc_PtPair> pairs;
-    
-    //TODO: ersetzen
-    //Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
 
-    //set the number of point paira
+    // TODO: ersetzen
+    // Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd,
+    // max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
+
+    // set the number of point paira
     nr_pointPair = pairs.size();
 
     // do we have enough point pairs?
     if (pairs.size() > 3) {
-    //  if (my_sc_ICPminimizer->getAlgorithmID() == 3 ||
-	//  my_sc_ICPminimizer->getAlgorithmID() == 8 ) {
-       // memcpy(alignxf, CurrentScan->get_transMat(), sizeof(alignxf));
-     // }
+      //  if (my_sc_ICPminimizer->getAlgorithmID() == 3 ||
+      //  my_sc_ICPminimizer->getAlgorithmID() == 8 ) {
+      // memcpy(alignxf, CurrentScan->get_transMat(), sizeof(alignxf));
+      // }
       ret = my_sc_ICPminimizer->Align(pairs, alignxf, centroid_m, centroid_d);
     } else {
       break;
@@ -313,15 +309,15 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
 
 #endif
 
-//#define PLANAR
-#ifdef  PLANAR
+// #define PLANAR
+#ifdef PLANAR
     double t_rPosTheta[3], t_rPos[3];
     Matrix4ToEuler(alignxf, t_rPosTheta, t_rPos);
     t_rPos[1] = 0.0;
     t_rPosTheta[0] = 0.0;
     t_rPosTheta[2] = 0.0;
     EulerToMatrix4(t_rPos, t_rPosTheta, alignxf);
-#endif //PLANAR
+#endif  // PLANAR
 
     if ((iter == 0 && anim != -2) || ((anim > 0) && (iter % anim == 0))) {
       // transform the current scan
@@ -332,15 +328,15 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
     }
 
     if (((fabs(ret - prev_ret) < epsilonICP) &&
-	 (fabs(ret - prev_prev_ret) < epsilonICP)) ||
-         (iter == max_num_iterations - 1) ) {
+         (fabs(ret - prev_prev_ret) < epsilonICP)) ||
+        (iter == max_num_iterations - 1)) {
       double id[16];
       M4identity(id);
-      if(anim == -2) {
-	// write end pose
+      if (anim == -2) {
+        // write end pose
         CurrentScan->transform(id, Scan::ICP, -1);
       } else {
-	// write end pose
+        // write end pose
         CurrentScan->transform(id, Scan::ICP, 0);
       }
       break;
@@ -348,23 +344,19 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
   }
 
   long endtime = GetCurrentTimeInMilliSec() - time;
-  cout << "TIME  " << endtime << "   ITER " << iter <<  endl;
+  cout << "TIME  " << endtime << "   ITER " << iter << endl;
   return iter;
 }
-
 
 /**
  * Computes the point to point error between two scans
  *
  *
  */
-double sc_ICP::Point_Point_Error(Scan* PreviousScan,
-				Scan* CurrentScan,
-				double max_dist_match,
-				unsigned int *np,
-				double scale_max)
-{
-  double scale = log(scale_max) / (max_dist_match*max_dist_match);
+double sc_ICP::Point_Point_Error(Scan* PreviousScan, Scan* CurrentScan,
+                                 double max_dist_match, unsigned int* np,
+                                 double scale_max) {
+  double scale = log(scale_max) / (max_dist_match * max_dist_match);
   double error = 0;
   unsigned int nr_ppairs = 0;
 
@@ -387,21 +379,19 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan,
 #pragma omp parallel
   {
     int thread_num = omp_get_thread_num();
-    //TODO: ersetzen
-    //Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num, step, rnd, sqr(max_dist_match), sum, centroid_m, centroid_d, CLOSEST_POINT);
-
+    // TODO: ersetzen
+    // Scan::getPtPairsParallel(pairs, PreviousScan, CurrentScan, thread_num,
+    // step, rnd, sqr(max_dist_match), sum, centroid_m, centroid_d,
+    // CLOSEST_POINT);
   }
 
-  for (unsigned int thread_num = 0;
-       thread_num < OPENMP_NUM_THREADS;
+  for (unsigned int thread_num = 0; thread_num < OPENMP_NUM_THREADS;
        thread_num++) {
-    for (unsigned int i = 0;
-	 i < (unsigned int)pairs[thread_num].size();
-	 i++) {
-      double dist = sqr(pairs[thread_num][i].p1.x - pairs[thread_num][i].p2.x)
-	+ sqr(pairs[thread_num][i].p1.y - pairs[thread_num][i].p2.y)
-	+ sqr(pairs[thread_num][i].p1.z - pairs[thread_num][i].p2.z);
-      error -= 0.39894228 * exp(dist*scale);
+    for (unsigned int i = 0; i < (unsigned int)pairs[thread_num].size(); i++) {
+      double dist = sqr(pairs[thread_num][i].p1.x - pairs[thread_num][i].p2.x) +
+                    sqr(pairs[thread_num][i].p1.y - pairs[thread_num][i].p2.y) +
+                    sqr(pairs[thread_num][i].p1.z - pairs[thread_num][i].p2.z);
+      error -= 0.39894228 * exp(dist * scale);
     }
     nr_ppairs += (unsigned int)pairs[thread_num].size();
   }
@@ -411,23 +401,24 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan,
   double centroid_d[3] = {0.0, 0.0, 0.0};
   vector<sc_PtPair> pairs;
 
-  //TODO: ersetzen
-  //Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, sqr(max_dist_match), error, centroid_m, centroid_d, CLOSEST_POINT);
+  // TODO: ersetzen
+  // Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd,
+  // sqr(max_dist_match), error, centroid_m, centroid_d, CLOSEST_POINT);
 
   // getPtPairs computes error as sum of squared distances
   error = 0;
 
   for (unsigned int i = 0; i < pairs.size(); i++) {
-    double dist = sqr(pairs[i].p1.x - pairs[i].p2.x)
-      + sqr(pairs[i].p1.y - pairs[i].p2.y)
-      + sqr(pairs[i].p1.z - pairs[i].p2.z);
-    error -= 0.39894228 * exp(dist*scale);
+    double dist = sqr(pairs[i].p1.x - pairs[i].p2.x) +
+                  sqr(pairs[i].p1.y - pairs[i].p2.y) +
+                  sqr(pairs[i].p1.z - pairs[i].p2.z);
+    error -= 0.39894228 * exp(dist * scale);
   }
   nr_ppairs = pairs.size();
 #endif
 
   if (np) *np = nr_ppairs;
-  return error/nr_ppairs;
+  return error / nr_ppairs;
 }
 
 /**
@@ -435,47 +426,45 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan,
  *
  * @param allScans Contains all necessary scans.
  */
-void sc_ICP::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
-{
+void sc_ICP::doICP(vector<Scan*> allScans, PairingMode pairing_mode) {
   double id[16];
   M4identity(id);
 
-  //vector < Scan* > meta_scans;
-  //Scan* my_MetaScan = 0;
+  // vector < Scan* > meta_scans;
+  // Scan* my_MetaScan = 0;
 
-
-  for(unsigned int i = 0; i < allScans.size(); i++) {
+  for (unsigned int i = 0; i < allScans.size(); i++) {
     cout << i << "*" << endl;
 
-    Scan *CurrentScan = allScans[i];
-    Scan *PreviousScan = 0;
+    Scan* CurrentScan = allScans[i];
+    Scan* PreviousScan = 0;
 
     if (i > 0) {
-      PreviousScan = allScans[i-1];
-      if (eP) {                             // extrapolate odometry
+      PreviousScan = allScans[i - 1];
+      if (eP) {  // extrapolate odometry
         CurrentScan->mergeCoordinatesWithRoboterPosition(PreviousScan);
       }
     }
 
     if (i > 0) {
-    //  if (meta) {
-    //    match(my_MetaScan, CurrentScan, pairing_mode);
-    //  } else
-	//  if (cad_matching) {
-	//  match(allScans[0], CurrentScan, pairing_mode);
-	// } else {
-	  match(PreviousScan, CurrentScan, pairing_mode);
-	// }
+      //  if (meta) {
+      //    match(my_MetaScan, CurrentScan, pairing_mode);
+      //  } else
+      //  if (cad_matching) {
+      //  match(allScans[0], CurrentScan, pairing_mode);
+      // } else {
+      match(PreviousScan, CurrentScan, pairing_mode);
+      // }
     }
 
     // push processed scan
-    //if ( meta && my_MetaScan) {
+    // if ( meta && my_MetaScan) {
     //  delete my_MetaScan;
     //}
-    //if ( meta && i != allScans.size()-1 ) {
+    // if ( meta && i != allScans.size()-1 ) {
     //  meta_scans.push_back(CurrentScan);
 
-      // only keep last n scans as metascans
+    // only keep last n scans as metascans
     //  if(max_num_metascans > 0) {
     //    while(meta_scans.size() > max_num_metascans) {
     //      meta_scans.erase(meta_scans.begin());
@@ -487,4 +476,3 @@ void sc_ICP::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
     //}
   }
 }
-

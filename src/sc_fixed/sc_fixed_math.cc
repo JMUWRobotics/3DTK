@@ -14,16 +14,3 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   return x_n;
   
 }
-
-// For testing
-int sc_main(int argc, char* argv[]){
-
-  f_float s = 163;
-  f_float res = sc_fixed_heron_sqrt(s);
-
-  cout << res << endl;
-  
-  return 0;
-
-}
-// END testing
