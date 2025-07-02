@@ -164,6 +164,42 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
   centerTarget[2] /= srcSize;
 
   // TO-Do Roation berechnen
+
+  f_float A[3][3];
+  f_float B[3]; 
+
+  for(int i=0; i<3;i++) {
+	  B[i] = f_float(0.0);
+	  for(int j=0; j<3;j++){
+		  A[i][j] = f_float(0.0) 
+	  }}	
+
+ f_float sum = 0; 
+ f_float p1[3],p2[3]; 
+
+  for(size_t i = 0; i < source.size(); ++i){
+	const auto& p1 = source[i];
+	const auto& p2 = matchedTarget[i];  
+
+	f_float p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
+	f_float p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};  
+
+	sum += p12[0]*p12[0] + p12[1]*p12[1] + p12[2]*p12[2];
+
+         B[0] += (p12[2]*p2c[1] - p12[1]*p2c[2]);
+	 B[1] += (p12[0]*p2c[2] - p12[2]*p2c[0]);
+   	 B[2] += (p12[1]*p2c[0] - p12[0]*p2c[1]);
+	 A[0][0] += ((p2c[1])*(p2c[1]) + (p2c[2])*(p2c[2]));
+  	 A[0][1] -= p2c[0] * p2c[1];
+         A[0][2] -= p2c[0] * p2c[2];
+         A[1][1] += ((p2c[0])*(p2c[0]) + (p2c[2])*(p2c[2]));
+         A[1][2] -= p2c[1] * p2c[2];
+         A[2][2] += ((p2c[0])*(p2c[0]) +(p2c[1])*(p2c[1]));
+  }
+	
+  
+  
+	
   // TO_DO Translation berechnen
   //  4 x 4 Matix auf Konsole ausgeben
   return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
