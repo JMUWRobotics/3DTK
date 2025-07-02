@@ -72,12 +72,41 @@ void sc_ICPapx::Align(std::vector<std::array<f_float, 3>>& source,
          A[1][1] += ((p2c[0])*(p2c[0]) + (p2c[2])*(p2c[2]));
          A[1][2] -= p2c[1] * p2c[2];
          A[2][2] += ((p2c[0])*(p2c[0]) +(p2c[1])*(p2c[1]));
+  } f_float diag[3];
+  if (!sc_choldc(A, diag)) {
+    printf("Couldn't find transform.\n");
+    return -1.0;
   }
+  f_float x[3];
+  sc_cholsl(A, diag, B, x);
 
+  // Interpret results
+  f_float sx = x[0];
+  f_float cx = sqrt(1.0 - sx*sx);
+  f_float sy = x[1];
+  f_float cy = sqrt(1.0 - sy*sy);
+  f_float sz = x[2];
+  f_float cz = sqrt(1.0 - sz*sz);
 
-           
-
-           
+  alignxf[0]  = cy*cz;
+  alignxf[1]  = sx*sy*cz + cx*sz;
+  alignxf[2]  = -cx*sy*cz + sx*sz;
+  alignxf[3]  = 0;
+  alignxf[4]  = -cy*sz;
+  alignxf[5]  = -sx*sy*sz + cx*cz;
+  alignxf[6]  = cx*sy*sz + sx*cz;
+  alignxf[7]  = 0;
+  alignxf[8]  = sy;
+  alignxf[9]  = -sx*cy;
+  alignxf[10] = cx*cy;
+  alignxf[11] = 0;
+  alignxf[12] = centroid_m[0] - alignxf[0]*centroid_d[0] -
+    alignxf[4]*centroid_d[1] - alignxf[8]*centroid_d[2];
+  alignxf[13] = centroid_m[1] - alignxf[1]*centroid_d[0] -
+    alignxf[5]*centroid_d[1] - alignxf[9]*centroid_d[2];
+  alignxf[14] = centroid_m[2] - alignxf[2]*centroid_d[0] -
+    alignxf[6]*centroid_d[1] - alignxf[10]*centroid_d[2];
+  alignxf[15] = 1;
                         }
 
 double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
