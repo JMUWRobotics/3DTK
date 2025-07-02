@@ -26,9 +26,15 @@ public:
   virtual ~sc_ICPapx() {};
 
   double Align(const std::vector<sc_PtPair>& Pairs,
-			double *alignxf,
-			const double centroid_m[3],
-			const double centroid_d[3]);
+	       double *alignxf,
+	       const double centroid_m[3],
+	       const double centroid_d[3]);
+
+  void Align(const std::vector<std::array<f_float, 3>>& source,
+             const std::vector<std::array<f_float, 3>>& matchedTarget,
+             f_float *alignxf,
+             const std::array<f_float, 3> centerSource,
+             const std::array<f_float, 3> centerTarget) override;
 
   static void computeRt(const double *x, const double *dx, double *alignxf);
 

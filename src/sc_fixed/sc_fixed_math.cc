@@ -3,11 +3,22 @@
 
 f_float sc_fixed_heron_sqrt(f_float s) {
 
-  f_float x = (s+1)/2;
+  std::cout << "sqrt(" << s << ")" << std::endl;
+
+  if (s == 0) {
+    return 0;
+  }
+  if (s < 0) {
+    std::cerr << "warning: square root from negative numbers not allowed --> will return 0" << std::endl;
+    return 0;
+  }
+
+  f_float x = s / 2 + 1;
   f_float x_n;
   
   for(int i = HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
+    std::cout << "Iteration " << i << ": x = " << x_n.to_double() << std::endl;
     x = x_n;
   }
 
@@ -15,7 +26,7 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
 }
 
-static inline bool sc_choldc(f_float A[3][3], f_float diag[3])                                    
+bool sc_choldc(f_float A[3][3], f_float diag[3])                     
 {
   
   unsigned int N = 3;
@@ -38,7 +49,7 @@ static inline bool sc_choldc(f_float A[3][3], f_float diag[3])
   return true;
 }
 
-static inline void sc_cholsl(f_float A[3][3],
+void sc_cholsl(f_float A[3][3],
                           f_float diag[3],
                           f_float B[3],
                           f_float x[3])

@@ -165,9 +165,7 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
 
   // TO-Do Roation berechnen
   f_float alignxf[16];
-  icp.Align(source, matchedTarget, alignxf, centerSource, centerTarget);
-
-
+  /*int ret = */ my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
 	  
   // TO_DO Translation berechnen
   //  4 x 4 Matix auf Konsole ausgeben
