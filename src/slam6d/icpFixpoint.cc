@@ -39,13 +39,7 @@ using std::string;
 
 #include "sc_fixed/sc_fixed_converter.h" //include DataXYZ to vector array converter and otherwise
 
-
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#else
 #include <strings.h>
-#endif
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
@@ -119,11 +113,11 @@ po::options_description generic("Generic options");
   }
   po::notify(vm);
 
-#ifndef _MSC_VER
+//#ifndef _MSC_VER
   if (dir[dir.length()-1] != '/') dir = dir + "/";
-#else
-  if (dir[dir.length()-1] != '\\') dir = dir + "\\";
-#endif
+//#else
+ // if (dir[dir.length()-1] != '\\') dir = dir + "\\";
+//#endif
 
   return 0;
 }

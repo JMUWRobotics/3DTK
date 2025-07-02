@@ -25,15 +25,6 @@ using std::cerr;
 
 #include <string.h>
 
-#ifdef _MSC_VER
-#if !defined _OPENMP && defined OPENMP
-#define _OPENMP
-#endif
-#endif
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 /**
  * Constructor
  *
