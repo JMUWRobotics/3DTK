@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <array>
 
 class sc_ICPminimizer {
 
