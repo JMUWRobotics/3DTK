@@ -69,4 +69,89 @@ void sc_cholsl(f_float A[3][3],
   }
 }
 
+/**
+ * Transforms the scan by a given transformation and writes a new frame.
+ * The idea is to write for every transformation in all files,
+ * such that the show program is able to determine,
+ * which scans have to be drawn in which color. Hidden scans
+ * (or later processed scans) are written with INVALID.
+ *
+ * @param alignxf Transformation matrix
+ * @param islum Is the transformtion part of LUM, i.e., all scans
+ *              are transformed?
+ *              In this case only LUM transformation is stored, otherwise all
+ *              scans are processed
+ *        -1  no transformation is stored
+ *         0  ICP transformation
+ */
+void transform(std::vector<std::array<f_float, 3>>& scan, const std::array<f_float, 16> alignxf, std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf, int islum){
+//für jeden Scan haben wir die f_float transMat[16] = (4x4) transformation matrix
+//und dalignxf[16] transformation represents the delta transformation virtually applied to the tree and is used to compute are actual corresponding points.
 
+//algoType wird weggelassen, da wir nur ICP haben
+  // transform points
+  transformReduced(alignxf, scan);
+
+  // update matrices
+  transformMatrix(alignxf, transMat, dalignxf);
+
+  // store transformation in frames - falls islum=0 statt -1
+  //TODO islum und .frames
+}
+
+//! Internal function of transform which alters the reduced points
+void transformReduced(const std::array<f_float, 16> alignxf, std::vector<std::array<f_float, 3>> scan){
+
+ // DataXYZ xyz_reduced(get("xyz reduced"));
+ // size_t i=0;
+  
+  for (size_t i = 0; i < scan.size(); ++i) {
+    transform3(alignxf, scan[i]);
+  }
+
+}
+
+void transform3(const std::array<f_float, 16>& alignxf, std::array<f_float, 3>& point){
+  f_float x_neu, y_neu, z_neu;
+  x_neu = point[0] * alignxf[0] + point[1] * alignxf[4] + point[2] * alignxf[8];
+  y_neu = point[0] * alignxf[1] + point[1] * alignxf[5] + point[2] * alignxf[9];
+  z_neu = point[0] * alignxf[2] + point[1] * alignxf[6] + point[2] * alignxf[10];
+  point[0] = x_neu + alignxf[12];
+  point[1] = y_neu + alignxf[13];
+  point[2] = z_neu + alignxf[14];
+}
+
+//! Internal function of transform which handles the matrices
+void transformMatrix(const std::array<f_float, 16> alignxf, std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf){
+  std::array<f_float, 16> tempxf;
+
+  // apply alignxf to transMat and update pose vectors
+  MMult(alignxf, transMat, tempxf);
+  memcpy(transMat.data(), tempxf.data(), 16 * sizeof(f_float));
+ // Matrix4ToEuler(transMat, rPosTheta, rPos);
+ // Matrix4ToQuat(transMat, rQuat);
+
+  // apply alignxf to dalignxf
+  MMult(alignxf, dalignxf, tempxf);
+  // kopiere - nach dalignfx - von tempxf - anzahlBytes: sizeof(transMat), definiert in <cstring>
+  memcpy(dalignxf.data(), tempxf.data(), 16 * sizeof(f_float));
+}
+
+void MMult(const std::array<f_float, 16>& M1, const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout){
+  Mout[ 0] = M1[ 0]*M2[ 0]+M1[ 4]*M2[ 1]+M1[ 8]*M2[ 2]+M1[12]*M2[ 3];
+  Mout[ 1] = M1[ 1]*M2[ 0]+M1[ 5]*M2[ 1]+M1[ 9]*M2[ 2]+M1[13]*M2[ 3];
+  Mout[ 2] = M1[ 2]*M2[ 0]+M1[ 6]*M2[ 1]+M1[10]*M2[ 2]+M1[14]*M2[ 3];
+  Mout[ 3] = M1[ 3]*M2[ 0]+M1[ 7]*M2[ 1]+M1[11]*M2[ 2]+M1[15]*M2[ 3];
+  Mout[ 4] = M1[ 0]*M2[ 4]+M1[ 4]*M2[ 5]+M1[ 8]*M2[ 6]+M1[12]*M2[ 7];
+  Mout[ 5] = M1[ 1]*M2[ 4]+M1[ 5]*M2[ 5]+M1[ 9]*M2[ 6]+M1[13]*M2[ 7];
+  Mout[ 6] = M1[ 2]*M2[ 4]+M1[ 6]*M2[ 5]+M1[10]*M2[ 6]+M1[14]*M2[ 7];
+  Mout[ 7] = M1[ 3]*M2[ 4]+M1[ 7]*M2[ 5]+M1[11]*M2[ 6]+M1[15]*M2[ 7];
+  Mout[ 8] = M1[ 0]*M2[ 8]+M1[ 4]*M2[ 9]+M1[ 8]*M2[10]+M1[12]*M2[11];
+  Mout[ 9] = M1[ 1]*M2[ 8]+M1[ 5]*M2[ 9]+M1[ 9]*M2[10]+M1[13]*M2[11];
+  Mout[10] = M1[ 2]*M2[ 8]+M1[ 6]*M2[ 9]+M1[10]*M2[10]+M1[14]*M2[11];
+  Mout[11] = M1[ 3]*M2[ 8]+M1[ 7]*M2[ 9]+M1[11]*M2[10]+M1[15]*M2[11];
+  Mout[12] = M1[ 0]*M2[12]+M1[ 4]*M2[13]+M1[ 8]*M2[14]+M1[12]*M2[15];
+  Mout[13] = M1[ 1]*M2[12]+M1[ 5]*M2[13]+M1[ 9]*M2[14]+M1[13]*M2[15];
+  Mout[14] = M1[ 2]*M2[12]+M1[ 6]*M2[13]+M1[10]*M2[14]+M1[14]*M2[15];
+  Mout[15] = M1[ 3]*M2[12]+M1[ 7]*M2[13]+M1[11]*M2[14]+M1[15]*M2[15];
+}
