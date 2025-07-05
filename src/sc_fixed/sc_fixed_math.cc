@@ -26,22 +26,27 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
 }
 
-bool sc_choldc(f_float A[3][3], f_float diag[3])                     
-{
-  
+bool sc_choldc(f_float A[3][3], f_float diag[3]) {
+
   unsigned int N = 3;
-  const f_float epsilon = f_float(1e-7);                                            
+  const f_float epsilon = (f_float) float(1e-7);                                            
   
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
       f_float sum = A[i][j];
-      for (int k=i-1; k >= 0; k--)
+      for (unsigned int k = 0; k < i; k++) {
+      //for (int k=i-1; k >= 0; k--) {
         sum -= A[i][k] * A[j][k];
+      }
       if (i == j) {
-        if (sum < epsilon)
+        if (sum < epsilon) {
+          std::cout << "Fehler: Summe < Epsilon" << std::endl;
           return false;
+        }
+        std::cout << "Wurzel wird berechnet" << std::endl;
         diag[i] = sc_fixed_heron_sqrt(sum);
-      } else {
+      }
+      else {
         A[j][i] = sum / diag[i];
       }
     }
@@ -49,22 +54,20 @@ bool sc_choldc(f_float A[3][3], f_float diag[3])
   return true;
 }
 
-void sc_cholsl(f_float A[3][3],
-                          f_float diag[3],
-                          f_float B[3],
-                          f_float x[3])
-{
+void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
   int N = 3;
   for (int i=0; i < N; i++) {
     f_float sum = B[i];
-    for (int k=i-1; k >= 0; k--)
+    for (int k=i-1; k >= 0; k--) {
       sum -= A[i][k] * x[k];
+    }
     x[i] = sum / diag[i];
   }
   for (int i=N-1; i >= 0; i--) {
     f_float sum = x[i];
-    for (int k=i+1; k < N; k++)
+    for (int k=i+1; k < N; k++) {
       sum -= A[k][i] * x[k];
+    }
     x[i] = sum / diag[i];
   }
 }
@@ -100,7 +103,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, const std::array<f_flo
 }
 
 //! Internal function of transform which alters the reduced points
-void transformReduced(const std::array<f_float, 16> alignxf, std::vector<std::array<f_float, 3>> scan){
+void transformReduced(const std::array<f_float, 16> alignxf, std::vector<std::array<f_float, 3>>& scan){
 
  // DataXYZ xyz_reduced(get("xyz reduced"));
  // size_t i=0;
