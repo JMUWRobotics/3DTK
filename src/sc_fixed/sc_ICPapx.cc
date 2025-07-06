@@ -109,9 +109,9 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
 }
 
 double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
-                        double *alignxf,
-                        const double centroid_m[3],
-                        const double centroid_d[3])
+                        f_float *alignxf,
+                        const f_float centroid_m[3],
+                        const f_float centroid_d[3])
 {
   int n = Pairs.size();
 
@@ -123,13 +123,13 @@ double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
 
   int i;
 
-  double A[3][3];
-  double B[3];
-  memset(&A[0][0], 0, 9 * sizeof(double));
-  memset(&B[0], 0, 3 * sizeof(double));
+  f_float A[3][3];
+  f_float B[3];
+  memset(&A[0][0], 0, 9 * sizeof(f_float));
+  memset(&B[0], 0, 3 * sizeof(f_float));
 
-  double sum = 0;
-  double p1[3], p2[3];
+  f_float sum = 0;
+  f_float p1[3], p2[3];
 
   for (i = 0; i < n; i++) {
     p1[0] = Pairs[i].p1.x;
@@ -139,8 +139,8 @@ double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
     p2[1] = Pairs[i].p2.y;
     p2[2] = Pairs[i].p2.z;
 
-    double p12[3] = { p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2] };
-    double p2c[3] = { p2[0] - centroid_d[0], p2[1] - centroid_d[1],
+    f_float p12[3] = { p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2] };
+    f_float p2c[3] = { p2[0] - centroid_d[0], p2[1] - centroid_d[1],
                       p2[2] - centroid_d[2] };
 
     sum += Len2(p12);
@@ -156,7 +156,7 @@ double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
     A[2][2] += (sqr(p2c[0]) + sqr(p2c[1]));
   }
 
-  double error = sqrt(sum / n);
+  f_float error = sqrt(sum / n);
   if (!quiet) {
     std::cout.setf(std::ios::basefield);
     std::cout << "APX RMS point-to-point error = "
@@ -169,21 +169,21 @@ double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
   }
 
   // Solve eqns
-  double diag[3];
-  if (!choldc(A, diag)) {
+  f_float diag[3];
+  if (!sc_choldc(A, diag)) {
     printf("Couldn't find transform.\n");
     return -1.0;
   }
-  double x[3];
-  cholsl(A, diag, B, x);
+  f_float x[3];
+  sc_cholsl(A, diag, B, x);
 
   // Interpret results
-  double sx = x[0];
-  double cx = sqrt(1.0 - sx*sx);
-  double sy = x[1];
-  double cy = sqrt(1.0 - sy*sy);
-  double sz = x[2];
-  double cz = sqrt(1.0 - sz*sz);
+  f_float sx = x[0];
+  f_float cx = sqrt(1.0 - sx*sx);
+  f_float sy = x[1];
+  f_float cy = sqrt(1.0 - sy*sy);
+  f_float sz = x[2];
+  f_float cz = sqrt(1.0 - sz*sz);
 
   alignxf[0]  = cy*cz;
   alignxf[1]  = sx*sy*cz + cx*sz;

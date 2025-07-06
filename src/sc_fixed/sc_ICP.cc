@@ -20,7 +20,7 @@
 #include <iomanip>
 
 #include "sc_fixed/sc_fixed_math.h"
-#include "slam6d/globals.icc"  //TODO: durch mathematische sc-fixed ersetzen
+#include "slam6d/globals.icc"  //brauchen wir für M4identity
 using std::cerr;
 
 #include <string.h>
@@ -179,11 +179,15 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
  * @param CurrentScan The current scan thas is to be matched
  * @return The number of iterations done in this matching run
  */
-int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
-                  PairingMode pairing_mode) {
-  double id[16];
+int sc_ICP::match2(std::vector<std::array<f_float, 3>>& PreviousScan, std::vector<std::array<f_float, 3>>& CurrentScan) {
+  f_float id[16];
   M4identity(id);
-  CurrentScan->transform(id, Scan::ICP, 0);  // write end pose
+  std::array<f_float, 16> transMat;
+  std::array<f_float, 16> dalignxf;
+  
+  transform(CurrentScan, id, transMat, dalignxf, 0);
+  // statt CurrentScan->transform(id, Scan::ICP, 0);  // write end pose
+  
   // If ICP shall not be applied, then just write
   // the identity matrix and return
   if (max_num_iterations == 0) {
@@ -191,9 +195,9 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
   }
 
   // icp main loop
-  double ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
+  f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
-  double alignxf[16];
+  f_float alignxf[16];
   long time = GetCurrentTimeInMilliSec();
 
   for (iter = 0; iter < max_num_iterations; iter++) {
@@ -202,11 +206,11 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
 
     if (iter == 1) time = GetCurrentTimeInMilliSec();
 
-    double centroid_m[3] = {0.0, 0.0, 0.0};
-    double centroid_d[3] = {0.0, 0.0, 0.0};
+    f_float centroid_m[3] = {0.0, 0.0, 0.0};
+    f_float centroid_d[3] = {0.0, 0.0, 0.0};
     vector<sc_PtPair> pairs;
 
-    // TODO: ersetzen
+    // TODO: Punktepaare generieren
     // Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
 
     // set the number of point paira
@@ -221,23 +225,23 @@ int sc_ICP::match(Scan* PreviousScan, Scan* CurrentScan,
 
     if ((iter == 0 && anim != -2) || ((anim > 0) && (iter % anim == 0))) {
       // transform the current scan
-      CurrentScan->transform(alignxf, Scan::ICP, 0);
+      transform(CurrentScan, id, transMat, dalignxf, 0);
     } else {
       // transform the current scan
-      CurrentScan->transform(alignxf, Scan::ICP, -1);
+      transform(CurrentScan, id, transMat, dalignxf, -1);
     }
 
     if (((fabs(ret - prev_ret) < epsilonICP) &&
          (fabs(ret - prev_prev_ret) < epsilonICP)) ||
         (iter == max_num_iterations - 1)) {
-      double id[16];
+      f_float id[16];
       M4identity(id);
       if (anim == -2) {
         // write end pose
-        CurrentScan->transform(id, Scan::ICP, -1);
+        transform(CurrentScan, id, transMat, dalignxf, -1);
       } else {
         // write end pose
-        CurrentScan->transform(id, Scan::ICP, 0);
+        transform(CurrentScan, id, transMat, dalignxf, 0);
       }
       break;
     }
@@ -287,25 +291,25 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan, Scan* CurrentScan,
  *
  * @param allScans Contains all necessary scans.
  */
-void sc_ICP::doICP(vector<Scan*> allScans, PairingMode pairing_mode) {
-  double id[16];
+void sc_ICP::doICP(std::vector<std::vector<std::array<f_float, 3>>> allScans) {
+  f_float id[16];
   M4identity(id);
 
   for (unsigned int i = 0; i < allScans.size(); i++) {
     cout << i << "*" << endl;
 
-    Scan* CurrentScan = allScans[i];
-    Scan* PreviousScan = 0;
+    std::vector<std::array<f_float, 3>> CurrentScan = allScans[i];
+    std::vector<std::array<f_float, 3>> PreviousScan;
 
     if (i > 0) {
       PreviousScan = allScans[i - 1];
-      if (eP) {  // extrapolate odometry
-        CurrentScan->mergeCoordinatesWithRoboterPosition(PreviousScan);
-      }
+    //  if (eP) {  // extrapolate odometry - für uns überflüssig?
+    //    CurrentScan->mergeCoordinatesWithRoboterPosition(PreviousScan);
+    //  }
     }
 
     if (i > 0) {
-      match(PreviousScan, CurrentScan, pairing_mode);
+      match(PreviousScan, CurrentScan);
     }
   }
 }

@@ -1,6 +1,5 @@
 #include "sc_fixed/sc_fixed_math.h"
 
-
 f_float sc_fixed_heron_sqrt(f_float s) {
 
   std::cout << "sqrt(" << s << ")" << std::endl;
@@ -87,7 +86,7 @@ void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
  *        -1  no transformation is stored
  *         0  ICP transformation
  */
-void transform(std::vector<std::array<f_float, 3>>& scan, const std::array<f_float, 16> alignxf, std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf, int islum){
+void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, int islum){
 //für jeden Scan haben wir die f_float transMat[16] = (4x4) transformation matrix
 //und dalignxf[16] transformation represents the delta transformation virtually applied to the tree and is used to compute are actual corresponding points.
 
@@ -103,7 +102,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, const std::array<f_flo
 }
 
 //! Internal function of transform which alters the reduced points
-void transformReduced(const std::array<f_float, 16> alignxf, std::vector<std::array<f_float, 3>>& scan){
+void transformReduced(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan){
 
  // DataXYZ xyz_reduced(get("xyz reduced"));
  // size_t i=0;
@@ -114,7 +113,7 @@ void transformReduced(const std::array<f_float, 16> alignxf, std::vector<std::ar
 
 }
 
-void transform3(const std::array<f_float, 16>& alignxf, std::array<f_float, 3>& point){
+void transform3(const f_float alignxf[16], std::array<f_float, 3>& point){
   f_float x_neu, y_neu, z_neu;
   x_neu = point[0] * alignxf[0] + point[1] * alignxf[4] + point[2] * alignxf[8];
   y_neu = point[0] * alignxf[1] + point[1] * alignxf[5] + point[2] * alignxf[9];
@@ -125,7 +124,7 @@ void transform3(const std::array<f_float, 16>& alignxf, std::array<f_float, 3>& 
 }
 
 //! Internal function of transform which handles the matrices
-void transformMatrix(const std::array<f_float, 16> alignxf, std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf){
+void transformMatrix(const f_float alignxf[16], std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf){
   std::array<f_float, 16> tempxf;
 
   // apply alignxf to transMat and update pose vectors
@@ -140,7 +139,7 @@ void transformMatrix(const std::array<f_float, 16> alignxf, std::array<f_float, 
   memcpy(dalignxf.data(), tempxf.data(), 16 * sizeof(f_float));
 }
 
-void MMult(const std::array<f_float, 16>& M1, const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout){
+void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout){
   Mout[ 0] = M1[ 0]*M2[ 0]+M1[ 4]*M2[ 1]+M1[ 8]*M2[ 2]+M1[12]*M2[ 3];
   Mout[ 1] = M1[ 1]*M2[ 0]+M1[ 5]*M2[ 1]+M1[ 9]*M2[ 2]+M1[13]*M2[ 3];
   Mout[ 2] = M1[ 2]*M2[ 0]+M1[ 6]*M2[ 1]+M1[10]*M2[ 2]+M1[14]*M2[ 3];

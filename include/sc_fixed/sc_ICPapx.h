@@ -26,9 +26,9 @@ public:
   virtual ~sc_ICPapx() {};
 
   double Align(const std::vector<sc_PtPair>& Pairs,
-	       double *alignxf,
-	       const double centroid_m[3],
-	       const double centroid_d[3]);
+	       f_float *alignxf,
+	       const f_float centroid_m[3],
+	       const f_float centroid_d[3]);
 
   void Align(const std::vector<std::array<f_float, 3>>& source,
              const std::vector<std::array<f_float, 3>>& matchedTarget,
