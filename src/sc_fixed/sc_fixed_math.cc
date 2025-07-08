@@ -37,6 +37,10 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
     }
     std::cout << std::endl;
   }
+  std::cout << "Diagonalmatrix" << std::endl;
+  for (int i = 0; i < 3; ++i) {
+    std::cout << diag[i] << " " << std::endl;
+  }
   
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
@@ -106,7 +110,16 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
 
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
-
+  
+  for(int i = 0; i < 16; i++) {
+    std::cout << transMat[i] << " ";
+  }
+  std::cout << std::endl;
+  
+  for(int i = 0; i < 16; i++) {
+    std::cout << dalignxf[i] << " ";
+  }
+  std::cout << std::endl;
   // store transformation in frames - falls islum=0 statt -1
   //TODO islum und .frames
 }
@@ -134,19 +147,19 @@ void transform3(const f_float alignxf[16], std::array<f_float, 3>& point){
 }
 
 //! Internal function of transform which handles the matrices
-void transformMatrix(const f_float alignxf[16], std::array<f_float, 16> transMat, std::array<f_float, 16> dalignxf){
+void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf){
   std::array<f_float, 16> tempxf;
 
   // apply alignxf to transMat and update pose vectors
   MMult(alignxf, transMat, tempxf);
-  memcpy(transMat.data(), tempxf.data(), 16 * sizeof(f_float));
- // Matrix4ToEuler(transMat, rPosTheta, rPos);
- // Matrix4ToQuat(transMat, rQuat);
+  std::copy(tempxf.begin(), tempxf.end(), transMat.begin());
+  //std::memcpy(transMat.data(), tempxf.data(), 16 * sizeof(f_float));
 
   // apply alignxf to dalignxf
   MMult(alignxf, dalignxf, tempxf);
   // kopiere - nach dalignfx - von tempxf - anzahlBytes: sizeof(transMat), definiert in <cstring>
-  memcpy(dalignxf.data(), tempxf.data(), 16 * sizeof(f_float));
+  //std::memcpy(dalignxf.data(), tempxf.data(), 16 * sizeof(f_float));
+  std::copy(tempxf.begin(), tempxf.end(), dalignxf.begin());
 }
 
 void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout){

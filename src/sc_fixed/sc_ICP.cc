@@ -87,8 +87,8 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 // match Methode mit konvertiertem Datentyp als Übergabeparameter
 // fehlende includes Array und vector, Methode
 // match überladen sollte funktionieren
-int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,  
-                  const std::vector<std::array<f_float, 3>>& target) {
+int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,  
+                  std::vector<std::array<f_float, 3>>& target) {
   
   std::vector<std::array<f_float, 3>> matchedTarget;
   // TO-DO validierung der übergebenen Listen
@@ -132,30 +132,30 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
 
   // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
 
-  if (source.size() != target.size()) {
+  if (source.size() != matchedTarget.size()) {
     std::cerr << "warning: source size does not match target size" << std::endl;
-    if (source.size() > target.size()) {
+    if (source.size() > matchedTarget.size()) {
       std::cerr << "source size is greater than target size" << std::endl;
     }
   }
 
-  size_t count = std::min(source.size(), target.size());
+  size_t count = std::min(source.size(), matchedTarget.size());
   
   for (size_t i = 0; i < count; ++i) {
     centerSource[0] += source[i][0];
     centerSource[1] += source[i][1];
     centerSource[2] += source[i][2];
 
-    centerTarget[0] += target[i][0];
-    centerTarget[1] += target[i][1];
-    centerTarget[2] += target[i][2];
+    centerTarget[0] += matchedTarget[i][0];
+    centerTarget[1] += matchedTarget[i][1];
+    centerTarget[2] += matchedTarget[i][2];
   }
   std::cout << "Schwerpunkte Ende" << std::endl;
 
   // typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
   std::cout << "type cast" << std::endl;
   f_float srcSize = static_cast<f_float>(source.size());
-  f_float trgSize = static_cast<f_float>(target.size());
+  f_float trgSize = static_cast<f_float>(matchedTarget.size());
   centerSource[0] /= srcSize;
   centerSource[1] /= srcSize;
   centerSource[2] /= srcSize;
@@ -164,11 +164,20 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
   centerTarget[1] /= trgSize;
   centerTarget[2] /= trgSize;
 
-  // TO-Do Roation berechnen
+  // Rotation und Translation berechnen
   f_float alignxf[16];
   /*int ret = */ my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
-	  
-  // TO_DO Translation berechnen
+  for(int i = 0; i < 16; i++) {
+    std::cout << alignxf[i] << " ";
+  }
+  std::cout << std::endl;
+  
+  // TODO Transformation berechnen
+  std::array<f_float, 16> transMat;
+  transMat[0] = transMat[5] = transMat[10] = transMat[15] = 1;
+  std::array<f_float, 16> dalignxf;
+  dalignxf[0] = dalignxf[5] = dalignxf[10] = dalignxf[15] = 1;
+  transform(target, alignxf, transMat, dalignxf, 0);
   //  4 x 4 Matix auf Konsole ausgeben
   return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
              // Matrix ändern
