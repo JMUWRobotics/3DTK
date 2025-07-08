@@ -199,7 +199,7 @@ int sc_main(int argc, char **argv)
     //std::cout << "nextFixed points for check" << std::endl;
     //printPoints(currentFixed);
 
-    icp.match2(prevFixed, currentFixed);
+    icp.match(prevFixed, currentFixed);
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
  

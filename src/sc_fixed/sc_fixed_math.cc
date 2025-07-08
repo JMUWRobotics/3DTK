@@ -28,16 +28,26 @@ f_float sc_fixed_heron_sqrt(f_float s) {
 bool sc_choldc(f_float A[3][3], f_float diag[3]) {
 
   unsigned int N = 3;
-  const f_float epsilon = (f_float) float(1e-7);                                            
+  const f_float epsilon = (f_float) float(1e-4);  
+  
+  std::cout << "Matrix A" << std::endl;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      std::cout << A[i][j] << " ";
+    }
+    std::cout << std::endl;
+  }
   
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
       f_float sum = A[i][j];
-      for (unsigned int k = 0; k < i; k++) {
-      //for (int k=i-1; k >= 0; k--) {
+      //for (unsigned int k = 0; k < i; k++) {
+      for (int k=i-1; k >= 0; k--) {
         sum -= A[i][k] * A[j][k];
       }
       if (i == j) {
+        std::cout << "Summe: " << sum << " / Iteration " << i << std::endl;
+        std::cout << "Epsilon: " << epsilon << std::endl;
         if (sum < epsilon) {
           std::cout << "Fehler: Summe < Epsilon" << std::endl;
           return false;

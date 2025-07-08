@@ -154,14 +154,15 @@ int sc_ICP::match(const std::vector<std::array<f_float, 3>>& source,
 
   // typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
   std::cout << "type cast" << std::endl;
-  f_float srcSize = static_cast<f_float>(source.size());  
+  f_float srcSize = static_cast<f_float>(source.size());
+  f_float trgSize = static_cast<f_float>(target.size());
   centerSource[0] /= srcSize;
   centerSource[1] /= srcSize;
   centerSource[2] /= srcSize;
 
-  centerTarget[0] /= srcSize;
-  centerTarget[1] /= srcSize;
-  centerTarget[2] /= srcSize;
+  centerTarget[0] /= trgSize;
+  centerTarget[1] /= trgSize;
+  centerTarget[2] /= trgSize;
 
   // TO-Do Roation berechnen
   f_float alignxf[16];
