@@ -37,10 +37,10 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
     }
     std::cout << std::endl;
   }
-  std::cout << "Diagonalmatrix" << std::endl;
-  for (int i = 0; i < 3; ++i) {
-    std::cout << diag[i] << " " << std::endl;
-  }
+  //std::cout << "Diagonalmatrix" << std::endl; //ist hier wohl immer die Nullmatrix
+  //for (int i = 0; i < 3; ++i) {
+  //  std::cout << diag[i] << " " << std::endl;
+  //}
   
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
@@ -111,11 +111,13 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
   
+  std::cout << "Transformationsmatrix:" << std::endl;
   for(int i = 0; i < 16; i++) {
     std::cout << transMat[i] << " ";
   }
   std::cout << std::endl;
   
+  std::cout << "dalignxf-Matrix:" << std::endl;
   for(int i = 0; i < 16; i++) {
     std::cout << dalignxf[i] << " ";
   }

@@ -174,6 +174,19 @@ int sc_main(int argc, char **argv)
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
+  //lege die transMat's und dalignxf's für alle Scans an
+  std::vector<std::array<f_float, 16>> transMats;
+  std::vector<std::array<f_float, 16>> dalignxfs;
+  transMats.reserve(Scan::allScans.size());
+  dalignxfs.reserve(Scan::allScans.size());
+  
+  //füge alle Matrizen jeweils ans Ende des aktuellen Vektors (push_back)
+  for(unsigned int i = 0; i < Scan::allScans.size(); i++){
+    transMats.push_back(array2fixedArray16(Scan::allScans[i]->get_transMat()));
+    dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
+  }
+  
+  //match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     std::cout << std::to_string(i) + " match iteration" << std::endl;
     Scan *prevScan = Scan::allScans[i-1];
@@ -198,8 +211,9 @@ int sc_main(int argc, char **argv)
     //printPoints(prevFixed);
     //std::cout << "nextFixed points for check" << std::endl;
     //printPoints(currentFixed);
-
-    icp.match(prevFixed, currentFixed);
+    
+    //matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
+    icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i]);
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
  

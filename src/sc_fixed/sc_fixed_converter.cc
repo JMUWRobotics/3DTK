@@ -18,6 +18,16 @@ std::vector<std::array<f_float, 3>> array2fixedArray(const DataXYZ &input) {
   return result;
 }
 
+// converts transMat and dalignxf (as double[16]) to fixed transMat and dalignxf (as std::array<f_float, 16>)
+
+std::array<f_float, 16> array2fixedArray16(const double input[16]) {
+  std::array<f_float, 16> result;
+  for (unsigned int i = 0; i < 16; ++i) {
+    result[i] = input[i];
+  }
+  return result;
+}
+
 // converts TripleArray<f_float> into TripleArray<double> (aka DataXYZ)
 
 /*

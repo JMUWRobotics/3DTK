@@ -88,38 +88,39 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 // fehlende includes Array und vector, Methode
 // match überladen sollte funktionieren
 int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,  
-                  std::vector<std::array<f_float, 3>>& target) {
+                  std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf) {
   
   std::vector<std::array<f_float, 3>> matchedTarget;
   // TO-DO validierung der übergebenen Listen
   // nns brute forece
   for (const auto& src : source) {
-    std::cout << "source iteration" << std::endl;
+    //std::cout << "source iteration" << std::endl;
     f_float minDist;
     bool first = true;
     std::array<f_float, 3> closest;
 
     for (const auto& tgt : target) {
-      std::cout << "target iteration" << std::endl;
+      //std::cout << ".";
       f_float dx = src[0] - tgt[0];
       f_float dy = src[1] - tgt[1];
       f_float dz = src[2] - tgt[2];
       f_float dist = dx * dx + dy * dy + dz * dz;
 
       if (first) {
-	std::cout << "if first" << std::endl;
+	//std::cout << "if first" << std::endl;
         minDist = dist;
         closest = tgt;
         first = false;
       } else if (dist < minDist) {
-	std::cout << "else if first" <<std::endl;
+	//std::cout << "else if first" <<std::endl;
         minDist = dist;
         closest = tgt;
       }
     }
-    std::cout << "before matchedTarget.push" << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "before matchedTarget.push" << std::endl;
     matchedTarget.push_back(closest);
-    std::cout << "after matchedTarget.push" << std::endl;
+    //std::cout << "after matchedTarget.push" << std::endl;
   }
 
   // TO-DO Test matchedTarget
@@ -173,10 +174,10 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,
   std::cout << std::endl;
   
   // TODO Transformation berechnen
-  std::array<f_float, 16> transMat;
-  transMat[0] = transMat[5] = transMat[10] = transMat[15] = 1;
-  std::array<f_float, 16> dalignxf;
-  dalignxf[0] = dalignxf[5] = dalignxf[10] = dalignxf[15] = 1;
+  //std::array<f_float, 16> transMat;
+  //transMat[0] = transMat[5] = transMat[10] = transMat[15] = 1;
+  //std::array<f_float, 16> dalignxf;
+  //dalignxf[0] = dalignxf[5] = dalignxf[10] = dalignxf[15] = 1;
   transform(target, alignxf, transMat, dalignxf, 0);
   //  4 x 4 Matix auf Konsole ausgeben
   return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
@@ -319,7 +320,8 @@ void sc_ICP::doICP(std::vector<std::vector<std::array<f_float, 3>>> allScans) {
     }
 
     if (i > 0) {
-      match(PreviousScan, CurrentScan);
+    //TODO falls doICP nötig: Parameter match anpassen
+    //  match(PreviousScan, CurrentScan);
     }
   }
 }

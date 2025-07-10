@@ -9,6 +9,8 @@
 
 std::vector<std::array<f_float, 3>> array2fixedArray(const DataXYZ &input);
 
+std::array<f_float, 16> array2fixedArray16(const double input[16]);
+
 DataXYZ fixedArray2array(TripleArray<f_float>);
 
 void printPoints(const std::vector<std::array<f_float, 3>>& points);
