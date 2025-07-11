@@ -143,10 +143,12 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,
   size_t count = std::min(source.size(), matchedTarget.size());
   
   for (size_t i = 0; i < count; ++i) {
+    //entspricht centroid_d
     centerSource[0] += source[i][0];
     centerSource[1] += source[i][1];
     centerSource[2] += source[i][2];
 
+    //entspricht centroid_m (matched = closest)
     centerTarget[0] += matchedTarget[i][0];
     centerTarget[1] += matchedTarget[i][1];
     centerTarget[2] += matchedTarget[i][2];
@@ -178,8 +180,8 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,
   //transMat[0] = transMat[5] = transMat[10] = transMat[15] = 1;
   //std::array<f_float, 16> dalignxf;
   //dalignxf[0] = dalignxf[5] = dalignxf[10] = dalignxf[15] = 1;
-  transform(target, alignxf, transMat, dalignxf, 0);
-  //  4 x 4 Matix auf Konsole ausgeben
+  transform(matchedTarget, alignxf, transMat, dalignxf, 0);
+  //  4 x 4 Matrix auf Konsole ausgeben
   return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
              // Matrix ändern
 }

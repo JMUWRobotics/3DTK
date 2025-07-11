@@ -57,7 +57,7 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
     const auto& p2 = matchedTarget[i];  
 
     f_float p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
-    f_float p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};  
+    f_float p2c[3] = {p2[0] - centerSource[0], p2[1] - centerSource[1], p2[2] - centerSource[2]};  
 
     sum += p12[0]*p12[0] + p12[1]*p12[1] + p12[2]*p12[2];
 
