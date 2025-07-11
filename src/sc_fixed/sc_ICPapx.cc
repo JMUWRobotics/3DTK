@@ -101,9 +101,9 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
   alignxf[9]  = -sx*cy;
   alignxf[10] = cx*cy;
   alignxf[11] = 0;
-  alignxf[12] = centerSource[0] - alignxf[0]*centerTarget[0] - alignxf[4]*centerTarget[1] - alignxf[8]*centerTarget[2];
-  alignxf[13] = centerSource[1] - alignxf[1]*centerTarget[0] - alignxf[5]*centerTarget[1] - alignxf[9]*centerTarget[2];
-  alignxf[14] = centerSource[2] - alignxf[2]*centerTarget[0] - alignxf[6]*centerTarget[1] - alignxf[10]*centerTarget[2];
+  alignxf[12] = centerTarget[0] - alignxf[0]*centerSource[0] - alignxf[4]*centerSource[1] - alignxf[8]*centerSource[2];
+  alignxf[13] = centerTarget[1] - alignxf[1]*centerSource[0] - alignxf[5]*centerSource[1] - alignxf[9]*centerSource[2];
+  alignxf[14] = centerTarget[2] - alignxf[2]*centerSource[0] - alignxf[6]*centerSource[1] - alignxf[10]*centerSource[2];
   alignxf[15] = 1;
 
 }
