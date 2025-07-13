@@ -122,6 +122,12 @@ po::options_description generic("Generic options");
   return 0;
 }
 
+std::string format_number(int number) {
+    std::stringstream stream;
+    stream << std::setw(3) << std::setfill('0') << number;
+    return stream.str();
+}
+
 /**
  * program for ICP
  * Usage: bin/icpFixpoint 'dir',
@@ -154,18 +160,7 @@ int sc_main(int argc, char **argv)
     exit(-1);
   }
 
-  //unsigned int types = PointType::USE_NONE;
-  
-
   readFramesAndTransform(dir, start, end, -1 , uP, false);
-
-
-  std::cout << "Export all 3D Points to file \"points.pts\"" << std::endl;
-  std::cout << "Export all 6DoF poses to file \"positions.txt\"" << std::endl;
-  std::cout << "Export all 6DoF matrices to file \"poses.txt\"" << std::endl;
-  FILE *redptsout = fopen("points.pts", "wb");
-  std::ofstream posesout("positions.txt");
-  std::ofstream matricesout("poses.txt");
  
   //ab hier ICP
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
@@ -216,6 +211,18 @@ int sc_main(int argc, char **argv)
     icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i]);
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
+  
+  //gib die Ergebnis-Transformationsmatrix in .frames-Datei aus
+  for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
+    std::ofstream frame(dir + "/scan" + format_number(i) + "-neu.frames");
+    for(unsigned int j = 0; j < transMats[i].size(); j++) {
+      frame << transMats[i][j];
+      frame << " ";
+    }
+    frame.close();
+  }
+  
+  Scan::closeDirectory();
  
   cout << "alles klar spooki" << endl;
   return 0;
