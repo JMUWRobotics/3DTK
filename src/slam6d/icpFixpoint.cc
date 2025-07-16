@@ -73,7 +73,7 @@ po::options_description generic("Generic options");
      "uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, "
      "riegl_txt, riegl_rgb, riegl_bin, zahn, ply, las})")
     ("iter,i", po::value<int>(&mni)->default_value(50),
-     "sets the maximal number of iterations for SLAM to <NR>")
+     "sets the maximal number of ICP iterations to <NR>")
     ("start,s", po::value<int>(&start)->default_value(0),
      "start at scan <arg> (i.e., neglects the first <arg> scans) "
      "[ATTENTION: counting naturally starts with 0]")
