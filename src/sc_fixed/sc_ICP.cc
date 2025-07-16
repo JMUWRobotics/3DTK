@@ -66,7 +66,7 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
     exit(1);
   }
 
-  this->max_dist_match2 = sqr(max_dist_match);
+  this->max_dist_match2 = (max_dist_match*max_dist_match);
   this->max_num_iterations = max_num_iterations;
   this->quiet = quiet;
   this->meta = meta;
@@ -87,12 +87,11 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 // match Methode mit konvertiertem Datentyp als Übergabeparameter
 // fehlende includes Array und vector, Methode
 // match überladen sollte funktionieren
-int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,  
-                  std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf) {
+int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf) {
   
+  // nns Brute Force
   std::vector<std::array<f_float, 3>> matchedTarget;
   // TO-DO validierung der übergebenen Listen
-  // nns brute forece
   for (const auto& src : source) {
     //std::cout << "source iteration" << std::endl;
     f_float minDist;
@@ -104,7 +103,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,
       f_float dx = src[0] - tgt[0];
       f_float dy = src[1] - tgt[1];
       f_float dz = src[2] - tgt[2];
-      f_float dist = dx * dx + dy * dy + dz * dz;
+      f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
 
       if (first) {
 	//std::cout << "if first" << std::endl;
@@ -123,67 +122,81 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source,
     //std::cout << "after matchedTarget.push" << std::endl;
   }
 
-  // TO-DO Test matchedTarget
-
-  // Schwerpunkte bestimmen
-  std::cout << "Schwerpunkte" << std::endl;
+  // ICP-Iteration
+  f_float id[16];
+  M4identity(id);
   
-  std::array<f_float, 3> centerSource = {0, 0, 0};
-  std::array<f_float, 3> centerTarget = {0, 0, 0};
+  transform(target, id, transMat, dalignxf, 0);
+  
+  // wenn ICP nicht angewendet werden soll, nur die Identitätsmatrix schreiben und return 0
+  if (max_num_iterations == 0) {
+    return 0;
+  }
 
-  // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
+  f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
+  int iter = 0;
+  
+  for (iter = 0; iter < max_num_iterations; iter++) {
+    //TODO Abbruchbedingung, wenn sich die Werte nur noch wenig ändern
+    prev_prev_ret = prev_ret;
+    prev_ret = ret;
+  
+    // Schwerpunkte bestimmen
+    //std::cout << "Schwerpunkte" << std::endl;
+  
+    std::array<f_float, 3> centerSource = {0.0, 0.0, 0.0};
+    std::array<f_float, 3> centerTarget = {0.0, 0.0, 0.0};
 
-  if (source.size() != matchedTarget.size()) {
-    std::cerr << "warning: source size does not match target size" << std::endl;
-    if (source.size() > matchedTarget.size()) {
-      std::cerr << "source size is greater than target size" << std::endl;
+    // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
+
+    if (source.size() != matchedTarget.size()) {
+      std::cerr << "warning: source size does not match target size" << std::endl;
+      if (source.size() > matchedTarget.size()) {
+        std::cerr << "source size is greater than target size" << std::endl;
+      }
     }
-  }
 
-  size_t count = std::min(source.size(), matchedTarget.size());
+    size_t count = std::min(source.size(), matchedTarget.size());
   
-  for (size_t i = 0; i < count; ++i) {
-    //entspricht centroid_d
-    centerSource[0] += source[i][0];
-    centerSource[1] += source[i][1];
-    centerSource[2] += source[i][2];
+    for (size_t i = 0; i < count; ++i) {
+      //TODO ist das korrekt?!
+      //entspricht centroid_d ODER m=model=source???
+      centerSource[0] += source[i][0];
+      centerSource[1] += source[i][1];
+      centerSource[2] += source[i][2];
 
-    //entspricht centroid_m (matched = closest)
-    centerTarget[0] += matchedTarget[i][0];
-    centerTarget[1] += matchedTarget[i][1];
-    centerTarget[2] += matchedTarget[i][2];
-  }
-  std::cout << "Schwerpunkte Ende" << std::endl;
+      //entspricht centroid_m (matched = closest)
+      centerTarget[0] += matchedTarget[i][0];
+      centerTarget[1] += matchedTarget[i][1];
+      centerTarget[2] += matchedTarget[i][2];
+    }
+    //std::cout << "Schwerpunkte Ende" << std::endl;
 
-  // typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
-  std::cout << "type cast" << std::endl;
-  f_float srcSize = static_cast<f_float>(source.size());
-  f_float trgSize = static_cast<f_float>(matchedTarget.size());
-  centerSource[0] /= srcSize;
-  centerSource[1] /= srcSize;
-  centerSource[2] /= srcSize;
+    //typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
+    //std::cout << "type cast" << std::endl;
+    f_float srcSize = static_cast<f_float>(source.size());
+    f_float trgSize = static_cast<f_float>(matchedTarget.size());
+    centerSource[0] /= srcSize;
+    centerSource[1] /= srcSize;
+    centerSource[2] /= srcSize;
 
-  centerTarget[0] /= trgSize;
-  centerTarget[1] /= trgSize;
-  centerTarget[2] /= trgSize;
+    centerTarget[0] /= trgSize;
+    centerTarget[1] /= trgSize;
+    centerTarget[2] /= trgSize;
 
-  // Rotation und Translation berechnen
-  f_float alignxf[16];
-  /*int ret = */ my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
-  for(int i = 0; i < 16; i++) {
-    std::cout << alignxf[i] << " ";
-  }
-  std::cout << std::endl;
+    // Rotation und Translation berechnen
+    f_float alignxf[16];
+    ret = my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
+    //std::cout << "alignxf" << std::endl;
+    //for(int i = 0; i < 16; i++) {
+    //  std::cout << alignxf[i] << " ";
+    //}
+    //std::cout << std::endl;
   
-  // TODO Transformation berechnen
-  //std::array<f_float, 16> transMat;
-  //transMat[0] = transMat[5] = transMat[10] = transMat[15] = 1;
-  //std::array<f_float, 16> dalignxf;
-  //dalignxf[0] = dalignxf[5] = dalignxf[10] = dalignxf[15] = 1;
-  transform(matchedTarget, alignxf, transMat, dalignxf, 0);
-  //  4 x 4 Matrix auf Konsole ausgeben
-  return 0;  // Rückgabewert int für Iterationen, vielleicht langfristig auf 4x4
-             // Matrix ändern
+    // Transformation berechnen
+    transform(target, alignxf, transMat, dalignxf, 0);
+  }
+  return iter;  // Anzahl der durchgeführten Iterationen
 }
 
 /**
@@ -309,7 +322,7 @@ void sc_ICP::doICP(std::vector<std::vector<std::array<f_float, 3>>> allScans) {
   M4identity(id);
 
   for (unsigned int i = 0; i < allScans.size(); i++) {
-    cout << i << "*" << endl;
+    //cout << i << "*" << endl;
 
     std::vector<std::array<f_float, 3>> CurrentScan = allScans[i];
     std::vector<std::array<f_float, 3>> PreviousScan;

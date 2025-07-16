@@ -42,7 +42,7 @@ public:
 		       const f_float centroid_m[3],
 		       const f_float centroid_d[3]) = 0;
 
-  virtual void Align(const std::vector<std::array<f_float, 3>>& source,
+  virtual f_float Align(const std::vector<std::array<f_float, 3>>& source,
                      const std::vector<std::array<f_float, 3>>& matchedTarget,
                      f_float *alignxf,
                      const std::array<f_float, 3> centerSource,

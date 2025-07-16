@@ -33,7 +33,7 @@
  * @param alignxf The resulting transformation matrix
  * @return Error estimation of the matching (rms)
  */
-void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
+f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
                       const std::vector<std::array<f_float, 3>>& matchedTarget,
                       f_float *alignxf,
                       const std::array<f_float, 3> centerSource,
@@ -49,7 +49,7 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
     }
   }	
 
-  f_float sum = 0; 
+  f_float sum = 0.0; 
   f_float p1[3], p2[3]; 
 
   for(size_t i = 0; i < source.size(); ++i){
@@ -76,7 +76,7 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
  
   if (!sc_choldc(A, diag)) {
     printf("Couldn't find transform.\n");
-    return; //-1.0;
+    return -1.0;
   }
   f_float x[3];
   sc_cholsl(A, diag, B, x);
@@ -105,9 +105,11 @@ void sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
   alignxf[13] = centerTarget[1] - alignxf[1]*centerSource[0] - alignxf[5]*centerSource[1] - alignxf[9]*centerSource[2];
   alignxf[14] = centerTarget[2] - alignxf[2]*centerSource[0] - alignxf[6]*centerSource[1] - alignxf[10]*centerSource[2];
   alignxf[15] = 1;
-
+  
+  return 1.0; // gib den Fehler zurück
 }
 
+//alte Align-Methode, kann weg?
 double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
                         f_float *alignxf,
                         const f_float centroid_m[3],
@@ -125,8 +127,15 @@ double sc_ICPapx::Align(const std::vector<sc_PtPair>& Pairs,
 
   f_float A[3][3];
   f_float B[3];
-  memset(&A[0][0], 0, 9 * sizeof(f_float));
-  memset(&B[0], 0, 3 * sizeof(f_float));
+  //setze alles auf 0, nutze nicht memset
+  //memset(&A[0][0], 0, 9 * sizeof(f_float));
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      A[i][j] = 0.0;
+    }
+    B[i] = 0.0;
+  }
+  //memset(&B[0], 0, 3 * sizeof(f_float));
 
   f_float sum = 0;
   f_float p1[3], p2[3];

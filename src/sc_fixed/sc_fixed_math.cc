@@ -2,7 +2,7 @@
 
 f_float sc_fixed_heron_sqrt(f_float s) {
 
-  std::cout << "sqrt(" << s << ")" << std::endl;
+  //std::cout << "sqrt(" << s << ")" << std::endl;
 
   if (s == 0) {
     return 0;
@@ -17,7 +17,7 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
   for(int i = HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
-    std::cout << "Iteration " << i << ": x = " << x_n.to_double() << std::endl;
+    //std::cout << "Iteration " << i << ": x = " << x_n.to_double() << std::endl;
     x = x_n;
   }
 
@@ -28,15 +28,15 @@ f_float sc_fixed_heron_sqrt(f_float s) {
 bool sc_choldc(f_float A[3][3], f_float diag[3]) {
 
   unsigned int N = 3;
-  const f_float epsilon = (f_float) float(1e-4);  
+  const f_float epsilon = (f_float) float(1e-3);  
   
-  std::cout << "Matrix A" << std::endl;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      std::cout << A[i][j] << " ";
-    }
-    std::cout << std::endl;
-  }
+  //std::cout << "Matrix A" << std::endl;
+  //for (int i = 0; i < 3; ++i) {
+  //  for (int j = 0; j < 3; ++j) {
+  //    std::cout << A[i][j] << " ";
+  //  }
+  //  std::cout << std::endl;
+  //}
   //std::cout << "Diagonalmatrix" << std::endl; //ist hier wohl immer die Nullmatrix
   //for (int i = 0; i < 3; ++i) {
   //  std::cout << diag[i] << " " << std::endl;
@@ -50,13 +50,13 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
         sum -= A[i][k] * A[j][k];
       }
       if (i == j) {
-        std::cout << "Summe: " << sum << " / Iteration " << i << std::endl;
-        std::cout << "Epsilon: " << epsilon << std::endl;
+        //std::cout << "Summe: " << sum << " / Iteration " << i << std::endl;
+        //std::cout << "Epsilon: " << epsilon << std::endl;
         if (sum < epsilon) {
-          std::cout << "Fehler: Summe < Epsilon" << std::endl;
+          //std::cout << "Fehler: Summe < Epsilon" << std::endl;
           return false;
         }
-        std::cout << "Wurzel wird berechnet" << std::endl;
+        //std::cout << "Wurzel wird berechnet" << std::endl;
         diag[i] = sc_fixed_heron_sqrt(sum);
       }
       else {
@@ -123,7 +123,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   }
   std::cout << std::endl;
   // store transformation in frames - falls islum=0 statt -1
-  //TODO islum und .frames
+  // islum wird nicht benötigt, da Schreiben nur am Ende?
 }
 
 //! Internal function of transform which alters the reduced points

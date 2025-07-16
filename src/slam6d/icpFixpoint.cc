@@ -140,14 +140,14 @@ int sc_main(int argc, char **argv)
   // init, default values if not specified
   std::string dir;
   int    start = 0,   end = -1;
-  bool   uP         = false;  // should we use the pose information instead of the frames??
+  bool   uP         = true;  // kann als Parameter rausfliegen, wir verwenden immer true
+  int max_num_iterations = 500; // bitte noch als Parameter einfügen
   IOType iotype    = UOS;
   double scaleFac = 0.01;
   bool quiet = false;
 
   try {
-    parse_options(argc, argv, dir, start, end,
-     uP, iotype, scaleFac);
+    parse_options(argc, argv, dir, start, end, uP, iotype, scaleFac);
   } catch (std::exception& e) {
     std::cerr << "Error while parsing settings: " << e.what() << std::endl;
     exit(1);
@@ -160,11 +160,12 @@ int sc_main(int argc, char **argv)
     exit(-1);
   }
 
-  readFramesAndTransform(dir, start, end, -1 , uP, false);
+  //usePose = true? D.h. die .frames nicht beachten? Oder ganz weglassen?
+  readFramesAndTransform(dir, start, end, -1, true, false);
  
   //ab hier ICP
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
-  sc_ICP icp(minimizer, 500, 500, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
+  sc_ICP icp(minimizer, 500, max_num_iterations, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
 
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
