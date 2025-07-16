@@ -7,13 +7,20 @@
 #include <array>
 #include <cstring>
 
-const int WORD_LENGTH = 48;
-const int INT_WORD_LENGTH = 36;
+#ifndef FIXED_WORD_LENGTH
+#define FIXED_WORD_LENGTH 48
+#endif
 
-const int HERON_ITERATIONS = 5;
+#ifndef FIXED_INT_WORD_LENGTH
+#define FIXED_INT_WORD_LENGTH 36
+#endif
+
+#ifndef FIXED_HERON_ITERATIONS
+#define FIXED_HERON_ITERATIONS 3
+#endif
 
 using namespace sc_dt;
-using f_float = sc_fixed<WORD_LENGTH, INT_WORD_LENGTH>;
+using f_float = sc_fixed<FIXED_WORD_LENGTH, FIXED_INT_WORD_LENGTH>;
 
 f_float sc_fixed_heron_sqrt(f_float s);
 bool sc_choldc(f_float A[3][3], f_float diag[3]);

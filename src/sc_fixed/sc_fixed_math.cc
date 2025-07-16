@@ -15,7 +15,7 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   f_float x = s / 2 + 1;
   f_float x_n;
   
-  for(int i = HERON_ITERATIONS; i > 0; i--) {
+  for(int i = FIXED_HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
     //std::cout << "Iteration " << i << ": x = " << x_n.to_double() << std::endl;
     x = x_n;

@@ -34,6 +34,7 @@ using std::string;
 #include "sc_fixed/sc_Point.h" //neu, wird aber scheinbar nicht gebraucht
 #include "sc_fixed/sc_ICP.h" //neu
 #include "sc_fixed/sc_ICPapx.h" //neu
+#include "sc_fixed/sc_fixed_math.h" //neu
 //#undef int64
 //#undef uint64
 
@@ -140,6 +141,10 @@ std::string format_number(int number) {
  */
 int sc_main(int argc, char **argv)
 {
+  std::cout << "WORD LENGTH = " << FIXED_WORD_LENGTH << std::endl;
+  std::cout << "INT_WORD_LENGTH = " << FIXED_INT_WORD_LENGTH << std::endl;
+
+  
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;

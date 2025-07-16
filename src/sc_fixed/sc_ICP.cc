@@ -301,8 +301,8 @@ double sc_ICP::Point_Point_Error(Scan* PreviousScan, Scan* CurrentScan,
   double error = 0;
   unsigned int nr_ppairs = 0;
 
-  double centroid_m[3] = {0.0, 0.0, 0.0};
-  double centroid_d[3] = {0.0, 0.0, 0.0};
+  //double centroid_m[3] = {0.0, 0.0, 0.0};
+  //double centroid_d[3] = {0.0, 0.0, 0.0};
   vector<sc_PtPair> pairs;
 
   // TODO: ersetzen

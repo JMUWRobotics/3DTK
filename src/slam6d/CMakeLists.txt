@@ -75,12 +75,6 @@ if (WITH_OPENCV)
   target_link_libraries(atomize scan scanio ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} rply)
 endif()
 
-if (WITH_SYSTEMC)
-  add_executable(icpFixpoint icpFixpoint.cc ../scanio/writer.cc ../scanio/framesreader.cc ../sc_fixed/sc_ICP.cc ../sc_fixed/sc_ICPapx.cc ../sc_fixed/sc_fixed_converter.cc ../sc_fixed/sc_fixed_math.cc)
-  target_include_directories(icpFixpoint PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/rply-1.1.4)
-  target_link_libraries(icpFixpoint scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${OpenCV_LIBS} ${SYSTEMC_LIBRARY} rply)
-endif()
-
 target_link_libraries(graph_balancer scan ${Boost_GRAPH_LIBRARY} ${Boost_SERIALIZATION_LIBRARY} ${Boost_REGEX_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(align scan ${ANN_LIBRARIES} ${NEWMAT_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 target_link_libraries(transformFrames scan ${ANN_LIBRARIES} newmat ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
