@@ -41,7 +41,7 @@ using std::cerr;
  */
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
                int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
-               int anim, double epsilonICP, int nns_method, bool cuda_enabled,
+               int anim, f_float epsilonICP, int nns_method, bool cuda_enabled,
                bool cad_matching, int max_num_metascans) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
   this->anim = anim;
@@ -192,9 +192,20 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     //  std::cout << alignxf[i] << " ";
     //}
     //std::cout << std::endl;
-  
-    // Transformation berechnen
+
     transform(target, alignxf, transMat, dalignxf, 0);
+
+    //Abbruchbedingung
+    if (((sc_abs(ret - prev_ret) < epsilonICP) &&
+	 (sc_abs(ret - prev_prev_ret) < epsilonICP)) ||
+	(iter == max_num_iterations -1) ) {
+      
+      break;
+
+      // Hier transformation mit Identität Matrix??? vgl. icp6D.cc code Z.276
+    }
+
+    std::cout << " ITER " << iter << std::endl;
   }
   return iter;  // Anzahl der durchgeführten Iterationen
 }

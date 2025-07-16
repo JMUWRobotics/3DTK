@@ -57,7 +57,7 @@ void validate(boost::any& v, const std::vector<std::string>& values,
   }
 }
 
-int parse_options(int argc, char **argv, std::string &dir,
+int parse_options(int argc, char **argv, std::string &dir, int &mni, double &epsilonICP, 
             int &start, int &end, bool &use_pose,
         IOType &type, double &scaleFac)
 {
@@ -71,11 +71,15 @@ po::options_description generic("Generic options");
      "using shared library <arg> for input. (chose F from {uos, uos_map, "
      "uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, "
      "riegl_txt, riegl_rgb, riegl_bin, zahn, ply, las})")
+    ("iter,i", po::value<int>(&mni)->default_value(50),
+     "sets the maximal number of iterations for SLAM to <NR>")
     ("start,s", po::value<int>(&start)->default_value(0),
      "start at scan <arg> (i.e., neglects the first <arg> scans) "
      "[ATTENTION: counting naturally starts with 0]")
     ("end,e", po::value<int>(&end)->default_value(-1),
      "end after scan <arg>")
+    ("epsICP,5", po::value<double>(&epsilonICP)->default_value(0.00001),
+     "stop ICP iteration if difference is smaller than NR")
     ("scale,y", po::value<double>(&scaleFac)->default_value(0.01),
     "scale factor for point cloud in m (be aware of the different units for uos (cm) and xyz (m), (default: 0.01 means that input and output remain the same)")
     ("trustpose,p", po::bool_switch(&use_pose)->default_value(false),
@@ -139,15 +143,16 @@ int sc_main(int argc, char **argv)
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;
-  int    start = 0,   end = -1;
+  int    start = 0,   end = -1; //start and end of input data
+  int mni = 50; // maximum number of iterations
   bool   uP         = true;  // kann als Parameter rausfliegen, wir verwenden immer true
-  int max_num_iterations = 500; // bitte noch als Parameter einfügen
   IOType iotype    = UOS;
   double scaleFac = 0.01;
   bool quiet = false;
+  double epsilonICP = 0.00001;
 
   try {
-    parse_options(argc, argv, dir, start, end, uP, iotype, scaleFac);
+    parse_options(argc, argv, dir, mni, epsilonICP,  start, end, uP, iotype, scaleFac);
   } catch (std::exception& e) {
     std::cerr << "Error while parsing settings: " << e.what() << std::endl;
     exit(1);
@@ -164,8 +169,11 @@ int sc_main(int argc, char **argv)
   readFramesAndTransform(dir, start, end, -1, true, false);
  
   //ab hier ICP
+  // cast epsilonICP to fix point
+  f_float sc_epsilonICP = epsilonICP;
+  
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
-  sc_ICP icp(minimizer, 500, max_num_iterations, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
+  sc_ICP icp(minimizer, 500, mni, false, false, 1, false, -1, sc_epsilonICP, 1, false, false, 0);
 
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 

@@ -24,5 +24,6 @@ void transformReduced(const f_float alignxf[16], std::vector<std::array<f_float,
 void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf);
 void transform3(const f_float alignxf[16], std::array<f_float, 3>& point);
 void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout);
+f_float sc_abs(f_float);
 
 #endif // SC_FIXED_MATH_H

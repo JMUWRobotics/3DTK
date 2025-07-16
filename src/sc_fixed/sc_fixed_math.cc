@@ -182,3 +182,8 @@ void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f
   Mout[14] = M1[ 2]*M2[12]+M1[ 6]*M2[13]+M1[10]*M2[14]+M1[14]*M2[15];
   Mout[15] = M1[ 3]*M2[12]+M1[ 7]*M2[13]+M1[11]*M2[14]+M1[15]*M2[15];
 }
+
+
+f_float sc_abs(f_float x) {
+  return (x < f_float(0)) ? f_float(-x) : x;
+}

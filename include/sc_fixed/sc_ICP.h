@@ -36,7 +36,7 @@ public:
 	   int rnd = 1,
 	   bool eP = true,
 	   int anim = -1,
-	   double epsilonICP = 0.0000001,
+	   f_float epsilonICP = 0.0000001,
 	   int nns_method = BruteForce,
 	   bool cuda_enabled = false,
 	   bool cad_matching = false,
