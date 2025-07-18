@@ -27,7 +27,7 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]);
 void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]);
 
 void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, int islum);
-void transformReduced(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan);
+void transformPoints(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan);
 void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf);
 void transform3(const f_float alignxf[16], std::array<f_float, 3>& point);
 void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout);

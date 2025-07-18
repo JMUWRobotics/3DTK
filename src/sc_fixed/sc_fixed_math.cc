@@ -106,7 +106,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
 
 //algoType wird weggelassen, da wir nur ICP haben
   // transform points
-  transformReduced(alignxf, scan);
+  transformPoints(alignxf, scan);
 
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
@@ -126,11 +126,8 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   // islum wird nicht benötigt, da Schreiben nur am Ende?
 }
 
-//! Internal function of transform which alters the reduced points
-void transformReduced(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan){
-
- // DataXYZ xyz_reduced(get("xyz reduced"));
- // size_t i=0;
+//! Internal function of transform which alters the points
+void transformPoints(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan){
   
   for (size_t i = 0; i < scan.size(); ++i) {
     transform3(alignxf, scan[i]);

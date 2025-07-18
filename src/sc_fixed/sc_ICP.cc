@@ -84,45 +84,8 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
   nr_pointPair = 0;
 }
 
-// match Methode mit konvertiertem Datentyp als Übergabeparameter
-// fehlende includes Array und vector, Methode
-// match überladen sollte funktionieren
+// match-Methode mit konvertiertem Datentyp als Übergabeparameter
 int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf) {
-  
-  // nns Brute Force
-  std::vector<std::array<f_float, 3>> matchedTarget;
-  // TO-DO validierung der übergebenen Listen
-  for (const auto& src : source) {
-    //std::cout << "source iteration" << std::endl;
-    f_float minDist;
-    bool first = true;
-    std::array<f_float, 3> closest;
-
-    for (const auto& tgt : target) {
-      //std::cout << ".";
-      f_float dx = src[0] - tgt[0];
-      f_float dy = src[1] - tgt[1];
-      f_float dz = src[2] - tgt[2];
-      f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
-
-      if (first) {
-	//std::cout << "if first" << std::endl;
-        minDist = dist;
-        closest = tgt;
-        first = false;
-      } else if (dist < minDist) {
-	//std::cout << "else if first" <<std::endl;
-        minDist = dist;
-        closest = tgt;
-      }
-    }
-    //std::cout << std::endl;
-    //std::cout << "before matchedTarget.push" << std::endl;
-    matchedTarget.push_back(closest);
-    //std::cout << "after matchedTarget.push" << std::endl;
-  }
-
-  // ICP-Iteration
   f_float id[16];
   M4identity(id);
   
@@ -132,12 +95,45 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   if (max_num_iterations == 0) {
     return 0;
   }
-
+  
+  f_float alignxf[16];
   f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
   
+  //ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
-    //TODO Abbruchbedingung, wenn sich die Werte nur noch wenig ändern
+    // nns Brute Force
+    std::vector<std::array<f_float, 3>> matchedTarget;
+    for (const auto& src : source) {
+      //std::cout << "source iteration" << std::endl;
+      f_float minDist;
+      bool first = true;
+      std::array<f_float, 3> closest;
+
+      for (const auto& tgt : target) {
+        //std::cout << ".";
+        f_float dx = src[0] - tgt[0];
+        f_float dy = src[1] - tgt[1];
+        f_float dz = src[2] - tgt[2];
+        f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
+
+        if (first) {
+	  //std::cout << "if first" << std::endl;
+          minDist = dist;
+          closest = tgt;
+          first = false;
+        } else if (dist < minDist) {
+	  //std::cout << "else if first" <<std::endl;
+          minDist = dist;
+          closest = tgt;
+        }
+      }
+      //std::cout << std::endl;
+      //std::cout << "before matchedTarget.push" << std::endl;
+      matchedTarget.push_back(closest);
+      //std::cout << "after matchedTarget.push" << std::endl;
+    }
+    
     prev_prev_ret = prev_ret;
     prev_ret = ret;
   
@@ -185,7 +181,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     centerTarget[2] /= trgSize;
 
     // Rotation und Translation berechnen
-    f_float alignxf[16];
+    
     ret = my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
     //std::cout << "alignxf" << std::endl;
     //for(int i = 0; i < 16; i++) {
@@ -195,14 +191,14 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     transform(target, alignxf, transMat, dalignxf, 0);
 
-    //Abbruchbedingung
+    // Abbruchbedingung
     if (((sc_abs(ret - prev_ret) < epsilonICP) &&
 	 (sc_abs(ret - prev_prev_ret) < epsilonICP)) ||
 	(iter == max_num_iterations -1) ) {
       
       break;
 
-      // Hier transformation mit Identität Matrix??? vgl. icp6D.cc code Z.276
+      // Hier transformation mit Identitätsmatrix??? Vgl. icp6D.cc code Z.276
     }
 
     std::cout << " ITER " << iter << std::endl;
@@ -210,12 +206,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   return iter;  // Anzahl der durchgeführten Iterationen
 }
 
-/**
- * Matches a 3D Scan against a 3D Scan
- * @param PreviousScan The scan or metascan forming the model
- * @param CurrentScan The current scan thas is to be matched
- * @return The number of iterations done in this matching run
- */
+//alte match-Methode, kann dann weg
 int sc_ICP::match2(std::vector<std::array<f_float, 3>>& PreviousScan, std::vector<std::array<f_float, 3>>& CurrentScan) {
   f_float id[16];
   M4identity(id);
@@ -262,10 +253,10 @@ int sc_ICP::match2(std::vector<std::array<f_float, 3>>& PreviousScan, std::vecto
 
     if ((iter == 0 && anim != -2) || ((anim > 0) && (iter % anim == 0))) {
       // transform the current scan
-      transform(CurrentScan, id, transMat, dalignxf, 0);
+      transform(CurrentScan, alignxf, transMat, dalignxf, 0);
     } else {
       // transform the current scan
-      transform(CurrentScan, id, transMat, dalignxf, -1);
+      transform(CurrentScan, alignxf, transMat, dalignxf, -1);
     }
 
     if (((fabs(ret - prev_ret) < epsilonICP) &&
