@@ -134,6 +134,13 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
       //std::cout << "after matchedTarget.push" << std::endl;
     }
     
+    //Debug-Prints Punktpaare
+    for(int i = 0; i < matchedTarget.size(); i++){
+      for(int j = 0; j < 3; j++){
+        std::cout << source[i][j] << " vs " << matchedTarget[i][j] << std::endl;
+      }
+    }
+    
     prev_prev_ret = prev_ret;
     prev_ret = ret;
   
