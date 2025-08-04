@@ -523,6 +523,7 @@ void renderImGuiWindows()
       // Check if updated
       inter_by_dist = interpolate_bool;
       if (ImGui::Button("Animate Path")) {
+        updateCamera();
         pathAnimate(0);
         pointmode = 1; // hack to prevent modal dialog to be rendered this cycle
         // the correct pointmode gets set next cycle in idleIm()

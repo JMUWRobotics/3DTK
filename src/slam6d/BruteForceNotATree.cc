@@ -64,7 +64,7 @@ double *BruteForceNotATree::FindClosest(double *_p, double maxdist2, int threadN
       idx      = i;
     }
   }
-  
+
   if (Dist2(_p, pts[idx]) > maxdist2) return 0;
   return pts[idx];
 }
