@@ -51,6 +51,7 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
   if (!quiet) {
     cout << "Maximal distance match      : " << max_dist_match << endl
          << "Maximal number of iterations: " << max_num_iterations << endl
+         << "Epsilon                     : " << epsilonICP << endl //kleinere Zahlen werden nicht akzeptiert
          << endl;
   }
 
@@ -102,15 +103,20 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   
   //ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
+    std::cout << std::endl;
+    std::cout << "*** ITERATION " << iter << " ***" << std::endl;
     // nns Brute Force
     std::vector<std::array<f_float, 3>> matchedTarget;
-    for (const auto& src : source) {
+    std::vector<std::array<f_float, 3>> matchedSource;
+    for (size_t i = 0; i < source.size(); i++){
+      std::array<f_float, 3> src = source[i];
       //std::cout << "source iteration" << std::endl;
       f_float minDist;
       bool first = true;
       std::array<f_float, 3> closest;
 
-      for (const auto& tgt : target) {
+      for (size_t j = 0; j < target.size(); j++){
+        std::array<f_float, 3> tgt = target[j];
         //std::cout << ".";
         f_float dx = src[0] - tgt[0];
         f_float dy = src[1] - tgt[1];
@@ -128,17 +134,30 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
           closest = tgt;
         }
       }
-      //std::cout << std::endl;
-      //std::cout << "before matchedTarget.push" << std::endl;
-      matchedTarget.push_back(closest);
-      //std::cout << "after matchedTarget.push" << std::endl;
+      //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
+      if (minDist <= max_dist_match2) {
+        //std::cout << "before matchedTarget.push" << std::endl;
+        matchedTarget.push_back(closest);
+        matchedSource.push_back(src);
+        //std::cout << "after matchedTarget.push" << std::endl;
+      }
     }
     
-    //Debug-Prints Punktpaare
-    for(int i = 0; i < matchedTarget.size(); i++){
-      for(int j = 0; j < 3; j++){
-        std::cout << source[i][j] << " vs " << matchedTarget[i][j] << std::endl;
+    //TODO remove Debug-Prints sizes
+    if(false){
+    std::cout << "Anzahl in source: " << source.size() << std::endl;
+    std::cout << "Anzahl in target: " << target.size() << std::endl;
+    std::cout << "Anzahl in matchedTarget: " << matchedTarget.size() << std::endl;
+    std::cout << "Anzahl in matchedSource: " << matchedSource.size() << std::endl;
+    }
+    
+    //TODO remove Debug-Prints Punktpaare
+    if(false){
+    for(size_t i = 0; i < 10; i++){
+      for(size_t j = 0; j < 3; j++){
+        std::cout << static_cast<double>(matchedSource[i][j]) << " vs " << static_cast<double>(matchedTarget[i][j]) << std::endl;
       }
+    }
     }
     
     prev_prev_ret = prev_ret;
@@ -152,21 +171,21 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
 
-    if (source.size() != matchedTarget.size()) {
-      std::cerr << "warning: source size does not match target size" << std::endl;
-      if (source.size() > matchedTarget.size()) {
-        std::cerr << "source size is greater than target size" << std::endl;
+    if (matchedSource.size() != matchedTarget.size()) {
+      std::cerr << "warning: matchedSource size does not match matchedTarget size" << std::endl;
+      if (matchedSource.size() > matchedTarget.size()) {
+        std::cerr << "matchedSource size is greater than matchedTarget size" << std::endl;
       }
     }
 
-    size_t count = std::min(source.size(), matchedTarget.size());
+    size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
     for (size_t i = 0; i < count; ++i) {
       //TODO ist das korrekt?!
       //entspricht centroid_d ODER m=model=source???
-      centerSource[0] += source[i][0];
-      centerSource[1] += source[i][1];
-      centerSource[2] += source[i][2];
+      centerSource[0] += matchedSource[i][0];
+      centerSource[1] += matchedSource[i][1];
+      centerSource[2] += matchedSource[i][2];
 
       //entspricht centroid_m (matched = closest)
       centerTarget[0] += matchedTarget[i][0];
@@ -177,7 +196,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     //typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
     //std::cout << "type cast" << std::endl;
-    f_float srcSize = static_cast<f_float>(source.size());
+    f_float srcSize = static_cast<f_float>(matchedSource.size());
     f_float trgSize = static_cast<f_float>(matchedTarget.size());
     centerSource[0] /= srcSize;
     centerSource[1] /= srcSize;
@@ -189,7 +208,8 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     // Rotation und Translation berechnen
     
-    ret = my_sc_ICPminimizer->Align(source, matchedTarget, alignxf, centerSource, centerTarget);
+    //TODO TODO TODO sind centerTarget und centerSource wirklich zu vertauschen?!?
+    ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerTarget, centerSource);
     //std::cout << "alignxf" << std::endl;
     //for(int i = 0; i < 16; i++) {
     //  std::cout << alignxf[i] << " ";
@@ -197,94 +217,19 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     //std::cout << std::endl;
 
     transform(target, alignxf, transMat, dalignxf, 0);
+    
+    //TODO fix the epsilon
+    epsilonICP = f_float(1e-3);
+    std::cout << "ret: " << ret << ", prev_ret: " << prev_ret << ", prev_prev_ret: " << prev_prev_ret << " (epsilon: " << epsilonICP << ")" << std::endl;
 
     // Abbruchbedingung
-    if (((sc_abs(ret - prev_ret) < epsilonICP) &&
-	 (sc_abs(ret - prev_prev_ret) < epsilonICP)) ||
-	(iter == max_num_iterations -1) ) {
-      
+    if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
+      // write end pose -> Transformation mit Identitätsmatrix, vgl. icp6D.cc Z.289
+      transform(target, id, transMat, dalignxf, 0);
       break;
-
-      // Hier transformation mit Identitätsmatrix??? Vgl. icp6D.cc code Z.276
     }
-
-    std::cout << " ITER " << iter << std::endl;
   }
   return iter;  // Anzahl der durchgeführten Iterationen
-}
-
-//alte match-Methode, kann dann weg
-int sc_ICP::match2(std::vector<std::array<f_float, 3>>& PreviousScan, std::vector<std::array<f_float, 3>>& CurrentScan) {
-  f_float id[16];
-  M4identity(id);
-  std::array<f_float, 16> transMat;
-  std::array<f_float, 16> dalignxf;
-  
-  transform(CurrentScan, id, transMat, dalignxf, 0);
-  // statt CurrentScan->transform(id, Scan::ICP, 0);  // write end pose
-  
-  // If ICP shall not be applied, then just write
-  // the identity matrix and return
-  if (max_num_iterations == 0) {
-    return 0;
-  }
-
-  // icp main loop
-  f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
-  int iter = 0;
-  f_float alignxf[16];
-  long time = GetCurrentTimeInMilliSec();
-
-  for (iter = 0; iter < max_num_iterations; iter++) {
-    prev_prev_ret = prev_ret;
-    prev_ret = ret;
-
-    if (iter == 1) time = GetCurrentTimeInMilliSec();
-
-    f_float centroid_m[3] = {0.0, 0.0, 0.0};
-    f_float centroid_d[3] = {0.0, 0.0, 0.0};
-    vector<sc_PtPair> pairs;
-
-    // TODO: Punktepaare generieren
-    // Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
-
-    // set the number of point paira
-    nr_pointPair = pairs.size();
-
-    // do we have enough point pairs?
-    if (pairs.size() > 3) {
-      ret = my_sc_ICPminimizer->Align(pairs, alignxf, centroid_m, centroid_d);
-    } else {
-      break;
-    }
-
-    if ((iter == 0 && anim != -2) || ((anim > 0) && (iter % anim == 0))) {
-      // transform the current scan
-      transform(CurrentScan, alignxf, transMat, dalignxf, 0);
-    } else {
-      // transform the current scan
-      transform(CurrentScan, alignxf, transMat, dalignxf, -1);
-    }
-
-    if (((fabs(ret - prev_ret) < epsilonICP) &&
-         (fabs(ret - prev_prev_ret) < epsilonICP)) ||
-        (iter == max_num_iterations - 1)) {
-      f_float id[16];
-      M4identity(id);
-      if (anim == -2) {
-        // write end pose
-        transform(CurrentScan, id, transMat, dalignxf, -1);
-      } else {
-        // write end pose
-        transform(CurrentScan, id, transMat, dalignxf, 0);
-      }
-      break;
-    }
-  }
-
-  long endtime = GetCurrentTimeInMilliSec() - time;
-  cout << "TIME  " << endtime << "   ITER " << iter << endl;
-  return iter;
 }
 
 /**

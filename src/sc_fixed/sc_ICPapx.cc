@@ -38,7 +38,8 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
                       f_float *alignxf,
                       const std::array<f_float, 3> centerSource,
                       const std::array<f_float, 3> centerTarget){
-
+  int n = source.size();
+  
   f_float A[3][3];
   f_float B[3]; 
 
@@ -53,8 +54,14 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
   f_float p1[3], p2[3]; 
 
   for(size_t i = 0; i < source.size(); ++i){
-    const auto& p1 = source[i];
-    const auto& p2 = matchedTarget[i];  
+    p1[0] = source[i][0];
+    p1[1] = source[i][1];
+    p1[2] = source[i][2];
+    p2[0] = matchedTarget[i][0];
+    p2[1] = matchedTarget[i][1];
+    p2[2] = matchedTarget[i][2];
+    //const auto& p1 = source[i];
+    //const auto& p2 = matchedTarget[i];  
 
     f_float p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
     f_float p2c[3] = {p2[0] - centerSource[0], p2[1] - centerSource[1], p2[2] - centerSource[2]};  
@@ -71,6 +78,9 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
     A[1][2] -= p2c[1] * p2c[2];
     A[2][2] += ((p2c[0])*(p2c[0]) + (p2c[1])*(p2c[1]));
   }
+  
+  f_float error = sc_fixed_heron_sqrt(sum / n);
+  std::cout << "Error: " << error << std::endl;
 
   f_float diag[3];
  
@@ -106,7 +116,7 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& source,
   alignxf[14] = centerTarget[2] - alignxf[2]*centerSource[0] - alignxf[6]*centerSource[1] - alignxf[10]*centerSource[2];
   alignxf[15] = 1;
   
-  return 1.0; // gib den Fehler zurück
+  return error; // gib den Fehler zurück
 }
 
 //alte Align-Methode, kann weg?

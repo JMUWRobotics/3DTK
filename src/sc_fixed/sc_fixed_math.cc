@@ -117,11 +117,11 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   }
   std::cout << std::endl;
   
-  std::cout << "dalignxf-Matrix:" << std::endl;
-  for(int i = 0; i < 16; i++) {
-    std::cout << dalignxf[i] << " ";
-  }
-  std::cout << std::endl;
+  //std::cout << "dalignxf-Matrix:" << std::endl;
+  //for(int i = 0; i < 16; i++) {
+  //  std::cout << dalignxf[i] << " ";
+  //}
+  //std::cout << std::endl;
   // store transformation in frames - falls islum=0 statt -1
   // islum wird nicht benötigt, da Schreiben nur am Ende?
 }
