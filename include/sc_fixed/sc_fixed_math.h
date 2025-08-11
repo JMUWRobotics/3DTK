@@ -6,6 +6,7 @@
 #include <systemc.h>
 #include <array>
 #include <cstring>
+#include <iostream>
 
 #ifndef FIXED_WORD_LENGTH
 #define FIXED_WORD_LENGTH 48
@@ -26,7 +27,7 @@ f_float sc_fixed_heron_sqrt(f_float s);
 bool sc_choldc(f_float A[3][3], f_float diag[3]);
 void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]);
 
-void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, int islum);
+void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame, int islum);
 void transformPoints(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan);
 void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf);
 void transform3(const f_float alignxf[16], std::array<f_float, 3>& point);

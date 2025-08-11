@@ -100,7 +100,7 @@ void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
  *        -1  no transformation is stored
  *         0  ICP transformation
  */
-void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, int islum){
+void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame, int islum){
 //für jeden Scan haben wir die f_float transMat[16] = (4x4) transformation matrix
 //und dalignxf[16] transformation represents the delta transformation virtually applied to the tree and is used to compute are actual corresponding points.
 
@@ -112,7 +112,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   transformMatrix(alignxf, transMat, dalignxf);
   
   std::cout << "Transformationsmatrix:" << std::endl;
-  for(int i = 0; i < 16; i++) {
+  for(unsigned int i = 0; i < transMat.size(); i++) {
     std::cout << transMat[i] << " ";
   }
   std::cout << std::endl;
@@ -122,8 +122,15 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   //  std::cout << dalignxf[i] << " ";
   //}
   //std::cout << std::endl;
-  // store transformation in frames - falls islum=0 statt -1
-  // islum wird nicht benötigt, da Schreiben nur am Ende?
+  
+  // speichere Transformation in frame-Datei (falls islum == 0 statt -1)
+  if (islum == 0) {
+    for(unsigned int i = 0; i < transMat.size(); i++) {
+      frame << transMat[i];
+      frame << " ";
+    }
+    frame << "\n";
+  }
 }
 
 //! Internal function of transform which alters the points

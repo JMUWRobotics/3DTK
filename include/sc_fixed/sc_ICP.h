@@ -49,7 +49,7 @@ public:
 
   void doICP(std::vector<std::vector<std::array<f_float, 3>>> allScans);
   //virtual int match2(std::vector<std::array<f_float, 3>>& PreviousScan, std::vector<std::array<f_float, 3>>& CurrentScan);
-  virtual int match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf);
+  virtual int match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame);
   void covarianceEuler(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
   void covarianceQuat(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
   double Point_Point_Error(Scan* PreviousScan,

@@ -18,6 +18,7 @@
 
 // #include "slam6d/metaScan.h"			//brauchen wir nicht
 #include <iomanip>
+#include <iostream>
 
 #include "sc_fixed/sc_fixed_math.h"
 #include "slam6d/globals.icc"  //brauchen wir für M4identity
@@ -86,11 +87,11 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 }
 
 // match-Methode mit konvertiertem Datentyp als Übergabeparameter
-int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf) {
+int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame) {
   f_float id[16];
   M4identity(id);
   
-  transform(target, id, transMat, dalignxf, 0);
+  transform(target, id, transMat, dalignxf, frame, 0);
   
   // wenn ICP nicht angewendet werden soll, nur die Identitätsmatrix schreiben und return 0
   if (max_num_iterations == 0) {
@@ -216,7 +217,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     //}
     //std::cout << std::endl;
 
-    transform(target, alignxf, transMat, dalignxf, 0);
+    transform(target, alignxf, transMat, dalignxf, frame, 0);
     
     //TODO fix the epsilon
     epsilonICP = f_float(1e-3);
@@ -225,7 +226,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     // Abbruchbedingung
     if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
       // write end pose -> Transformation mit Identitätsmatrix, vgl. icp6D.cc Z.289
-      transform(target, id, transMat, dalignxf, 0);
+      transform(target, id, transMat, dalignxf, frame, 0);
       break;
     }
   }

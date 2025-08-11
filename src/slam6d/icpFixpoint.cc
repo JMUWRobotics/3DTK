@@ -196,6 +196,14 @@ int sc_main(int argc, char **argv)
     dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
   }
   
+  //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
+  std::ofstream frame(dir + "/scan000-neu.frames");
+  for(unsigned int j = 0; j < transMats[0].size(); j++) {
+    frame << transMats[0][j];
+    frame << " ";
+  }
+  frame.close();
+  
   //match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     std::cout << std::to_string(i) + " match iteration" << std::endl;
@@ -222,19 +230,13 @@ int sc_main(int argc, char **argv)
     //std::cout << "nextFixed points for check" << std::endl;
     //printPoints(currentFixed);
     
-    //matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
-    icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i]);
-    std::cout << std::to_string(i) + " match iteration" << std::endl;
-  }
-  
-  //gib die Ergebnis-Transformationsmatrix in .frames-Datei aus
-  for(unsigned int i = 0; i < Scan::allScans.size(); i++) {
+    //erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
     std::ofstream frame(dir + "/scan" + format_number(i) + "-neu.frames");
-    for(unsigned int j = 0; j < transMats[i].size(); j++) {
-      frame << transMats[i][j];
-      frame << " ";
-    }
+    //matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
+    icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
+    //schließe den Output-Stream
     frame.close();
+    std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
   
   Scan::closeDirectory();
