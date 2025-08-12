@@ -182,13 +182,12 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
     for (size_t i = 0; i < count; ++i) {
-      //TODO ist das korrekt?!
-      //entspricht centroid_d ODER m=model=source???
+      //entspricht centroid_m (model = source)
       centerSource[0] += matchedSource[i][0];
       centerSource[1] += matchedSource[i][1];
       centerSource[2] += matchedSource[i][2];
 
-      //entspricht centroid_m (matched = closest)
+      //entspricht centroid_d (data = target)
       centerTarget[0] += matchedTarget[i][0];
       centerTarget[1] += matchedTarget[i][1];
       centerTarget[2] += matchedTarget[i][2];
@@ -208,9 +207,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     centerTarget[2] /= trgSize;
 
     // Rotation und Translation berechnen
-    
-    //TODO TODO TODO sind centerTarget und centerSource wirklich zu vertauschen?!?
-    ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerTarget, centerSource);
+    ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
     //std::cout << "alignxf" << std::endl;
     //for(int i = 0; i < 16; i++) {
     //  std::cout << alignxf[i] << " ";

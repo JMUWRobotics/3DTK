@@ -25,18 +25,11 @@ public:
    */
   virtual ~sc_ICPapx() {};
 
-  double Align(const std::vector<sc_PtPair>& Pairs,
-	       f_float *alignxf,
-	       const f_float centroid_m[3],
-	       const f_float centroid_d[3]);
-
-  f_float Align(const std::vector<std::array<f_float, 3>>& source,
+  f_float Align(const std::vector<std::array<f_float, 3>>& matchedSource,
              const std::vector<std::array<f_float, 3>>& matchedTarget,
              f_float *alignxf,
              const std::array<f_float, 3> centerSource,
              const std::array<f_float, 3> centerTarget) override;
-
-  static void computeRt(const double *x, const double *dx, double *alignxf);
 
   inline int getAlgorithmID() { return 6; };
 };
