@@ -106,18 +106,19 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   for (iter = 0; iter < max_num_iterations; iter++) {
     std::cout << std::endl;
     std::cout << "*** ITERATION " << iter << " ***" << std::endl;
-    // nns Brute Force
+    
+    // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<f_float, 3>> matchedTarget;
     std::vector<std::array<f_float, 3>> matchedSource;
-    for (size_t i = 0; i < source.size(); i++){
-      std::array<f_float, 3> src = source[i];
+    for (size_t j = 0; j < target.size(); j++){
+      std::array<f_float, 3> tgt = target[j];
       //std::cout << "source iteration" << std::endl;
       f_float minDist;
       bool first = true;
       std::array<f_float, 3> closest;
-
-      for (size_t j = 0; j < target.size(); j++){
-        std::array<f_float, 3> tgt = target[j];
+      
+      for (size_t i = 0; i < source.size(); i++){
+        std::array<f_float, 3> src = source[i];
         //std::cout << ".";
         f_float dx = src[0] - tgt[0];
         f_float dy = src[1] - tgt[1];
@@ -127,19 +128,19 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
         if (first) {
 	  //std::cout << "if first" << std::endl;
           minDist = dist;
-          closest = tgt;
+          closest = src;
           first = false;
         } else if (dist < minDist) {
 	  //std::cout << "else if first" <<std::endl;
           minDist = dist;
-          closest = tgt;
+          closest = src;
         }
       }
       //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
       if (minDist <= max_dist_match2) {
         //std::cout << "before matchedTarget.push" << std::endl;
-        matchedTarget.push_back(closest);
-        matchedSource.push_back(src);
+        matchedTarget.push_back(tgt);
+        matchedSource.push_back(closest);
         //std::cout << "after matchedTarget.push" << std::endl;
       }
     }
