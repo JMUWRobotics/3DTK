@@ -127,8 +127,6 @@ int icp6D::match(Scan* PreviousScan, Scan* CurrentScan,
     if (iter == 1) time = GetCurrentTimeInMilliSec();
 
 #ifdef _OPENMP
-    //TODO remove
-    std::cout << "mit OPENMP" << std::endl;
     // Implementation according to the paper
     // "The Parallel Iterative Closest Point Algorithm"
     // by Langis / Greenspan / Godin, IEEE 3DIM 2001
@@ -223,23 +221,14 @@ int icp6D::match(Scan* PreviousScan, Scan* CurrentScan,
       //break;
     }
 #else
-    //TODO remove
-    std::cout << "else-Fall wird betreten" << std::endl;
-    
+
     double centroid_m[3] = {0.0, 0.0, 0.0};
     double centroid_d[3] = {0.0, 0.0, 0.0};
     vector<PtPair> pairs;
 
     Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd,
 		     max_dist_match2, ret, centroid_m, centroid_d, pairing_mode);
-    
-    //TODO remove: Debug-Prints PtPairs
-    for(int i = 0; i < pairs.size(); i++){
-      std::cout << pairs[i].p1.x << " vs " << pairs[i].p2.x << std::endl;
-      std::cout << pairs[i].p1.y << " vs " << pairs[i].p2.y << std::endl;
-      std::cout << pairs[i].p1.z << " vs " << pairs[i].p2.z << std::endl;
-    }
-    
+
     //set the number of point paira
     nr_pointPair = pairs.size();
 
@@ -411,8 +400,6 @@ void icp6D::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
 	if (cad_matching) {
 	  match(allScans[0], CurrentScan, pairing_mode);
 	} else {
-	  //TODO entfernen
-	  std::cout << "hier geschieht das matching" << std::endl;
 	  match(PreviousScan, CurrentScan, pairing_mode);
 	}
     }

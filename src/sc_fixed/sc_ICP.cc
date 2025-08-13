@@ -110,16 +110,16 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<f_float, 3>> matchedTarget;
     std::vector<std::array<f_float, 3>> matchedSource;
-    for (size_t j = 0; j < target.size(); j++){
-      std::array<f_float, 3> tgt = target[j];
-      //std::cout << "source iteration" << std::endl;
+    for (size_t i = 0; i < source.size(); i++){
+      std::array<f_float, 3> src = source[i];
+      
       f_float minDist;
       bool first = true;
       std::array<f_float, 3> closest;
       
-      for (size_t i = 0; i < source.size(); i++){
-        std::array<f_float, 3> src = source[i];
-        //std::cout << ".";
+      for (size_t j = 0; j < target.size(); j++){
+        std::array<f_float, 3> tgt = target[j];
+      
         f_float dx = src[0] - tgt[0];
         f_float dy = src[1] - tgt[1];
         f_float dz = src[2] - tgt[2];
@@ -128,19 +128,19 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
         if (first) {
 	  //std::cout << "if first" << std::endl;
           minDist = dist;
-          closest = src;
+          closest = tgt;
           first = false;
         } else if (dist < minDist) {
 	  //std::cout << "else if first" <<std::endl;
           minDist = dist;
-          closest = src;
+          closest = tgt;
         }
       }
       //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
       if (minDist <= max_dist_match2) {
         //std::cout << "before matchedTarget.push" << std::endl;
-        matchedTarget.push_back(tgt);
-        matchedSource.push_back(closest);
+        matchedTarget.push_back(closest);
+        matchedSource.push_back(src);
         //std::cout << "after matchedTarget.push" << std::endl;
       }
     }
@@ -183,7 +183,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
     for (size_t i = 0; i < count; ++i) {
-      //entspricht centroid_m (model = source)
+      //entspricht centroid_m (model = source = not moving)
       centerSource[0] += matchedSource[i][0];
       centerSource[1] += matchedSource[i][1];
       centerSource[2] += matchedSource[i][2];
@@ -209,11 +209,11 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     // Rotation und Translation berechnen
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
-    //std::cout << "alignxf" << std::endl;
-    //for(int i = 0; i < 16; i++) {
-    //  std::cout << alignxf[i] << " ";
-    //}
-    //std::cout << std::endl;
+    std::cout << "alignxf after calculation" << std::endl;
+    for(int i = 0; i < 16; i++) {
+      std::cout << alignxf[i] << " ";
+    }
+    std::cout << std::endl;
 
     transform(target, alignxf, transMat, dalignxf, frame, 0);
     
@@ -229,67 +229,4 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     }
   }
   return iter;  // Anzahl der durchgeführten Iterationen
-}
-
-/**
- * Computes the point to point error between two scans
- *
- *
- */
-double sc_ICP::Point_Point_Error(Scan* PreviousScan, Scan* CurrentScan,
-                                 double max_dist_match, unsigned int* np,
-                                 double scale_max) {
-  double scale = log(scale_max) / (max_dist_match * max_dist_match);
-  double error = 0;
-  unsigned int nr_ppairs = 0;
-
-  //double centroid_m[3] = {0.0, 0.0, 0.0};
-  //double centroid_d[3] = {0.0, 0.0, 0.0};
-  vector<sc_PtPair> pairs;
-
-  // TODO: ersetzen
-  // Scan::getPtPairs(&pairs, PreviousScan, CurrentScan, 0, rnd, sqr(max_dist_match), error, centroid_m, centroid_d, CLOSEST_POINT);
-
-  // getPtPairs computes error as sum of squared distances
-  error = 0;
-
-  for (unsigned int i = 0; i < pairs.size(); i++) {
-    double dist = sqr(pairs[i].p1.x - pairs[i].p2.x) +
-                  sqr(pairs[i].p1.y - pairs[i].p2.y) +
-                  sqr(pairs[i].p1.z - pairs[i].p2.z);
-    error -= 0.39894228 * exp(dist * scale);
-  }
-  nr_ppairs = pairs.size();
-
-  if (np) *np = nr_ppairs;
-  return error / nr_ppairs;
-}
-
-/**
- * This function matches the scans only with ICP
- *
- * @param allScans Contains all necessary scans.
- */
-void sc_ICP::doICP(std::vector<std::vector<std::array<f_float, 3>>> allScans) {
-  f_float id[16];
-  M4identity(id);
-
-  for (unsigned int i = 0; i < allScans.size(); i++) {
-    //cout << i << "*" << endl;
-
-    std::vector<std::array<f_float, 3>> CurrentScan = allScans[i];
-    std::vector<std::array<f_float, 3>> PreviousScan;
-
-    if (i > 0) {
-      PreviousScan = allScans[i - 1];
-    //  if (eP) {  // extrapolate odometry - für uns überflüssig?
-    //    CurrentScan->mergeCoordinatesWithRoboterPosition(PreviousScan);
-    //  }
-    }
-
-    if (i > 0) {
-    //TODO falls doICP nötig: Parameter match anpassen
-    //  match(PreviousScan, CurrentScan);
-    }
-  }
 }

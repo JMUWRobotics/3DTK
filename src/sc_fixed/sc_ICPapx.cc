@@ -96,6 +96,10 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
   f_float cy = sc_fixed_heron_sqrt(1.0 - sy*sy);
   f_float sz = x[2];
   f_float cz = sc_fixed_heron_sqrt(1.0 - sz*sz);
+  
+  std::cout << "x[0] sx: " << diag[0] << std::endl;
+  std::cout << "x[1] sy: " << diag[1] << std::endl;
+  std::cout << "x[2] sz: " << diag[2] << std::endl;
 
   alignxf[0]  = cy*cz;
   alignxf[1]  = sx*sy*cz + cx*sz;
