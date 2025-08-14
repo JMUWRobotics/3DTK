@@ -20,8 +20,6 @@ using std::string;
 #include <vector>
 #include <map>
 
-//#include "slam6d/point.h" //wird scheinbar nicht gebraucht
-//#include "slam6d/scan.h" //wird scheinbar nicht gebraucht
 #define int64 opencv_int64
 #define uint64 opencv_uint64
 #include "scanio/writer.h"
@@ -30,13 +28,9 @@ using std::string;
 #undef uint64
 #define int64 systemc_int64
 #define uint64 systemc_uint64
-//#include "slam6d/globals.icc" //wird scheinbar nicht gebraucht
-#include "sc_fixed/sc_Point.h" //neu, wird aber scheinbar nicht gebraucht
-#include "sc_fixed/sc_ICP.h" //neu
-#include "sc_fixed/sc_ICPapx.h" //neu
-#include "sc_fixed/sc_fixed_math.h" //neu
-//#undef int64
-//#undef uint64
+#include "sc_fixed/sc_ICP.h"
+#include "sc_fixed/sc_ICPapx.h"
+#include "sc_fixed/sc_fixed_math.h"
 
 #include "sc_fixed/sc_fixed_converter.h" //include DataXYZ to vector array converter and otherwise
 
@@ -151,7 +145,7 @@ int sc_main(int argc, char **argv)
   int    start = 0,   end = -1; // start and end of input data
   int mni = 50; // maximum number of iterations
   int mdm = 25; // maximum distance match
-  bool   uP         = true;  // kann als Parameter rausfliegen, wir verwenden immer true
+  bool   uP         = true;  // als Parameter nicht zwingend nötig
   IOType iotype    = UOS;
   double scaleFac = 0.01;
   bool quiet = false;
@@ -171,12 +165,9 @@ int sc_main(int argc, char **argv)
     exit(-1);
   }
 
-  //usePose = true? D.h. die .frames nicht beachten? Oder ganz weglassen?
   readFramesAndTransform(dir, start, end, -1, true, false);
  
   //ab hier ICP
-  // cast epsilonICP to fix point -> geht bei so kleinen Zahlen nicht!
-  //f_float sc_epsilonICP = epsilonICP;
   
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
   sc_ICP icp(minimizer, mdm, mni, false, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
@@ -184,6 +175,7 @@ int sc_main(int argc, char **argv)
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
+  
   //lege die transMat's und dalignxf's für alle Scans an
   std::vector<std::array<f_float, 16>> transMats;
   std::vector<std::array<f_float, 16>> dalignxfs;
@@ -218,11 +210,6 @@ int sc_main(int argc, char **argv)
     
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
     std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
-
-    // std::cout << "prevFixed points for check" << std::endl;
-    //printPoints(prevFixed);
-    //std::cout << "nextFixed points for check" << std::endl;
-    //printPoints(currentFixed);
     
     //erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
     std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");

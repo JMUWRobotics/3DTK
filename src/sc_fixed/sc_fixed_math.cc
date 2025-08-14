@@ -156,15 +156,12 @@ void transform3(const f_float alignxf[16], std::array<f_float, 3>& point){
 void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf){
   std::array<f_float, 16> tempxf;
 
-  // apply alignxf to transMat and update pose vectors
+  // apply alignxf to transMat and update pose vectors, copy to transMat
   MMult(alignxf, transMat, tempxf);
   std::copy(tempxf.begin(), tempxf.end(), transMat.begin());
-  //std::memcpy(transMat.data(), tempxf.data(), 16 * sizeof(f_float));
 
-  // apply alignxf to dalignxf
+  // apply alignxf to dalignxf, copy to dalignxf
   MMult(alignxf, dalignxf, tempxf);
-  // kopiere - nach dalignfx - von tempxf - anzahlBytes: sizeof(transMat), definiert in <cstring>
-  //std::memcpy(dalignxf.data(), tempxf.data(), 16 * sizeof(f_float));
   std::copy(tempxf.begin(), tempxf.end(), dalignxf.begin());
 }
 

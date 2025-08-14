@@ -13,7 +13,7 @@
 #include "newmat/newmat.h"			//ggf. TODO: ersetzen?
 //using namespace NEWMAT;
 
-#include "slam6d/scan.h"             //TODO: ersetzen
+#include "slam6d/scan.h"
 #include "sc_fixed/sc_ICPminimizer.h"
 #include "slam6d/pairingMode.h"      //kann so bleiben
 

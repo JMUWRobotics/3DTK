@@ -8,7 +8,6 @@
 #define __SC_ICPMINIMIZER__
 
 #include <vector>
-#include "sc_fixed/sc_PtPair.h"
 #include "sc_fixed/sc_fixed_math.h"
 
 #include <iostream>
