@@ -16,12 +16,11 @@
 
 #include "sc_fixed/sc_ICP.h"
 
-// #include "slam6d/metaScan.h"			//brauchen wir nicht
 #include <iomanip>
 #include <iostream>
 
 #include "sc_fixed/sc_fixed_math.h"
-#include "slam6d/globals.icc"  //brauchen wir für M4identity
+#include "slam6d/globals.icc"  //nötig für M4identity
 using std::cerr;
 
 #include <string.h>
@@ -37,7 +36,7 @@ using std::cerr;
  * @param rnd Randomized point selection
  * @param eP Extrapolate odometry?
  * @param anim Animate which frames?
- * @param epsilonICP Termination criterion
+ * @param epsilonICPexp Exponent for termination criterion
  * @param nns_method Selects NNS method to be used
  */
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
@@ -51,8 +50,7 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 
   if (!quiet) {
     cout << "Maximal distance match      : " << max_dist_match << endl
-         << "Maximal number of iterations: " << max_num_iterations << endl
-         << endl;
+         << "Maximal number of iterations: " << max_num_iterations << endl;
   }
 
   // checks
@@ -75,8 +73,10 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
   this->eP = eP;
   this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
   
-  cout << "Epsilon                     : " << epsilonICP << endl; //kleinere Zahlen werden nicht akzeptiert
-
+  if(!quiet){
+    cout << "Epsilon                     : " << epsilonICP << endl << endl;
+  }
+  
   // Set initial seed (for "real" random numbers)
   //  srand( (unsigned)time( NULL ) );
   this->cad_matching = cad_matching;
@@ -111,37 +111,37 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<f_float, 3>> matchedTarget;
     std::vector<std::array<f_float, 3>> matchedSource;
-    for (size_t i = 0; i < source.size(); i++){
-      std::array<f_float, 3> src = source[i];
+    for (size_t j = 0; j < target.size(); j++){
+      std::array<f_float, 3> tgt = target[j];
       
       f_float minDist;
       bool first = true;
       std::array<f_float, 3> closest;
       
-      for (size_t j = 0; j < target.size(); j++){
-        std::array<f_float, 3> tgt = target[j];
+      for (size_t i = 0; i < source.size(); i++){
+        std::array<f_float, 3> src = source[i];
       
-        f_float dx = src[0] - tgt[0];
-        f_float dy = src[1] - tgt[1];
-        f_float dz = src[2] - tgt[2];
+        f_float dx = tgt[0] - src[0];
+        f_float dy = tgt[1] - src[1];
+        f_float dz = tgt[2] - src[2];
         f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
 
         if (first) {
 	  //std::cout << "if first" << std::endl;
           minDist = dist;
-          closest = tgt;
+          closest = src;
           first = false;
         } else if (dist < minDist) {
 	  //std::cout << "else if first" <<std::endl;
           minDist = dist;
-          closest = tgt;
+          closest = src;
         }
       }
       //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
       if (minDist <= max_dist_match2) {
         //std::cout << "before matchedTarget.push" << std::endl;
-        matchedTarget.push_back(closest);
-        matchedSource.push_back(src);
+        matchedTarget.push_back(tgt);
+        matchedSource.push_back(closest);
         //std::cout << "after matchedTarget.push" << std::endl;
       }
     }
@@ -167,19 +167,9 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     prev_ret = ret;
   
     // Schwerpunkte bestimmen
-    //std::cout << "Schwerpunkte" << std::endl;
   
     std::array<f_float, 3> centerSource = {0.0, 0.0, 0.0};
     std::array<f_float, 3> centerTarget = {0.0, 0.0, 0.0};
-
-    // size_T Rückgabewert von source.size(); Include sollte in array dabei sein, sonst include von <cstddef>.
-
-    if (matchedSource.size() != matchedTarget.size()) {
-      std::cerr << "warning: matchedSource size does not match matchedTarget size" << std::endl;
-      if (matchedSource.size() > matchedTarget.size()) {
-        std::cerr << "matchedSource size is greater than matchedTarget size" << std::endl;
-      }
-    }
 
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
@@ -194,10 +184,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
       centerTarget[1] += matchedTarget[i][1];
       centerTarget[2] += matchedTarget[i][2];
     }
-    //std::cout << "Schwerpunkte Ende" << std::endl;
 
-    //typeCast wohl nötig, genauigkeit?? Trotzdem mal wegen möglichem Typkonflikt fragen
-    //std::cout << "type cast" << std::endl;
     f_float srcSize = static_cast<f_float>(matchedSource.size());
     f_float trgSize = static_cast<f_float>(matchedTarget.size());
     centerSource[0] /= srcSize;
