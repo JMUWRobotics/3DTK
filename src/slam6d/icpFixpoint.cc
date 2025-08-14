@@ -58,7 +58,7 @@ void validate(boost::any& v, const std::vector<std::string>& values,
   }
 }
 
-int parse_options(int argc, char **argv, std::string &dir, int &mni, int &mdm, f_float &epsilonICP, int &start, int &end, bool &use_pose, IOType &type, double &scaleFac)
+int parse_options(int argc, char **argv, std::string &dir, int &mni, int &mdm, int &epsilonICPexp, int &start, int &end, bool &use_pose, IOType &type, double &scaleFac)
 {
 po::options_description generic("Generic options");
   generic.add_options()
@@ -79,8 +79,8 @@ po::options_description generic("Generic options");
      "[ATTENTION: counting naturally starts with 0]")
     ("end,e", po::value<int>(&end)->default_value(-1),
      "end after scan <arg>")
-    ("epsICP,5", po::value<f_float>(&epsilonICP)->default_value(f_float(1e-3)),
-     "stop ICP iteration if difference is smaller than NR")
+    ("epsICPexp,5", po::value<int>(&epsilonICPexp)->default_value(3),
+     "stop ICP iteration if difference is smaller than 1e-<NR>")
     ("scale,y", po::value<double>(&scaleFac)->default_value(0.01),
     "scale factor for point cloud in m (be aware of the different units for uos (cm) and xyz (m), (default: 0.01 means that input and output remain the same)")
     ("trustpose,p", po::bool_switch(&use_pose)->default_value(true),
@@ -148,17 +148,17 @@ int sc_main(int argc, char **argv)
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;
-  int    start = 0,   end = -1; //start and end of input data
+  int    start = 0,   end = -1; // start and end of input data
   int mni = 50; // maximum number of iterations
   int mdm = 25; // maximum distance match
   bool   uP         = true;  // kann als Parameter rausfliegen, wir verwenden immer true
   IOType iotype    = UOS;
   double scaleFac = 0.01;
   bool quiet = false;
-  f_float epsilonICP = f_float(1e-3);   //kleinere Zahlen werden zu 0, TODO fix the epsilon
+  int epsilonICPexp = 3;   // Exponent für Fixpoint-Epsilon
 
   try {
-    parse_options(argc, argv, dir, mni, mdm, epsilonICP,  start, end, uP, iotype, scaleFac);
+    parse_options(argc, argv, dir, mni, mdm, epsilonICPexp, start, end, uP, iotype, scaleFac);
   } catch (std::exception& e) {
     std::cerr << "Error while parsing settings: " << e.what() << std::endl;
     exit(1);
@@ -179,7 +179,7 @@ int sc_main(int argc, char **argv)
   //f_float sc_epsilonICP = epsilonICP;
   
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
-  sc_ICP icp(minimizer, mdm, mni, false, false, 1, false, -1, 0.00001, 1, false, false, 0);
+  sc_ICP icp(minimizer, mdm, mni, false, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
 
   std::cout << "Minimizer and sc_ICP object created" << std::endl;
 
@@ -196,13 +196,7 @@ int sc_main(int argc, char **argv)
     dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
   }
   
-  //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
-  std::ofstream frame(dir + "/scan000-neu.frames");
-  for(unsigned int j = 0; j < transMats[0].size(); j++) {
-    frame << transMats[0][j];
-    frame << " ";
-  }
-  frame.close();
+  int iter = 0;
   
   //match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
@@ -231,13 +225,26 @@ int sc_main(int argc, char **argv)
     //printPoints(currentFixed);
     
     //erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
-    std::ofstream frame(dir + "/scan" + format_number(i) + "-neu.frames");
+    std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");
     //matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
-    icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
+    int itertemp = icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
+    if (itertemp > iter) {
+      iter = itertemp;
+    }
     //schließe den Output-Stream
     frame.close();
     std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
+  
+  //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
+  std::ofstream frame(dir + "/scan000.frames");
+  for (unsigned int i = 0; i < iter; i++) {
+    for (unsigned int j = 0; j < transMats[0].size(); j++) {
+      frame << transMats[0][j] << " ";
+    }
+    frame << (Scan::allScans.size() - 1) << "\n";
+  }
+  frame.close();
   
   Scan::closeDirectory();
  

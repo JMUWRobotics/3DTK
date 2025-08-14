@@ -36,7 +36,7 @@ public:
 	   int rnd = 1,
 	   bool eP = true,
 	   int anim = -1,
-	   f_float epsilonICP = 0.0000001,
+	   int epsilonICPexp = 3,
 	   int nns_method = BruteForce,
 	   bool cuda_enabled = false,
 	   bool cad_matching = false,
@@ -114,7 +114,8 @@ protected:
   /**
    * epsilon for stopping ICP algorithm ( convergence criterium )
    */
-  double epsilonICP;
+  int epsilonICPexp;
+  f_float epsilonICP;
 
   /**
    * ptr to ICP error function minimizer functor

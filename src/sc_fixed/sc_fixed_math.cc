@@ -113,7 +113,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   
   std::cout << "Transformationsmatrix:" << std::endl;
   for(unsigned int i = 0; i < transMat.size(); i++) {
-    std::cout << transMat[i] << " ";
+    std::cout << static_cast<double>(transMat[i]) << " ";
   }
   std::cout << std::endl;
   
@@ -126,10 +126,10 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   // speichere Transformation in frame-Datei (falls islum == 0 statt -1)
   if (islum == 0) {
     for(unsigned int i = 0; i < transMat.size(); i++) {
-      frame << transMat[i];
+      frame << static_cast<double>(transMat[i]);
       frame << " ";
     }
-    frame << "\n";
+    frame << "1\n";
   }
 }
 

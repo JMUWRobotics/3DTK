@@ -42,7 +42,7 @@ using std::cerr;
  */
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
                int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
-               int anim, f_float epsilonICP, int nns_method, bool cuda_enabled,
+               int anim, int epsilonICPexp, int nns_method, bool cuda_enabled,
                bool cad_matching, int max_num_metascans) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
   this->anim = anim;
@@ -52,7 +52,6 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
   if (!quiet) {
     cout << "Maximal distance match      : " << max_dist_match << endl
          << "Maximal number of iterations: " << max_num_iterations << endl
-         << "Epsilon                     : " << epsilonICP << endl //kleinere Zahlen werden nicht akzeptiert
          << endl;
   }
 
@@ -74,7 +73,9 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
   this->meta = meta;
   this->rnd = rnd;
   this->eP = eP;
-  this->epsilonICP = epsilonICP;
+  this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
+  
+  cout << "Epsilon                     : " << epsilonICP << endl; //kleinere Zahlen werden nicht akzeptiert
 
   // Set initial seed (for "real" random numbers)
   //  srand( (unsigned)time( NULL ) );
@@ -217,8 +218,6 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     transform(target, alignxf, transMat, dalignxf, frame, 0);
     
-    //TODO fix the epsilon
-    epsilonICP = f_float(1e-3);
     std::cout << "ret: " << ret << ", prev_ret: " << prev_ret << ", prev_prev_ret: " << prev_prev_ret << " (epsilon: " << epsilonICP << ")" << std::endl;
 
     // Abbruchbedingung
