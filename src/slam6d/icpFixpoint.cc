@@ -221,7 +221,7 @@ int sc_main(int argc, char **argv)
   
   //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
   std::ofstream frame(dir + "/scan000.frames");
-  for (unsigned int i = 0; i < iter; i++) {
+  for (int i = 0; i < iter; i++) {
     for (unsigned int j = 0; j < transMats[0].size(); j++) {
       frame << transMats[0][j] << " ";
     }
