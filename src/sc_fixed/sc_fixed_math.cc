@@ -1,8 +1,7 @@
 #include "sc_fixed/sc_fixed_math.h"
 
+// function to calculate the square root via heron method
 f_float sc_fixed_heron_sqrt(f_float s) {
-
-  //std::cout << "sqrt(" << s << ")" << std::endl;
 
   if (s == 0) {
     return 0;
@@ -17,7 +16,6 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
   for(int i = FIXED_HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
-    //std::cout << "Iteration " << i << ": x = " << x_n.to_double() << std::endl;
     x = x_n;
   }
 
@@ -25,38 +23,22 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
 }
 
+//function to compute cholesky decomposition
 bool sc_choldc(f_float A[3][3], f_float diag[3]) {
 
   unsigned int N = 3;
   const f_float epsilon = (f_float) float(1e-3);  
   
-  //std::cout << "Matrix A" << std::endl;
-  //for (int i = 0; i < 3; ++i) {
-  //  for (int j = 0; j < 3; ++j) {
-  //    std::cout << A[i][j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-  //std::cout << "Diagonalmatrix" << std::endl; //ist hier wohl immer die Nullmatrix
-  //for (int i = 0; i < 3; ++i) {
-  //  std::cout << diag[i] << " " << std::endl;
-  //}
-  
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
       f_float sum = A[i][j];
-      //for (unsigned int k = 0; k < i; k++) {
       for (int k=i-1; k >= 0; k--) {
         sum -= A[i][k] * A[j][k];
       }
       if (i == j) {
-        //std::cout << "Summe: " << sum << " / Iteration " << i << std::endl;
-        //std::cout << "Epsilon: " << epsilon << std::endl;
         if (sum < epsilon) {
-          //std::cout << "Fehler: Summe < Epsilon" << std::endl;
           return false;
         }
-        //std::cout << "Wurzel wird berechnet" << std::endl;
         diag[i] = sc_fixed_heron_sqrt(sum);
       }
       else {
@@ -67,6 +49,7 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
   return true;
 }
 
+// function to solve cholesky
 void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
   int N = 3;
   for (int i=0; i < N; i++) {
@@ -85,26 +68,11 @@ void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
   }
 }
 
-/**
- * Transforms the scan by a given transformation and writes a new frame.
- * The idea is to write for every transformation in all files,
- * such that the show program is able to determine,
- * which scans have to be drawn in which color. Hidden scans
- * (or later processed scans) are written with INVALID.
- *
- * @param alignxf Transformation matrix
- * @param islum Is the transformtion part of LUM, i.e., all scans
- *              are transformed?
- *              In this case only LUM transformation is stored, otherwise all
- *              scans are processed
- *        -1  no transformation is stored
- *         0  ICP transformation
- */
+// transform method without any algorithm type, because ICP algorithm is only with APRX and Brute Force
 void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame, int islum){
 //für jeden Scan haben wir die f_float transMat[16] = (4x4) transformation matrix
 //und dalignxf[16] transformation represents the delta transformation virtually applied to the tree and is used to compute are actual corresponding points.
 
-//algoType wird weggelassen, da wir nur ICP haben
   // transform points
   transformPoints(alignxf, scan);
 
@@ -116,12 +84,6 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
     std::cout << static_cast<double>(transMat[i]) << " ";
   }
   std::cout << std::endl;
-  
-  //std::cout << "dalignxf-Matrix:" << std::endl;
-  //for(int i = 0; i < 16; i++) {
-  //  std::cout << dalignxf[i] << " ";
-  //}
-  //std::cout << std::endl;
   
   // speichere Transformation in frame-Datei (falls islum == 0 statt -1)
   if (islum == 0) {

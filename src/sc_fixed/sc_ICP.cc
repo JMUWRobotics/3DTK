@@ -88,6 +88,15 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
 }
 
 // match-Methode mit konvertiertem Datentyp als Übergabeparameter
+/**
+ * match function including the main ICP loop
+ *
+ * @param source [TODO]
+ * @param target [TODO]
+ * @param transMat [TODO]
+ * @param dalignxf [TODO]
+ * @param frame [TODO]
+ */
 int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame) {
   f_float id[16];
   M4identity(id);
@@ -139,30 +148,11 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
       }
       //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
       if (minDist <= max_dist_match2) {
-        //std::cout << "before matchedTarget.push" << std::endl;
         matchedTarget.push_back(tgt);
         matchedSource.push_back(closest);
-        //std::cout << "after matchedTarget.push" << std::endl;
       }
     }
-    
-    //TODO remove Debug-Prints sizes
-    if(false){
-    std::cout << "Anzahl in source: " << source.size() << std::endl;
-    std::cout << "Anzahl in target: " << target.size() << std::endl;
-    std::cout << "Anzahl in matchedTarget: " << matchedTarget.size() << std::endl;
-    std::cout << "Anzahl in matchedSource: " << matchedSource.size() << std::endl;
-    }
-    
-    //TODO remove Debug-Prints Punktpaare
-    if(false){
-    for(size_t i = 0; i < 10; i++){
-      for(size_t j = 0; j < 3; j++){
-        std::cout << static_cast<double>(matchedSource[i][j]) << " vs " << static_cast<double>(matchedTarget[i][j]) << std::endl;
-      }
-    }
-    }
-    
+        
     prev_prev_ret = prev_ret;
     prev_ret = ret;
   

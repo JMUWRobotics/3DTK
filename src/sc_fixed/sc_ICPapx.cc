@@ -78,20 +78,11 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
   }
   
   f_float error = sc_fixed_heron_sqrt(sum / n);
-  //std::cout << "Error-Wert: " << error << std::endl;
   
-  //std::cout << "Matrix A" << std::endl;
-  //for(int i = 0; i < 3; i++){
-    //for(int j = 0; j < 3; j++){
-      //std::cout << A[i][j] << " ";
-    //}
-    //std::cout << std::endl;
-  //}
-
   f_float diag[3];
  
   if (!sc_choldc(A, diag)) {
-    printf("Couldn't find transform.\n");
+    std::cout << "Couldn't find transform" << std::endl;
     return -1.0;
   }
   f_float x[3];
@@ -104,14 +95,6 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
   f_float cy = sc_fixed_heron_sqrt(1.0 - sy*sy);
   f_float sz = x[2];
   f_float cz = sc_fixed_heron_sqrt(1.0 - sz*sz);
-  
-  //std::cout << "diag[0]: " << diag[0] << std::endl;
-  //std::cout << "diag[1]: " << diag[1] << std::endl;
-  //std::cout << "diag[2]: " << diag[2] << std::endl;
-  
-  //std::cout << "x[0] sx: " << x[0] << std::endl;
-  //std::cout << "x[1] sy: " << x[1] << std::endl;
-  //std::cout << "x[2] sz: " << x[2] << std::endl;
 
   alignxf[0]  = cy*cz;
   alignxf[1]  = sx*sy*cz + cx*sz;

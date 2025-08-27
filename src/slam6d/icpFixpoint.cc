@@ -39,7 +39,6 @@ using std::string;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-
 void validate(boost::any& v, const std::vector<std::string>& values,
               IOType*, int) {
   if (values.size() == 0)
@@ -52,6 +51,7 @@ void validate(boost::any& v, const std::vector<std::string>& values,
   }
 }
 
+// parse console input
 int parse_options(int argc, char **argv, std::string &dir, int &mni, int &mdm, int &epsilonICPexp, int &start, int &end, bool &use_pose, IOType &type, double &scaleFac)
 {
 po::options_description generic("Generic options");
@@ -172,8 +172,6 @@ int sc_main(int argc, char **argv)
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
   sc_ICP icp(minimizer, mdm, mni, false, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
 
-  std::cout << "Minimizer and sc_ICP object created" << std::endl;
-
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
   
   //lege die transMat's und dalignxf's für alle Scans an
@@ -192,7 +190,6 @@ int sc_main(int argc, char **argv)
   
   //match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
-    std::cout << std::to_string(i) + " match iteration" << std::endl;
     Scan *prevScan = Scan::allScans[i-1];
     Scan *currentScan = Scan::allScans[i];
     if(!prevScan || !currentScan) {
@@ -220,7 +217,6 @@ int sc_main(int argc, char **argv)
     }
     //schließe den Output-Stream
     frame.close();
-    std::cout << std::to_string(i) + " match iteration" << std::endl;
   }
   
   //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
@@ -235,6 +231,5 @@ int sc_main(int argc, char **argv)
   
   Scan::closeDirectory();
  
-  cout << "alles klar spooki" << endl;
   return 0;
 }

@@ -28,13 +28,7 @@ std::array<f_float, 16> array2fixedArray16(const double input[16]) {
   return result;
 }
 
-// converts TripleArray<f_float> into TripleArray<double> (aka DataXYZ)
-
-/*
-DataXYZ fixedArray2array(TripleArray<f_float>) {
-  
-}
-*/
+// prints the coordinates from the points from a point array
 
 void printPoints(const std::vector<std::array<f_float, 3>>& points) {
   for (const auto& point : points) {

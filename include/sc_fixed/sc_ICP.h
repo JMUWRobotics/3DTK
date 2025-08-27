@@ -28,6 +28,9 @@
 class sc_ICP {
 
 public:
+  /**
+   * Constructor
+   */
   sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer,
 	   double max_dist_match = 25.0,
 	   int max_num_iterations = 50,
