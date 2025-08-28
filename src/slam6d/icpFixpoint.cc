@@ -54,7 +54,7 @@ void validate(boost::any& v, const std::vector<std::string>& values,
 }
 
 // parse console input
-int parse_options(int argc, char **argv, std::string &dir, int &mni, int &mdm, int &epsilonICPexp, int &start, int &end, bool &use_pose, IOType &type, double &scaleFac)
+int parse_options(int argc, char **argv, std::string &dir, int &mni, int &mdm, int &epsilonICPexp, int &start, int &end, IOType &type, double &scaleFac)
 {
 po::options_description generic("Generic options");
   generic.add_options()
@@ -78,10 +78,7 @@ po::options_description generic("Generic options");
     ("epsICPexp,5", po::value<int>(&epsilonICPexp)->default_value(3),
      "stop ICP iteration if difference is smaller than 1e-<NR>")
     ("scale,y", po::value<double>(&scaleFac)->default_value(0.01),
-    "scale factor for point cloud in m (be aware of the different units for uos (cm) and xyz (m), (default: 0.01 means that input and output remain the same)")
-    ("trustpose,p", po::bool_switch(&use_pose)->default_value(true),
-    "Trust the pose file, do not use the transformation from the .frames files.");
-  
+    "scale factor for point cloud in m (be aware of the different units for uos (cm) and xyz (m), (default: 0.01 means that input and output remain the same)");
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
@@ -141,17 +138,16 @@ int sc_main(int argc, char **argv)
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;
-  int    start = 0,   end = -1; // start and end of input data
+  int start = 0, end = -1; // start and end of input data
   int mni = 50; // maximum number of iterations
   int mdm = 25; // maximum distance match
-  bool   uP         = true;  // als Parameter nicht zwingend nötig
-  IOType iotype    = UOS;
+  IOType iotype = UOS;
   double scaleFac = 0.01;
   bool quiet = false;
-  int epsilonICPexp = 3;   // Exponent für Fixpoint-Epsilon
+  int epsilonICPexp = 3; // exponent for fixpoint-epsilon termination criterion
 
   try {
-    parse_options(argc, argv, dir, mni, mdm, epsilonICPexp, start, end, uP, iotype, scaleFac);
+    parse_options(argc, argv, dir, mni, mdm, epsilonICPexp, start, end, iotype, scaleFac);
   } catch (std::exception& e) {
     std::cerr << "Error while parsing settings: " << e.what() << std::endl;
     exit(1);
