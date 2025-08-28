@@ -10,11 +10,7 @@
 #include <array>
 
 #include "sc_fixed/sc_fixed_math.h"
-#include "newmat/newmat.h"
-
-#include "slam6d/scan.h"
 #include "sc_fixed/sc_ICPminimizer.h"
-#include "slam6d/pairingMode.h"
 
 /**
  * Manages the matching of 3D scans.
@@ -29,18 +25,10 @@ public:
    * Constructor
    */
   sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer,
-	   double max_dist_match = 25.0,
+	   f_float max_dist_match = 25.0,
 	   int max_num_iterations = 50,
 	   bool quiet = false,
-	   bool meta = false,
-	   int rnd = 1,
-	   bool eP = true,
-	   int anim = -1,
-	   int epsilonICPexp = 3,
-	   int nns_method = BruteForce,
-	   bool cuda_enabled = false,
-	   bool cad_matching = false,
-     int max_num_metascans = -1);
+	   int epsilonICPexp = 3);
 
   /**
    * Destructor (empty, but needed, because virtual)
@@ -48,20 +36,10 @@ public:
   virtual ~sc_ICP() {};
 
   virtual int match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame);
-  void covarianceEuler(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
-  void covarianceQuat(Scan *scan1, Scan *scan2, NEWMAT::Matrix *C);
 
-  inline int  get_rnd();
-  inline bool get_meta();
-  inline int  get_anim();
-  inline int get_nns_method();
-  inline void set_anim(int anim);
-  inline double get_max_dist_match2();
-  inline void set_max_dist_match2(double max_dist_match2);
+  inline f_float get_max_dist_match2();
+  inline void set_max_dist_match2(f_float max_dist_match2);
   inline void set_max_num_iterations(int max_num_iterations);
-  inline void set_cad_matching (bool cad_matching);
-  inline bool get_cad_matching (void);
-  inline void set_meta(bool meta);
   inline int get_nr_pointPair();
 
 protected:
@@ -72,44 +50,14 @@ protected:
   bool quiet;
 
   /**
-   * take every rnd point for matching
-   */
-  int rnd;
-
-  /**
-   * extrapolate odometry
-   */
-  bool eP;
-
-  /**
-   * match against all scans (= meta scan), or against the last scan only
-   */
-  bool meta;
-
-  /**
-   * specifies which NNS method should be used
-   */
-  int nns_method;
-
-  /**
-   * specifies if the ANN trees have to be built
-   */
-  bool cuda_enabled;
-
-  /**
    * the maximal distance (^2 !!!) for matching
    */
-  double max_dist_match2;
+  f_float max_dist_match2;
 
   /**
    * the maximal number of iterations
    */
   int max_num_iterations;
-
-  /**
-   * write anim'th animation frame
-   */
-  int anim;
 
   /**
    * epsilon for stopping ICP algorithm ( convergence criterium )
@@ -128,19 +76,9 @@ protected:
   unsigned int max_scn_size; //FIXME -> update with metascan
 
   /**
-   * determines if CAD models are matched against one scan
-   */
-  bool cad_matching;
-
-  /**
    * number of matched points in ICP
    */
   int nr_pointPair;
-
-  /**
-   * Window size for ICP with metascans
-   */
-  int max_num_metascans;
 };
 
 #include "sc_fixed/sc_ICP.icc"

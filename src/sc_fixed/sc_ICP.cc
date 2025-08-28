@@ -24,7 +24,6 @@ using std::cerr;
 
 #include <string.h>
 
-// TODO Parameter bereinigen
 /**
  * Constructor
  *
@@ -32,26 +31,16 @@ using std::cerr;
  * @param max_dist_match Maximum distance to which point pairs are collected
  * @param max_num_iterations Maximum number of iterations
  * @param quiet Whether to print to the standard output
- * @param meta Match against a meta scan? //TODO unnötig: false
- * @param rnd Randomized point selection  //TODO unnötig: 1
- * @param eP Extrapolate odometry?        //TODO unnötig: false
- * @param anim Animate which frames?      //TODO unnötig: -1
  * @param epsilonICPexp Exponent for termination criterion
- * @param nns_method Selects NNS method to be used //TODO unnötig: 1
- * TODO auch unnötig: cuda_enabled (false), cad_matching (false) und max_num_metascans (0)
  */
-sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
-               int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
-               int anim, int epsilonICPexp, int nns_method, bool cuda_enabled,
-               bool cad_matching, int max_num_metascans) {
+sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, f_float max_dist_match, int max_num_iterations, bool quiet, int epsilonICPexp) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
-  this->anim = anim;
-  this->cuda_enabled = cuda_enabled;
-  this->nns_method = nns_method;
-
+  this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
+  
   if (!quiet) {
     cout << "Maximal distance match      : " << max_dist_match << endl
-         << "Maximal number of iterations: " << max_num_iterations << endl;
+         << "Maximal number of iterations: " << max_num_iterations << endl
+         << "Epsilon                     : " << epsilonICP << endl << endl;
   }
 
   // checks
@@ -66,20 +55,9 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
     exit(1);
   }
 
-  this->max_dist_match2 = (max_dist_match*max_dist_match);
+  this->max_dist_match2 = (max_dist_match * max_dist_match);
   this->max_num_iterations = max_num_iterations;
   this->quiet = quiet;
-  this->meta = meta;
-  this->rnd = rnd;
-  this->eP = eP;
-  this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
-  
-  if(!quiet){
-    cout << "Epsilon                     : " << epsilonICP << endl << endl;
-  }
-  
-  this->cad_matching = cad_matching;
-  this->max_num_metascans = max_num_metascans;
 
   // set the number of point pairs to zero
   nr_pointPair = 0;

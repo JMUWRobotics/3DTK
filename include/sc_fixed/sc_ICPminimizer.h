@@ -1,7 +1,16 @@
-/** @file
- *  @brief Implementation of the virtual functor
- *         for ICP error function minimization
- *  @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of Wuerzburg, Germany
+/*
+ * sc_ICPminimizer implementation
+ *
+ * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
+ *
+ * Released under the GPL version 3.
+ *
+ */
+
+/**
+ * @file
+ * @brief Implementation of the virtual functor for ICP error function minimization
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
 #ifndef __SC_ICPMINIMIZER__

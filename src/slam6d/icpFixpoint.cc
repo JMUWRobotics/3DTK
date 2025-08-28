@@ -169,7 +169,7 @@ int sc_main(int argc, char **argv)
   // ab hier ICP
   
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
-  sc_ICP icp(minimizer, mdm, mni, quiet, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
+  sc_ICP icp(minimizer, mdm, mni, quiet, epsilonICPexp);
 
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
   
@@ -179,7 +179,7 @@ int sc_main(int argc, char **argv)
   transMats.reserve(Scan::allScans.size());
   dalignxfs.reserve(Scan::allScans.size());
   
-  //füge alle Matrizen jeweils ans Ende des aktuellen Vektors (push_back)
+  // füge alle Matrizen jeweils ans Ende des aktuellen Vektors (push_back)
   for(unsigned int i = 0; i < Scan::allScans.size(); i++){
     transMats.push_back(array2fixedArray16(Scan::allScans[i]->get_transMat()));
     dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
@@ -187,7 +187,7 @@ int sc_main(int argc, char **argv)
   
   int iter = 0;
   
-  //match mit ICP
+  // match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     Scan *prevScan = Scan::allScans[i-1];
     Scan *currentScan = Scan::allScans[i];
@@ -207,18 +207,18 @@ int sc_main(int argc, char **argv)
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
     std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
     
-    //erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
+    // erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
     std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");
-    //matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
+    // matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
     int itertemp = icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
     if (itertemp > iter) {
       iter = itertemp;
     }
-    //schließe den Output-Stream
+    // schließe den Output-Stream
     frame.close();
   }
   
-  //gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
+  // gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
   std::ofstream frame(dir + "/scan000.frames");
   for (int i = 0; i < iter; i++) {
     for (unsigned int j = 0; j < transMats[0].size(); j++) {
