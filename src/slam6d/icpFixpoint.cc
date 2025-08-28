@@ -1,14 +1,16 @@
 /*
- * ICP Fixpoint implementation
+ * ICP-fixpoint main implementation
+ *
+ * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
  *
  * Released under the GPL version 3.
  *
  */
 
-
 /**
  * @file
- * @author Tom Fleischmann, Yannik Winzer, Jonas Wiesner. Institute of Computer Science, University of Wuerzburg, Germany.
+ * @brief main file for starting ICP-fixpoint matching
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
 #include <string>
@@ -32,7 +34,7 @@ using std::string;
 #include "sc_fixed/sc_ICPapx.h"
 #include "sc_fixed/sc_fixed_math.h"
 
-#include "sc_fixed/sc_fixed_converter.h" //include DataXYZ to vector array converter and otherwise
+#include "sc_fixed/sc_fixed_converter.h"
 
 #include <strings.h>
 
@@ -112,15 +114,12 @@ po::options_description generic("Generic options");
   }
   po::notify(vm);
 
-//#ifndef _MSC_VER
   if (dir[dir.length()-1] != '/') dir = dir + "/";
-//#else
- // if (dir[dir.length()-1] != '\\') dir = dir + "\\";
-//#endif
 
   return 0;
 }
 
+// füllt Ganzzahlen von vorne mit Nullen auf, um 3 Stellen zu erreichen
 std::string format_number(int number) {
     std::stringstream stream;
     stream << std::setw(3) << std::setfill('0') << number;
@@ -167,14 +166,14 @@ int sc_main(int argc, char **argv)
 
   readFramesAndTransform(dir, start, end, -1, true, false);
  
-  //ab hier ICP
+  // ab hier ICP
   
   sc_ICPminimizer *minimizer = new sc_ICPapx(quiet);
-  sc_ICP icp(minimizer, mdm, mni, false, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
+  sc_ICP icp(minimizer, mdm, mni, quiet, false, 1, false, -1, epsilonICPexp, 1, false, false, 0);
 
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
   
-  //lege die transMat's und dalignxf's für alle Scans an
+  // lege die transMat's und dalignxf's für alle Scans an
   std::vector<std::array<f_float, 16>> transMats;
   std::vector<std::array<f_float, 16>> dalignxfs;
   transMats.reserve(Scan::allScans.size());

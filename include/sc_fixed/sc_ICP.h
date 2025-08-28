@@ -10,16 +10,13 @@
 #include <array>
 
 #include "sc_fixed/sc_fixed_math.h"
-#include "newmat/newmat.h"			//ggf. TODO: ersetzen?
-//using namespace NEWMAT;
+#include "newmat/newmat.h"
 
 #include "slam6d/scan.h"
 #include "sc_fixed/sc_ICPminimizer.h"
-#include "slam6d/pairingMode.h"      //kann so bleiben
+#include "slam6d/pairingMode.h"
 
 /**
- * @brief Representation of 3D scan matching with ICP.
- *
  * Manages the matching of 3D scans.
  * Important values, such as maximal matching distance,
  * maximal number of iterations, etc.
@@ -87,7 +84,7 @@ protected:
   /**
    * match against all scans (= meta scan), or against the last scan only
    */
-  bool   meta;
+  bool meta;
 
   /**
    * specifies which NNS method should be used
@@ -107,7 +104,7 @@ protected:
   /**
    * the maximal number of iterations
    */
-  int    max_num_iterations;
+  int max_num_iterations;
 
   /**
    * write anim'th animation frame

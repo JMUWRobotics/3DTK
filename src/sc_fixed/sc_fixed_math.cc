@@ -1,3 +1,18 @@
+/*
+ * sc_fixed_math implementation
+ *
+ * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
+ *
+ * Released under the GPL version 3.
+ *
+ */
+
+/**
+ * @file
+ * @brief Implementation of mathematical functions with SystemC fixpoint numbers
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
+ */
+
 #include "sc_fixed/sc_fixed_math.h"
 
 // function to calculate the square root via heron method
@@ -23,7 +38,7 @@ f_float sc_fixed_heron_sqrt(f_float s) {
   
 }
 
-//function to compute cholesky decomposition
+// function to compute cholesky decomposition
 bool sc_choldc(f_float A[3][3], f_float diag[3]) {
 
   unsigned int N = 3;
@@ -32,7 +47,7 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
       f_float sum = A[i][j];
-      for (int k=i-1; k >= 0; k--) {
+      for (int k = i-1; k >= 0; k--) {
         sum -= A[i][k] * A[j][k];
       }
       if (i == j) {
@@ -52,26 +67,24 @@ bool sc_choldc(f_float A[3][3], f_float diag[3]) {
 // function to solve cholesky
 void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]) {
   int N = 3;
-  for (int i=0; i < N; i++) {
+  for (int i = 0; i < N; i++) {
     f_float sum = B[i];
-    for (int k=i-1; k >= 0; k--) {
+    for (int k = i-1; k >= 0; k--) {
       sum -= A[i][k] * x[k];
     }
     x[i] = sum / diag[i];
   }
-  for (int i=N-1; i >= 0; i--) {
+  for (int i = N-1; i >= 0; i--) {
     f_float sum = x[i];
-    for (int k=i+1; k < N; k++) {
+    for (int k = i+1; k < N; k++) {
       sum -= A[k][i] * x[k];
     }
     x[i] = sum / diag[i];
   }
 }
 
-// transform method without any algorithm type, because ICP algorithm is only with APRX and Brute Force
+// transform method without any algorithm type, because ICP algorithm is only with APX and Brute Force
 void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame, int islum){
-//für jeden Scan haben wir die f_float transMat[16] = (4x4) transformation matrix
-//und dalignxf[16] transformation represents the delta transformation virtually applied to the tree and is used to compute are actual corresponding points.
 
   // transform points
   transformPoints(alignxf, scan);
@@ -79,13 +92,14 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
   
+  //TODO remove debug print
   std::cout << "Transformationsmatrix:" << std::endl;
   for(unsigned int i = 0; i < transMat.size(); i++) {
     std::cout << static_cast<double>(transMat[i]) << " ";
   }
   std::cout << std::endl;
   
-  // speichere Transformation in frame-Datei (falls islum == 0 statt -1)
+  // speichere Transformation in .frames-Datei (falls islum == 0 statt -1)
   if (islum == 0) {
     for(unsigned int i = 0; i < transMat.size(); i++) {
       frame << static_cast<double>(transMat[i]);
@@ -95,15 +109,14 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   }
 }
 
-//! Internal function of transform which alters the points
+// Internal function of transform which alters the points
 void transformPoints(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan){
-  
   for (size_t i = 0; i < scan.size(); ++i) {
     transform3(alignxf, scan[i]);
   }
-
 }
 
+// Internal function of transformPoints which alters a point
 void transform3(const f_float alignxf[16], std::array<f_float, 3>& point){
   f_float x_neu, y_neu, z_neu;
   x_neu = point[0] * alignxf[0] + point[1] * alignxf[4] + point[2] * alignxf[8];
@@ -114,7 +127,7 @@ void transform3(const f_float alignxf[16], std::array<f_float, 3>& point){
   point[2] = z_neu + alignxf[14];
 }
 
-//! Internal function of transform which handles the matrices
+// Internal function of transform which handles the matrices
 void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf){
   std::array<f_float, 16> tempxf;
 
@@ -127,6 +140,7 @@ void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMa
   std::copy(tempxf.begin(), tempxf.end(), dalignxf.begin());
 }
 
+// Matrixmultiplikation von M1 und M2, Ergebnis wird in Mout gespeichert
 void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout){
   Mout[ 0] = M1[ 0]*M2[ 0]+M1[ 4]*M2[ 1]+M1[ 8]*M2[ 2]+M1[12]*M2[ 3];
   Mout[ 1] = M1[ 1]*M2[ 0]+M1[ 5]*M2[ 1]+M1[ 9]*M2[ 2]+M1[13]*M2[ 3];
@@ -146,7 +160,7 @@ void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f
   Mout[15] = M1[ 3]*M2[12]+M1[ 7]*M2[13]+M1[11]*M2[14]+M1[15]*M2[15];
 }
 
-
+// Absolutbetrag einer f_float-Zahl
 f_float sc_abs(f_float x) {
   return (x < f_float(0)) ? f_float(-x) : x;
 }

@@ -7,11 +7,10 @@
  *
  */
 
-
 /**
- *  @file
- *  @brief Implementation of the ICP error function minimization via small angle approximation
- *  @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of Wuerzburg, Germany
+ * @file
+ * @brief Implementation of the ICP error function minimization via small angle approximation
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
 #include "sc_fixed/sc_ICPapx.h"
@@ -25,8 +24,7 @@
  * computes the rotation matrix consisting
  * of a rotation and translation that
  * minimizes the root-mean-square error
- * of the point pairs, using the <b>approximation</b>
- * sin(x) = x.
+ * of the point pairs, using the approximation sin(x) = x.
  *
  * @params matchedSource, matchedTarget: point pairs (pairs of corresponding points)
  * @params centerSource, centerTarget: centroids of source and target
@@ -43,9 +41,9 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
   f_float A[3][3];
   f_float B[3]; 
 
-  for(int i=0; i<3;i++) {
+  for(int i = 0; i < 3; i++) {
     B[i] = f_float(0.0);
-    for(int j=0; j<3;j++){
+    for(int j = 0; j < 3; j++){
       A[i][j] = f_float(0.0); 
     }
   }	
@@ -85,6 +83,7 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
     std::cout << "Couldn't find transform" << std::endl;
     return -1.0;
   }
+  
   f_float x[3];
   sc_cholsl(A, diag, B, x);
 
@@ -113,5 +112,5 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
   alignxf[14] = centerSource[2] - alignxf[2]*centerTarget[0] - alignxf[6]*centerTarget[1] - alignxf[10]*centerTarget[2];
   alignxf[15] = 1;
   
-  return error; // gib den Fehler zurück
+  return error; // aktueller Fehler
 }

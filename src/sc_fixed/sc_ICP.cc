@@ -1,5 +1,5 @@
 /*
- * icp implementation
+ * ICP-fixpoint implementation
  *
  * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
  *
@@ -10,8 +10,7 @@
 /**
  * @file
  * @brief Implementation of 3D scan matching with ICP
- * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer - University of
- * Wuerzburg, Germany
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
 #include "sc_fixed/sc_ICP.h"
@@ -20,11 +19,12 @@
 #include <iostream>
 
 #include "sc_fixed/sc_fixed_math.h"
-#include "slam6d/globals.icc"  //nötig für M4identity
+#include "slam6d/globals.icc"
 using std::cerr;
 
 #include <string.h>
 
+// TODO Parameter bereinigen
 /**
  * Constructor
  *
@@ -32,12 +32,13 @@ using std::cerr;
  * @param max_dist_match Maximum distance to which point pairs are collected
  * @param max_num_iterations Maximum number of iterations
  * @param quiet Whether to print to the standard output
- * @param meta Match against a meta scan?
- * @param rnd Randomized point selection
- * @param eP Extrapolate odometry?
- * @param anim Animate which frames?
+ * @param meta Match against a meta scan? //TODO unnötig: false
+ * @param rnd Randomized point selection  //TODO unnötig: 1
+ * @param eP Extrapolate odometry?        //TODO unnötig: false
+ * @param anim Animate which frames?      //TODO unnötig: -1
  * @param epsilonICPexp Exponent for termination criterion
- * @param nns_method Selects NNS method to be used
+ * @param nns_method Selects NNS method to be used //TODO unnötig: 1
+ * TODO auch unnötig: cuda_enabled (false), cad_matching (false) und max_num_metascans (0)
  */
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
                int max_num_iterations, bool quiet, bool meta, int rnd, bool eP,
@@ -77,25 +78,21 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, double max_dist_match,
     cout << "Epsilon                     : " << epsilonICP << endl << endl;
   }
   
-  // Set initial seed (for "real" random numbers)
-  //  srand( (unsigned)time( NULL ) );
   this->cad_matching = cad_matching;
-
   this->max_num_metascans = max_num_metascans;
 
   // set the number of point pairs to zero
   nr_pointPair = 0;
 }
 
-// match-Methode mit konvertiertem Datentyp als Übergabeparameter
 /**
  * match function including the main ICP loop
  *
- * @param source [TODO]
- * @param target [TODO]
- * @param transMat [TODO]
- * @param dalignxf [TODO]
- * @param frame [TODO]
+ * @param source Scan, an dem der andere Scan ausgerichtet werden soll
+ * @param target Scan, der ausgerichtet werden soll
+ * @param transMat Transformationsmatrix für die Ausrichtung
+ * @param dalignxf virtuell angewendete delta-Transformation
+ * @param frame Stream, auf den die Transformationen in die .frames-Datei des target-Scans geschrieben werden
  */
 int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame) {
   f_float id[16];
@@ -112,7 +109,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
   
-  //ICP main loop
+  // ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
     std::cout << std::endl;
     std::cout << "*** ITERATION " << iter << " ***" << std::endl;
@@ -136,17 +133,15 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
         f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
 
         if (first) {
-	  //std::cout << "if first" << std::endl;
           minDist = dist;
           closest = src;
           first = false;
         } else if (dist < minDist) {
-	  //std::cout << "else if first" <<std::endl;
           minDist = dist;
           closest = src;
         }
       }
-      //prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
+      // prüfe, ob das Punktpaar überhaupt in die Wertung eingehen soll (aus Distanzgründen)
       if (minDist <= max_dist_match2) {
         matchedTarget.push_back(tgt);
         matchedSource.push_back(closest);
@@ -157,19 +152,18 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     prev_ret = ret;
   
     // Schwerpunkte bestimmen
-  
     std::array<f_float, 3> centerSource = {0.0, 0.0, 0.0};
     std::array<f_float, 3> centerTarget = {0.0, 0.0, 0.0};
 
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
     for (size_t i = 0; i < count; ++i) {
-      //entspricht centroid_m (model = source = not moving)
+      // entspricht centroid_m (model = source = not moving)
       centerSource[0] += matchedSource[i][0];
       centerSource[1] += matchedSource[i][1];
       centerSource[2] += matchedSource[i][2];
 
-      //entspricht centroid_d (data = target)
+      // entspricht centroid_d (data = target)
       centerTarget[0] += matchedTarget[i][0];
       centerTarget[1] += matchedTarget[i][1];
       centerTarget[2] += matchedTarget[i][2];
@@ -177,6 +171,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     f_float srcSize = static_cast<f_float>(matchedSource.size());
     f_float trgSize = static_cast<f_float>(matchedTarget.size());
+    
     centerSource[0] /= srcSize;
     centerSource[1] /= srcSize;
     centerSource[2] /= srcSize;
@@ -187,15 +182,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     // Rotation und Translation berechnen
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
-    std::cout << "alignxf after calculation" << std::endl;
-    for(int i = 0; i < 16; i++) {
-      std::cout << alignxf[i] << " ";
-    }
-    std::cout << std::endl;
-
     transform(target, alignxf, transMat, dalignxf, frame, 0);
-    
-    std::cout << "ret: " << ret << ", prev_ret: " << prev_ret << ", prev_prev_ret: " << prev_prev_ret << " (epsilon: " << epsilonICP << ")" << std::endl;
 
     // Abbruchbedingung
     if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
@@ -204,5 +191,5 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
       break;
     }
   }
-  return iter;  // Anzahl der durchgeführten Iterationen
+  return iter; // Anzahl der durchgeführten Iterationen
 }
