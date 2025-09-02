@@ -92,13 +92,6 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
   
-  //TODO remove debug print
-  std::cout << "Transformationsmatrix:" << std::endl;
-  for(unsigned int i = 0; i < transMat.size(); i++) {
-    std::cout << static_cast<double>(transMat[i]) << " ";
-  }
-  std::cout << std::endl;
-  
   // speichere Transformation in .frames-Datei (falls islum == 0 statt -1)
   if (islum == 0) {
     for(unsigned int i = 0; i < transMat.size(); i++) {

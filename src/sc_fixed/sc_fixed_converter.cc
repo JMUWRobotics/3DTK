@@ -28,7 +28,7 @@ std::vector<std::array<f_float, 3>> array2fixedArray(const DataXYZ &input) {
     };
     result.push_back(point);
   }
-  cout << "*******" << result.size() << endl;
+  cout << "*******" << result.size() << " points"  << endl;
   return result;
 }
 

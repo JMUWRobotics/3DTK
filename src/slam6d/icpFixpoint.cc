@@ -130,11 +130,7 @@ std::string format_number(int number) {
  * ...
  */
 int sc_main(int argc, char **argv)
-{
-  std::cout << "WORD LENGTH = " << FIXED_WORD_LENGTH << std::endl;
-  std::cout << "INT_WORD_LENGTH = " << FIXED_INT_WORD_LENGTH << std::endl;
-
-  
+{  
   // parsing the command line parameters
   // init, default values if not specified
   std::string dir;

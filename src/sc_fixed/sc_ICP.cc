@@ -38,7 +38,8 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, f_float max_dist_match, int 
   this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
   
   if (!quiet) {
-    cout << "Maximal distance match      : " << max_dist_match << endl
+    cout << endl <<  "ICP fixed-point algorithm will proceed with the following parameters: " << endl
+         << "Maximal distance match      : " << max_dist_match << endl
          << "Maximal number of iterations: " << max_num_iterations << endl
          << "Epsilon                     : " << epsilonICP << endl << endl;
   }
@@ -89,9 +90,7 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
   
   // ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
-    std::cout << std::endl;
-    std::cout << "*** ITERATION " << iter << " ***" << std::endl;
-    
+        
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<f_float, 3>> matchedTarget;
     std::vector<std::array<f_float, 3>> matchedSource;
@@ -162,6 +161,8 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
     transform(target, alignxf, transMat, dalignxf, frame, 0);
 
+    std::cout << "iteration: " << iter << " |" << " point-to-point error: " << ret << " using " << count << " points" << std::endl;
+    
     // Abbruchbedingung
     if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
       // write end pose -> Transformation mit Identitätsmatrix, vgl. icp6D.cc Z.289
