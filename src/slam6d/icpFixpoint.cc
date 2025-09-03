@@ -184,23 +184,27 @@ int sc_main(int argc, char **argv)
   frame.close();
   
   // match mit ICP
+  Scan *initialScan = Scan::allScans[0];
+  DataPointer prevXYZ = initialScan->get("xyz");
+  if(!prevXYZ.valid()) {
+    std::cerr << "Leere Daten bei Index 0" << std::endl;
+  }
+  DataXYZ prevDat(prevXYZ);
+  std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);
+  
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
-    Scan *prevScan = Scan::allScans[i-1];
     Scan *currentScan = Scan::allScans[i];
-    if(!prevScan || !currentScan) {
-      std::cerr << "Scan" << i << " oder " << i-1 << " ist null!" <<std::endl;
+    if(!currentScan) {
+      std::cerr << "Scan" << i << " ist null!" << std::endl;
       continue;
     }
-    DataPointer prevXYZ = prevScan->get("xyz");
+    
     DataPointer currentXYZ = currentScan->get("xyz");
-    if(!prevXYZ.valid() || !currentXYZ.valid()) {
-      std::cerr << " Leere Daten bei Index " << i << std::endl;
+    if(!currentXYZ.valid()) {
+      std::cerr << "Leere Daten bei Index " << i << std::endl;
     }
     
-    DataXYZ prevDat(prevXYZ);
     DataXYZ currentDat(currentXYZ);
-    
-    std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
     std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
     
     std::cout << i << "*" << std::endl;
@@ -224,6 +228,10 @@ int sc_main(int argc, char **argv)
     
     // schließe den Output-Stream
     frame.close();
+    
+    // nutze die berechneten Rotationen für die Ausrichtung des nächsten Scans
+    prevFixed.clear();
+    std::copy(currentFixed.begin(), currentFixed.end(), std::back_inserter(prevFixed));
     
     // Ausgabe der Anzahl der nötigen Iterationen
     std::cout << "ITER " << iter << std::endl;
