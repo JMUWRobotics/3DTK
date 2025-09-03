@@ -9,5 +9,6 @@
 std::vector<std::array<f_float, 3>> array2fixedArray(const DataXYZ &input);
 std::array<f_float, 16> array2fixedArray16(const double input[16]);
 void printPoints(const std::vector<std::array<f_float, 3>>& points);
+void writeFrame(std::ofstream& frame, std::array<f_float, 16>& matrix, int viewFactor);
 
 #endif //SC_FIXED_CONVERTER

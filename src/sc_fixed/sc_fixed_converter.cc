@@ -49,3 +49,12 @@ void printPoints(const std::vector<std::array<f_float, 3>>& points) {
               << ", z: " << point[2] << std::endl;
   }
 }
+
+// writes a transformation matrix to a .frame-file
+void writeFrame(std::ofstream& frame, std::array<f_float, 16>& matrix, int viewFactor) {
+  for(unsigned int i = 0; i < matrix.size(); i++) {
+      frame << static_cast<double>(matrix[i]);
+      frame << " ";
+    }
+    frame << viewFactor << "\n";
+}

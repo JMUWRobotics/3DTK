@@ -159,7 +159,13 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
 
     // Rotation und Translation berechnen
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
-    transform(target, alignxf, transMat, dalignxf, frame, 0);
+    
+    if (iter == 0) {
+      transform(target, alignxf, transMat, dalignxf, frame, 0);
+    }
+    else {
+      transform(target, alignxf, transMat, dalignxf, frame, -1);
+    }
 
     std::cout << "iteration: " << iter << " |" << " point-to-point error: " << ret << " using " << count << " points" << std::endl;
     

@@ -33,7 +33,6 @@ using std::string;
 #include "sc_fixed/sc_ICP.h"
 #include "sc_fixed/sc_ICPapx.h"
 #include "sc_fixed/sc_fixed_math.h"
-
 #include "sc_fixed/sc_fixed_converter.h"
 
 #include <strings.h>
@@ -177,7 +176,12 @@ int sc_main(int argc, char **argv)
     dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
   }
   
-  int iter = 0;
+  // gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
+  std::ofstream frame(dir + "/scan000.frames");
+  for (unsigned int i = 0; i < (3*(Scan::allScans.size()-1)); i++) {
+    writeFrame(frame, transMats[0], 2);
+  }
+  frame.close();
   
   // match mit ICP
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
@@ -199,28 +203,33 @@ int sc_main(int argc, char **argv)
     std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);    
     std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
     
+    std::cout << i << "*" << std::endl;
+    
     // erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
     std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");
-    // matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
-    int itertemp = icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
-    if (itertemp > iter) {
-      iter = itertemp;
+    
+    // fülle Zeilen im Stream für vorherige Scans auf (mit ViewFactor 0)
+    for (unsigned int j = 0; j < 3*(i - 1); j++) {
+      writeFrame(frame, transMats[i], 0);
     }
+    
+    // matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
+    int iter = icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
+    
+    // fülle Zeilen im Stream für nachfolgende Scans auf (mit ViewFactor 2)
+    unsigned int nextScans = (Scan::allScans.size() - i);
+    for (unsigned int j = 0; j < 3*(nextScans - 1); j++) {
+      writeFrame(frame, transMats[i], 2);
+    }
+    
     // schließe den Output-Stream
     frame.close();
+    
+    // Ausgabe der Anzahl der nötigen Iterationen
+    std::cout << "ITER " << iter << std::endl;
   }
-  
-  // gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
-  std::ofstream frame(dir + "/scan000.frames");
-  for (int i = 0; i < iter; i++) {
-    for (unsigned int j = 0; j < transMats[0].size(); j++) {
-      frame << transMats[0][j] << " ";
-    }
-    frame << (Scan::allScans.size() - 1) << "\n";
-  }
-  frame.close();
   
   Scan::closeDirectory();
- 
+  std::cout << "Matching done!!!" << std::endl << "Normal program end." << std::endl;
   return 0;
 }

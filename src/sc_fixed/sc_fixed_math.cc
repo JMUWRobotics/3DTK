@@ -14,6 +14,7 @@
  */
 
 #include "sc_fixed/sc_fixed_math.h"
+#include "sc_fixed/sc_fixed_converter.h"
 
 // function to calculate the square root via heron method
 f_float sc_fixed_heron_sqrt(f_float s) {
@@ -94,11 +95,7 @@ void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], s
   
   // speichere Transformation in .frames-Datei (falls islum == 0 statt -1)
   if (islum == 0) {
-    for(unsigned int i = 0; i < transMat.size(); i++) {
-      frame << static_cast<double>(transMat[i]);
-      frame << " ";
-    }
-    frame << "1\n";
+    writeFrame(frame, transMat, 1);
   }
 }
 
