@@ -206,8 +206,8 @@ int sc_main(int argc, char **argv)
     
     DataXYZ currentDat(currentXYZ);
     std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
-    
-    std::cout << i << "*" << std::endl;
+
+    std::cout <<std::endl << "RUNNING..." << std::endl;
     
     // erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
     std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");
