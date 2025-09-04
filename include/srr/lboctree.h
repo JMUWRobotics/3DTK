@@ -20,7 +20,7 @@ public:
 
     BOctTree<T>::mins = new T[BOctTree<T>::POINTDIM];
     BOctTree<T>::maxs = new T[BOctTree<T>::POINTDIM];
-     
+
 
     unsigned int n = 0;
     for (unsigned int j = 0; j < linescans.size(); j++) {
@@ -43,12 +43,12 @@ public:
     }
 
     // initialising
-    for (unsigned int i = 0; i < BOctTree<T>::POINTDIM; i++) { 
-      BOctTree<T>::mins[i] = pts[0][i]; 
+    for (unsigned int i = 0; i < BOctTree<T>::POINTDIM; i++) {
+      BOctTree<T>::mins[i] = pts[0][i];
       BOctTree<T>::maxs[i] = pts[0][i];
     }
 
-    for (unsigned int i = 0; i < BOctTree<T>::POINTDIM; i++) { 
+    for (unsigned int i = 0; i < BOctTree<T>::POINTDIM; i++) {
       for (unsigned int j = 1; j < n; j++) {
         BOctTree<T>::mins[i] = min(BOctTree<T>::mins[i], (T)pts[j][i]);
         BOctTree<T>::maxs[i] = max(BOctTree<T>::maxs[i], (T)pts[j][i]);
@@ -59,7 +59,7 @@ public:
     BOctTree<T>::center[1] = 0.5 * (BOctTree<T>::mins[1] + BOctTree<T>::maxs[1]);
     BOctTree<T>::center[2] = 0.5 * (BOctTree<T>::mins[2] + BOctTree<T>::maxs[2]);
     BOctTree<T>::size = max(max(0.5 * (BOctTree<T>::maxs[0] - BOctTree<T>::mins[0]), 0.5 * (BOctTree<T>::maxs[1] - BOctTree<T>::mins[1])), 0.5 * (BOctTree<T>::maxs[2] - BOctTree<T>::mins[2]));
-    BOctTree<T>::size += 1.0; // for numerical reasons we increase size 
+    BOctTree<T>::size += 1.0; // for numerical reasons we increase size
 
     // calculate new buckets
     T newcenter[8][3];
@@ -81,20 +81,20 @@ public:
     delete[] pts;
 
   }
-  
-  
+
+
   inline void findClosestInLeaf(bitunion<T> *node, int threadNum) {
     if (lparams[threadNum].count >= lparams[threadNum].max_count) return;
     lparams[threadNum].count++;
     T* points = node->getPoints();
     unsigned int length = node->getLength();
     for(unsigned int iterator = 0; iterator < length; iterator++ ) {
-      
+
       if ( ( points[3] >= lparams[threadNum].begin1 && points[3] <= lparams[threadNum].end1 ) ||
-           ( points[3] >= lparams[threadNum].begin2 && points[3] <= lparams[threadNum].end2 ) )         
-           
+           ( points[3] >= lparams[threadNum].begin2 && points[3] <= lparams[threadNum].end2 ) )
+
       {
-        double myd2 = Dist2(lparams[threadNum].p, points); 
+        double myd2 = Dist2(lparams[threadNum].p, points);
         if (myd2 < lparams[threadNum].closest_d2) {
           lparams[threadNum].closest_d2 = myd2;
           lparams[threadNum].closest = points;
@@ -111,7 +111,7 @@ public:
 
   int FindClosestPoints(LineScan *l, double maxdist2, int mindist, int maxdist, int threadNum) {
     int count = 0;
-    
+
       lparams[threadNum].begin1 = l->getIndex() - maxdist;
       lparams[threadNum].end1 = l->getIndex() - mindist;
       lparams[threadNum].begin2 = l->getIndex() + mindist;
@@ -120,13 +120,13 @@ public:
 
     for (unsigned int i = 0; i < l->nrQuery(); i++) {
       // TODO implement without copies of the points
-      double *query = new double[3]; 
-      
+      double *query = new double[3];
+
       query[0] = l->getQuery(i)[0];
       query[1] = l->getQuery(i)[1];
       query[2] = l->getQuery(i)[2];
-      
-      
+
+
 
       double *p = FindClosest(query, maxdist2, threadNum);
       if (p) {
@@ -136,7 +136,7 @@ public:
         closest[0] = p[0];
         closest[1] = p[1];
         closest[2] = p[2];
-        //closest[3] = index; 
+        //closest[3] = index;
 
         lppair pair = lppair(closest, query);
         l->addPtPair(pair, index);
@@ -147,7 +147,7 @@ public:
     return count;
   }
 
-  /** 
+  /**
  * This function finds the closest point in the octree given a specified
  * radius. This implementation is quit complex, although it is already
  * simplified. The simplification incurs a significant loss in speed, as
@@ -165,17 +165,17 @@ public:
     lparams[threadNum].count = 0;
     lparams[threadNum].max_count = 10000; // stop looking after this many buckets
 
-   
+
     // box within bounds in voxel coordinates
     int xmin, ymin, zmin, xmax, ymax, zmax;
-    xmin = max(lparams[threadNum].x-lparams[threadNum].closest_v, 0); 
-    ymin = max(lparams[threadNum].y-lparams[threadNum].closest_v, 0); 
+    xmin = max(lparams[threadNum].x-lparams[threadNum].closest_v, 0);
+    ymin = max(lparams[threadNum].y-lparams[threadNum].closest_v, 0);
     zmin = max(lparams[threadNum].z-lparams[threadNum].closest_v, 0);
 
     xmax = min(lparams[threadNum].x+lparams[threadNum].closest_v, BOctTree<T>::largest_index);
     ymax = min(lparams[threadNum].y+lparams[threadNum].closest_v, BOctTree<T>::largest_index);
     zmax = min(lparams[threadNum].z+lparams[threadNum].closest_v, BOctTree<T>::largest_index);
-    
+
     unsigned char depth = 0;
     unsigned int child_bit;
     unsigned int child_index_min;
@@ -184,7 +184,7 @@ public:
     bitunion<T> *node = &(*BOctTree<T>::uroot);
 
     int cx, cy, cz;
-    
+
     child_bit = BOctTree<T>::child_bit_depth[depth];
     cx = BOctTree<T>::child_bit_depth[depth];
     cy = BOctTree<T>::child_bit_depth[depth];
@@ -202,7 +202,7 @@ public:
           return static_cast<double*>(lparams[threadNum].closest);
         } else {
           if (node->isValid(child_index_min) ) { // only descend when there is a child
-            BOctTree<T>::childcenter(cx,cy,cz, cx,cy,cz, child_index_min, child_bit/2 ); 
+            BOctTree<T>::childcenter(cx,cy,cz, cx,cy,cz, child_index_min, child_bit/2 );
             node = node->getChild(child_index_min);
             child_bit /= 2;
           } else {  // there is no child containing the bounding box => no point is close enough
@@ -214,7 +214,7 @@ public:
         break;
       }
     }
-    
+
     // node contains all box-within-bounds cells, now begin best bin first search
     _FindClosest(threadNum, node->node, child_bit/2, cx, cy, cz);
     return static_cast<double*>(lparams[threadNum].closest);
@@ -224,17 +224,17 @@ public:
   /**
    * This is the heavy duty search function doing most of the (theoretically unneccesary) work. The tree is recursively searched.
    * Depending on which of the 8 child-voxels is closer to the query point, the children are examined in a special order.
-   * This order is defined in map, imap is its inverse and sequence2ci is a speedup structure for faster access to the child indices. 
+   * This order is defined in map, imap is its inverse and sequence2ci is a speedup structure for faster access to the child indices.
 */
   void _FindClosest(int threadNum, bitoct &node, int size, int x, int y, int z)
   {
     // Recursive case
-   
+
     // compute which child is closest to the query point
-    unsigned char child_index =  ((lparams[threadNum].x - x) >= 0) | 
-                                (((lparams[threadNum].y - y) >= 0) << 1) | 
+    unsigned char child_index =  ((lparams[threadNum].x - x) >= 0) |
+                                (((lparams[threadNum].y - y) >= 0) << 1) |
                                 (((lparams[threadNum].z - z) >= 0) << 2);
-    
+
     char *seq2ci = sequence2ci[child_index][node.valid];  // maps preference to index in children array
     char *mmap = amap[child_index];  // maps preference to area index
 
@@ -243,16 +243,16 @@ public:
     int cx, cy, cz;
     cx = cy = cz = 0; // just to shut up the compiler warnings
     for (unsigned char i = 0; i < 8; i++) { // in order of preference
-      child_index = mmap[i]; // the area index of the node 
+      child_index = mmap[i]; // the area index of the node
       if (  ( 1 << child_index ) & node.valid ) {   // if ith node exists
-        BOctTree<T>::childcenter(x,y,z, cx,cy,cz, child_index, size); 
-        if ( lparams[threadNum].closest_v == 0 ||  max(max(abs( cx - lparams[threadNum].x ), 
+        BOctTree<T>::childcenter(x,y,z, cx,cy,cz, child_index, size);
+        if ( lparams[threadNum].closest_v == 0 ||  max(max(abs( cx - lparams[threadNum].x ),
                  abs( cy - lparams[threadNum].y )),
                  abs( cz - lparams[threadNum].z )) - size
-        > lparams[threadNum].closest_v ) { 
+        > lparams[threadNum].closest_v ) {
           continue;
         }
-        // find the closest point in leaf seq2ci[i] 
+        // find the closest point in leaf seq2ci[i]
         if (  ( 1 << child_index ) & node.leaf ) {   // if ith node is leaf
           findClosestInLeaf( &children[seq2ci[i]], threadNum);
         } else { // recurse

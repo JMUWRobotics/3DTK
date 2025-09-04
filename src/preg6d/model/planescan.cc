@@ -1,9 +1,9 @@
-/** @file 
- *  @brief this file contains the PlaneScan Class that represents a Scan 
+/** @file
+ *  @brief this file contains the PlaneScan Class that represents a Scan
  *  and holds the information about Point-to-Plane correspondences.
  *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
  */
 
@@ -18,7 +18,7 @@ PlaneScans PlaneScan::allPlaneScans = PlaneScans(0);
 unsigned int PlaneScan::idx_global = 0;
 double PlaneScan::_eps_dist;
 double PlaneScan::_eps_ppd;
-bool PlaneScan::reduce; 
+bool PlaneScan::reduce;
 Planes PlaneScan::allPlanes;
 bool PlaneScan::use_correspondence_min;
 bool PlaneScan::use_clustering;
@@ -71,7 +71,7 @@ PlaneScan::PlaneScan(Scan *scan)
     // Read pose data
 	const double *scanRPos = scan->get_rPos();
 	const double *scanRPosTheta = scan->get_rPosTheta();
-	for (int i = 0; i < 3; i++) 
+	for (int i = 0; i < 3; i++)
     {
 		rPos[i] = scanRPos[i];
 		rPosTheta[i] = scanRPosTheta[i];
@@ -79,10 +79,10 @@ PlaneScan::PlaneScan(Scan *scan)
     EulerToMatrix4(rPos, rPosTheta, orig_transMat);
 	EulerToMatrix4(rPos, rPosTheta, transMat);
 
-    // Get xyz point data  
+    // Get xyz point data
     string redstring = reduce ? " reduced show" : "";
 	DataXYZ xyz(scan->get("xyz" + redstring));
-    nrpts = xyz.size(); 
+    nrpts = xyz.size();
 
     // Read normals from scan files
     if (read_normals) {
@@ -95,7 +95,7 @@ PlaneScan::PlaneScan(Scan *scan)
             normals[i][1] = scan_normals[i][1]; //ny;
             normals[i][2] = scan_normals[i][2]; //nz;
         }
-    
+
     // Read clusters
     } else if (read_clusters) {
         string color_red_string = reduce ? "color reduced" : "rgb";
@@ -107,40 +107,40 @@ PlaneScan::PlaneScan(Scan *scan)
             readClusters(scan_type);
         }
     }
-    
+
     // Read point data, calculate normals if necessary
 	if (nrpts != 0) {
 		points = new double*[nrpts];
-        
+
         // Store points
 		for (size_t i = 0; i < nrpts; i++) {
 			points[i] = new double[3];
 			points[i][0] = xyz[i][0];
 			points[i][1] = xyz[i][1];
-			points[i][2] = xyz[i][2]; 
+			points[i][2] = xyz[i][2];
         }
 
-        // Simple Normal Corresponances should be used, but normals are not read 
+        // Simple Normal Corresponances should be used, but normals are not read
         if (use_normal_cor && !read_normals) {
             cout << "Calc normals for scan" << identifier << endl;
             normals = new double*[nrpts];
             calcNormals(xyz);
         }
-    
+
         // Clustering shall be used, but are not read
-        if (use_clustering && !read_clusters) 
+        if (use_clustering && !read_clusters)
         {
             // Calculate normals (if you havent read them already)
             if (!read_normals) {
                 normals = new double*[nrpts];
                 cout << "Calc normals for scan" << identifier << endl;
                 calcNormals(xyz);
-            }	
+            }
 
             // Use normals to cluster points together
             calcLocalClusters(scan);
         }
-    
+
     // Scan with index idx has no points, skip the scan.
 	} else {
 		cout << "Scan nr. " << idx << " skipped. Contains no data." << endl;
@@ -185,7 +185,7 @@ void PlaneScan::mergeCoordinatesWithRoboterPosition(PlaneScan* prevScan, bool* d
 
     // apply delta transformation of the previous scan
     transform(deltaMat);
-    
+
     // dimension lock
     if (dims != 0) {
         double rPos_orig[3], rPosTheta_orig[3];
@@ -220,7 +220,7 @@ double PlaneScan::dist2Plane(const double *xyz, const NormalPlane *p)
     v[0] = xyz[0] - p->x[0];
     v[1] = xyz[1] - p->x[1];
     v[2] = xyz[2] - p->x[2];
-	return Dot(v, p->n); 
+	return Dot(v, p->n);
 }
 
 // Calculates the polygon projection distance of a point to a plane.
@@ -230,7 +230,7 @@ double PlaneScan::projDist2Plane(const double *xyz, NormalPlane *p)
     Point n(p->n); // normal vector
     Point Tp(xyz);
     Point Tp2d, p1, p2;
-    Point projection( Tp - D*n ); 
+    Point projection( Tp - D*n );
     int polysize = p->hull.size();
     Point *polygon = p->hullAsPointArr();
     char direction = p->direction;
@@ -249,7 +249,7 @@ double PlaneScan::projDist2Plane(const double *xyz, NormalPlane *p)
     );
     // insert first point as last point again (close the polygon)
     polygon2d[polysize] = polygon2d[0];
-        
+
     // // In the 2D representation, use winding number algorithm to check
     // // if the point is inside or outside of the polygon.
     int wn = NormalPlane::wn_PnPoly(Tp2d, polygon2d, polysize) ;
@@ -261,7 +261,7 @@ double PlaneScan::projDist2Plane(const double *xyz, NormalPlane *p)
 // Calculates the polygon projection distance of a transformed point to a plane.
 double PlaneScan::projDist2Plane(const double *xyz, const double *trans, NormalPlane *p)
 {
-    // Transform point xyz 
+    // Transform point xyz
     double xyz_transformed[3];
     transform3(trans, xyz, xyz_transformed);
     double ppd = projDist2Plane(xyz_transformed, p);
@@ -310,7 +310,7 @@ void PlaneScan::setUseClustering(bool val)
 void PlaneScan::setPlaneAlgo(plane_alg val)
 {
     plane_algo = val;
-    if (!use_clustering) 
+    if (!use_clustering)
         setUseClustering(true);
 }
 
@@ -419,17 +419,17 @@ void PlaneScan::calcNormals(DataXYZ &xyz)
     vector<Point> ns; // normals
     ps.reserve(xyz.size());
     ns.reserve(xyz.size());
-    for(size_t j = 0; j < nrpts; j++) 
+    for(size_t j = 0; j < nrpts; j++)
     {
         double tmp[3] = { points[j][0], points[j][1], points[j][2] };
         // transform3(transMat, xyz[j], tmp);
         ps.push_back(Point( tmp ));
     }
-    // Calc normals with k nearest neighbours 
+    // Calc normals with k nearest neighbours
     double rPos_tmp[3] = {0, 0, 0};
     calculateNormalsIndexedKNN(ns, ps, k_neighbours, rPos_tmp);
-    // Store normals in PlaneScan object 
-    for (size_t i = 0; i < nrpts; i++) 
+    // Store normals in PlaneScan object
+    for (size_t i = 0; i < nrpts; i++)
     {
         normals[i] = new double[3];
         normals[i][0] = ns.at(i).x;
@@ -445,9 +445,9 @@ void PlaneScan::labelPoints(int match_type, bool quiet)
     global_matches.clear();
     global_mismatches.clear();
     point_pairs.clear();
-    local_matches.clear();   
+    local_matches.clear();
     //delete matcher;
-    if ( !matcher) 
+    if ( !matcher)
     {
         switch(match_type) {
             case 1:
@@ -464,11 +464,11 @@ void PlaneScan::labelPoints(int match_type, bool quiet)
             break;
             case 4:
             //based on similarity score
-            matcher = new ClusterMatcher(this, score_w_overlap, 
+            matcher = new ClusterMatcher(this, score_w_overlap,
                 score_w_alpha, score_w_hesse, score_w_ppd, score_w_eigen, _eps_dist,
                 _eps_ppd, eps_similarity, eigratio);
             break;
-            case 5: 
+            case 5:
             //based on minimum energy
             matcher = new PlaneMatcher(this, _eps_dist, _eps_ppd, eps_similarity);
             break;
@@ -479,13 +479,13 @@ void PlaneScan::labelPoints(int match_type, bool quiet)
         }
     }
     matcher->match();
-    
+
     if (!quiet)
     {
-        int n = correspondences.size();  
-        cout << "... " 
-             << n << " correspondence" << (n == 1 ? "":"s") 
-             << " found." << endl; 
+        int n = correspondences.size();
+        cout << "... "
+             << n << " correspondence" << (n == 1 ? "":"s")
+             << " found." << endl;
     }
     _match_type = match_type;
 }
@@ -493,7 +493,7 @@ void PlaneScan::labelPoints(int match_type, bool quiet)
 vector<PointPlane*> PlaneScan::getGlobalPointPlanes()
 {
     vector< PointPlane* > result;
-    for (size_t i = 0; i < clusters.size(); i++) 
+    for (size_t i = 0; i < clusters.size(); i++)
     {
         vector<double*> cluster;
         for (size_t j = 0; j < clusters[i].size(); j++)
@@ -507,7 +507,7 @@ vector<PointPlane*> PlaneScan::getGlobalPointPlanes()
 
         for (size_t j = 0; j < clusters[i].size(); j++)
             result.push_back( new PointPlane( points[clusters[i][j]], plane ) );
-    
+
     }
     return result;
 }
@@ -515,17 +515,17 @@ vector<PointPlane*> PlaneScan::getGlobalPointPlanes()
 vector<PointPlane*> PlaneScan::getLocalPointPlanes()
 {
     vector< PointPlane* > result;
-    for (size_t i = 0; i < clusters.size(); i++) 
+    for (size_t i = 0; i < clusters.size(); i++)
     {
         vector<double*> cluster;
         for (size_t j = 0; j < clusters[i].size(); j++)
             cluster.push_back( points[clusters[i][j]] );
-        
+
         NormalPlane* plane = new NormalPlane(cluster);
 
         for (size_t j = 0; j < clusters[i].size(); j++)
             result.push_back( new PointPlane( points[clusters[i][j]], plane ) );
-    
+
     }
     return result;
 }
@@ -551,7 +551,7 @@ const double* PlaneScan::operator()(int n)
 
 bool PlaneScan::isEmpty()
 {
-    // 
+    //
 	return correspondences.size() <= min_scansize;
 }
 
@@ -575,7 +575,7 @@ double PlaneScan::calcErr()
 {
 	double sum = 0.0;
 	Correspondences::iterator it = correspondences.begin();
-	for (; it != correspondences.end() ; ++it ) 
+	for (; it != correspondences.end() ; ++it )
     {
         sum += sqr(dist2Plane(it->first, transMat, it->second));
     }
@@ -585,7 +585,7 @@ double PlaneScan::calcErr()
     //     double ptrans[3];
     //     transform3(transMat, pit->first, ptrans);
     //     sum += Dist2(ptrans , pit->second);
-    // }   
+    // }
 
 	return sqrt(sum / correspondences.size());
 }

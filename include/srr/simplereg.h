@@ -1,4 +1,4 @@
-/** @file 
+/** @file
  *  @brief The global correction based upon 6D Lu Milios style SLAM in 6D but with a helix correction step
  *
  *  @author Peter Schneider. Institute of Computer Science, University of Koblenz , Germany.
@@ -44,11 +44,11 @@ public:
 	   double epsilonLUM = 0.5);
 
   virtual ~simpleRegZ();
-  
+
   double doGraphSlam6D(Graph gr, vector <LScan*> MetaScan, int nrIt);
   double doGraphSlam6D(Graph gr, vector <Scan*> MetaScan, int nrIt) {return 0.0;}
   static double LUM[4];
-  
+
 private:
 
   double genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtPair *ptpairs,
@@ -77,11 +77,11 @@ public:
 	   double epsilonLUM = 0.5);
 
   virtual ~simpleReg();
-  
+
   double doGraphSlam6D(Graph gr, vector <LScan*> MetaScan, int nrIt);
   double doGraphSlam6D(Graph gr, vector <Scan*> MetaScan, int nrIt) {return 0.0;}
   static double LUM[4];
-  
+
 private:
 
   double genBBdForLinkedPair( int firstScanNum, int secondScanNum, vPtPair *ptpairs,

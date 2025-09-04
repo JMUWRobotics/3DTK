@@ -2,13 +2,13 @@
 #define __LNNPARAMS_H__
 
 struct LNNParams {
-/** 
-   * pointer to the closest point.  size = 4 bytes of 32 bit machines 
+/**
+   * pointer to the closest point.  size = 4 bytes of 32 bit machines
    */
   void *closest;
 
-  /** 
-   * distance to the closest point. size = 8 bytes 
+  /**
+   * distance to the closest point. size = 8 bytes
    */
   double closest_d2;
 
@@ -20,8 +20,8 @@ struct LNNParams {
   int y;
   int z;
 
-  /** 
-   * pointer to the point, size = 4 bytes of 32 bit machines 
+  /**
+   * pointer to the point, size = 4 bytes of 32 bit machines
    */
   double *p;
 

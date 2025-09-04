@@ -6,7 +6,7 @@
 
 class EuklidMatcher : public Matcher
 {
-public: 
+public:
     bool use_correspondence_min;
     EuklidMatcher(PlaneScan* ps, bool use_cm = false);
     void match();

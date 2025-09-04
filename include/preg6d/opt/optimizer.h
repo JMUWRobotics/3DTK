@@ -1,10 +1,10 @@
-/** @file 
- *  @brief This file implements an interface for optimizers. 
- *  The optimizer class exists to minimize point distances. 
+/** @file
+ *  @brief This file implements an interface for optimizers.
+ *  The optimizer class exists to minimize point distances.
  *  See adadelta6d.h or newtons6d.h for examples on how to derive the class properly.
  *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
  */
 
@@ -13,7 +13,7 @@
 
 #include <math.h>
 
-#define WANT_STREAM // want to stream matrices on std output :) 
+#define WANT_STREAM // want to stream matrices on std output :)
 #include <newmat/newmat.h>
 #include <newmat/newmatio.h>
 using namespace NEWMAT;
@@ -25,10 +25,10 @@ using namespace NEWMAT;
 
 enum Dimensions {
     ALL,            // performs 6D optimization
-    ROLLING,        // only optimizes rotX, as well as y and z (forward rolling motion, e.g. L.U.N.A sphere)        DESCENDING,     // only optimizes rotY and y (e.g. DAEDALUS descent phase) 
+    ROLLING,        // only optimizes rotX, as well as y and z (forward rolling motion, e.g. L.U.N.A sphere)        DESCENDING,     // only optimizes rotY and y (e.g. DAEDALUS descent phase)
     DESCENDING,     // only optimizes rotY and Y
     ROTATING,       // only optimizes rotY (e.g. terrestial stationary RIEGL laserscanner)
-    UDLOCK,         // no correction in upwards / downwards direction. Usefull for Jaspers Sphere.  
+    UDLOCK,         // no correction in upwards / downwards direction. Usefull for Jaspers Sphere.
     SLIDING,        // only optimizes translation on XY plane (no up/down and no rotation)
     RADLER,         // only optimizes XY plane translation and yaw.
     NOROT           // only optimizes translation
@@ -36,27 +36,27 @@ enum Dimensions {
 
 class Optimizer
 {
-public: 
+public:
 
     // Override constructors for initialatition
     Optimizer() {};
     Optimizer(PlaneScan*, Dimensions) {};
-    
+
     /**
      * These interfaces need to be implemented by deriving classes:
-     */ 
+     */
     virtual ~Optimizer() {};
     // Override operator() for iteration
     virtual void operator()(void) {};
 
     // converts dimensions enum to bool array
-    static bool* convertDimensionsToBoolArray(Dimensions); 
+    static bool* convertDimensionsToBoolArray(Dimensions);
 
     // Update scan to state X and write .frames entry
     void updateScan();
 
     double getRSE();
-    
+
     // Program options
     static void setMaxIter(int);
     static void setUpdateCor(int);
@@ -82,7 +82,7 @@ protected:
     static double _eps_kernel;
     static int _max_iter; // run this many iterations before updating correspondences
     static int _update_cor; // update correspondences this often
-    static int _anim;    
+    static int _anim;
     static bool _quiet;
     static bool _use_p2p;
 

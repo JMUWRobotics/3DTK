@@ -1,15 +1,15 @@
 /**
- * @brief 
+ * @brief
  * Flexible program that performs SLAM given laserscans.
  * Based on finding and matching polygons to each other.
- * Combines point-based and plane-based correspondences. 
- * You can either include planar clusters (use bin/cluster for export) 
+ * Combines point-based and plane-based correspondences.
+ * You can either include planar clusters (use bin/cluster for export)
  * or let this program do the job.
- * 
+ *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
- * 
+ *
  */
 
 #include <csignal>
@@ -36,7 +36,7 @@
 #include "io/ioplanes.h"
 
 #include "util.h"
- 
+
 using namespace std;
 namespace po = boost::program_options;
 
@@ -55,7 +55,7 @@ void sigSEGVhandler (int v)
     PlaneScan::writeFrames();
     cout << "Frames saved." << endl;
     if (PlaneScan::allPlanes.size() != 0) {
-        PlaneIO::write( PlaneScan::allPlanes, PlaneScan::allPlaneScans.at(0)->basedir );    
+        PlaneIO::write( PlaneScan::allPlanes, PlaneScan::allPlaneScans.at(0)->basedir );
         cout << "Planes saved." << endl;
     }
     Scan::closeDirectory();
@@ -123,15 +123,15 @@ void validate(boost::any& v, const std::vector<std::string>& values,
 
 /*
  * Use boost to set and parse command line options.
- */ 
-int parse_options(  int argc, 
-                    char** argv, 
-                    string &scandir, 
-                    IOType &type, 
-                    bool &quiet, 
-                    int &maxDist, 
-                    int &minDist, 
-                    int &octree, 
+ */
+int parse_options(  int argc,
+                    char** argv,
+                    string &scandir,
+                    IOType &type,
+                    bool &quiet,
+                    int &maxDist,
+                    int &minDist,
+                    int &octree,
                     double &red,
                     bool &scanserver,
                     double &eps_dist,
@@ -151,7 +151,7 @@ int parse_options(  int argc,
                     double& d_growth,
                     double& d_growth_max_adapt,
                     int& n_max_clusters,
-                    int& n_min_clusterpoints, 
+                    int& n_min_clusterpoints,
                     int& n_min_clusterpoints_far,
                     double& eps_norm_similarity,
                     int& eps_thickness,
@@ -178,7 +178,7 @@ int parse_options(  int argc,
     po::options_description input("Program options");
     po::options_description reduction("Reduction options");
     po::options_description optimization("Optimization options");
-    po::options_description clustering("Clustering options"); 
+    po::options_description clustering("Clustering options");
     po::options_description hidden("Hidden options");
 
     // Add program options in a curried way, using the overloaded ()-operator
@@ -197,7 +197,7 @@ int parse_options(  int argc,
             "Use the scanserver as an input method and handling of scan data")
         ("use_frames", po::bool_switch(&use_frames)->default_value(false),
             "Use pose specified in .frames file instead of .pose file.");
-    reduction.add_options()    
+    reduction.add_options()
         ("max,m", po::value<int>(&maxDist)->default_value(-1),
             "neglegt all data points with a distance larger than <arg> 'units'")
         ("min,M", po::value<int>(&minDist)->default_value(-1),
@@ -206,7 +206,7 @@ int parse_options(  int argc,
             "turns on octree based point reduction (voxel size= <arg>)")
         ("octree,O", po::value<int>(&octree)->default_value(0),
             "Use randomized octree based point reduction (pts per voxel=<arg>)");
-    optimization.add_options()    
+    optimization.add_options()
         ("optimizer", po::value<int>(&opt_type)->default_value(4),
             "Sets the type of optimization. Chose from\n"
             "1 = gradient descent with adadelta\n"
@@ -288,7 +288,7 @@ int parse_options(  int argc,
         ("percentile,p", po::value<double>(&percentile)->default_value(-1.0),
             "E.g. <arg> = 0.9 -> Use 90 percent of points in clusters. Filter smaller clusters.")
         ("write_clusters,w", po::value(&clusters_outputpath)->default_value(""),
-            (string("When used, the program writes the results of the local normal clustering ")+ 
+            (string("When used, the program writes the results of the local normal clustering ")+
             string("to the specified path in <arg>. You can visualize the clusters with nice colors as follows:\n")+
             string("bin/show -c -f uos_rgb /your/dir/ -s 0")).c_str());
     hidden.add_options()
@@ -302,7 +302,7 @@ int parse_options(  int argc,
     po::options_description cmdoptions;
     cmdoptions.add(generic).add(input).add(reduction).add(clustering).add(optimization);
 
-    // positional argument for input directory 
+    // positional argument for input directory
     po::positional_options_description pos;
     pos.add("input-dir", 1); // max 1 pos arg
 
@@ -311,15 +311,15 @@ int parse_options(  int argc,
     po::store( po::command_line_parser(argc, argv).
                 options(alloptions).
                 positional(pos).
-                run(), 
+                run(),
                 vars);
 
     // help display msg
     if ( vars.count("help") )
     {
         cout << cmdoptions;
-        cout << endl << "Example usage:" << endl 
-            << "bin/polyreg dat/example/clusters -f uos_rgb -r 10 -O 1 -d 50 -P 10 -y 44 --use_point2point=false" 
+        cout << endl << "Example usage:" << endl
+            << "bin/polyreg dat/example/clusters -f uos_rgb -r 10 -O 1 -d 50 -P 10 -y 44 --use_point2point=false"
             << endl;
         exit(0);
     }
@@ -336,9 +336,9 @@ int parse_options(  int argc,
     return 0;
 }
 
-inline void setOptimizer(Optimizer*& opt_iter, 
-                  int opt_type, 
-                  PlaneScan*& pScan, 
+inline void setOptimizer(Optimizer*& opt_iter,
+                  int opt_type,
+                  PlaneScan*& pScan,
                   Dimensions dim)
 {
     switch(opt_type) {
@@ -350,7 +350,7 @@ inline void setOptimizer(Optimizer*& opt_iter,
         break;
         case 3:
         opt_iter = new GaussNewton( pScan, dim);
-        break; 
+        break;
         case 4:
         opt_iter = new PlaneSVD( pScan, dim);
         break;
@@ -397,7 +397,7 @@ int main(int argc, char **argv)
     int eps_thickness;
     string cluster_output_path;
     int min_scansize;
-    bool color; 
+    bool color;
     double eigratio;
     double w_alpha;
     double w_overlap;
@@ -412,13 +412,13 @@ int main(int argc, char **argv)
     plane_alg alg;
 
     parse_options(
-        argc, argv, scandir, type, 
+        argc, argv, scandir, type,
         quiet, maxDist, minDist, octree, red, scanserver,
         eps_dist, eps_ppd, startScan, endScan, n_iter, eps_crit, alpha,
         rPos_alpha_scale, anim, dims, autoAlpha, updateCor,
-        use_frames, k_nearest, d_growth, d_growth_max_adapt, n_max_clusters ,n_min_clusterpoints, 
-        n_min_clusterpoints_far, eps_norm_similarity, eps_thickness, cluster_output_path, 
-        min_scansize, color, eigratio, w_alpha, w_overlap, w_hesse, w_eigen, w_ppd, trustpose, 
+        use_frames, k_nearest, d_growth, d_growth_max_adapt, n_max_clusters ,n_min_clusterpoints,
+        n_min_clusterpoints_far, eps_norm_similarity, eps_thickness, cluster_output_path,
+        min_scansize, color, eigratio, w_alpha, w_overlap, w_hesse, w_eigen, w_ppd, trustpose,
         percentile, jter, opt_type, match_type, alg, use_p2p
     );
 
@@ -428,7 +428,7 @@ int main(int argc, char **argv)
         call_file << argv[i] << " ";
     call_file.flush();
     call_file.clear();
-    call_file.close(); 
+    call_file.close();
 
 
     // Set all the programm options:
@@ -448,9 +448,9 @@ int main(int argc, char **argv)
         ptype = PointType::USE_NORMAL;
         PlaneScan::setReadNormals(true);
         cout << "Using normals." << endl;
-    } 
+    }
 
-    // You can read entire clusters 
+    // You can read entire clusters
     else if (type == IOType::UOS_RGB || type == IOType::UOSC) {
         PlaneScan::setReadClusters(true);
 #ifdef _OPENMP
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
         cout << "Reading clusters." << endl;
         if (type == IOType::UOS_RGB)
             ptype = PointType::USE_COLOR;
-        else 
+        else
             ptype = PointType::USE_TYPE;
     }
 
@@ -485,18 +485,18 @@ int main(int argc, char **argv)
         std::cout << "Auto detecting initial alpha." << std::endl;
         AdaDelta::setAuto( true );
     }
-    std::cout << "Scaling alpha applied to position about " << rPos_alpha_scale << std::endl;  
+    std::cout << "Scaling alpha applied to position about " << rPos_alpha_scale << std::endl;
     AdaDelta::setRPosAlphaScale( rPos_alpha_scale );
-    
+
     if (n_iter != -1) {
         std::cout << "Using maximum " << n_iter << " iterations." << std::endl;
         Optimizer::setMaxIter(n_iter);
-    } 
+    }
     //if (eps_crit != -1) {
         std::cout << "Quickstop if convergence < " << eps_crit << std::endl;
         Optimizer::setEpsConvergence(eps_crit);
     //}
-    Optimizer::setUpdateCor( updateCor ); // k iteration value 
+    Optimizer::setUpdateCor( updateCor ); // k iteration value
     if (quiet) {
         std::cout << "Quiet mode." << std::endl;
         Optimizer::setQuiet(true);
@@ -519,9 +519,9 @@ int main(int argc, char **argv)
     PlaneScan::setEpsSimilarity( eps_norm_similarity );
     PlaneScan::setMaxClusters( n_max_clusters );
     PlaneScan::setMinClusterPoints( n_min_clusterpoints );
-    PlaneScan::setMinClusterPointsFar( n_min_clusterpoints_far ); 
+    PlaneScan::setMinClusterPointsFar( n_min_clusterpoints_far );
     PlaneScan::setPercentileFilter( percentile );
-    PlaneScan::setExportClusterOutputRGB( color ); 
+    PlaneScan::setExportClusterOutputRGB( color );
     PlaneScan::setWeightAlpha( w_alpha );
     PlaneScan::setWeightOverlap( w_overlap );
     PlaneScan::setWeightHesse( w_hesse );
@@ -535,17 +535,17 @@ int main(int argc, char **argv)
     Scan::setProcessingCommand(argc, argv);
 
     double mind2 = __DBL_MAX__, maxd2 = 0.0;
-    // Open directory 
+    // Open directory
     Scan::openDirectory(scanserver, scandir, type, startScan, endScan);
     for (uint i = 0; i < Scan::allScans.size(); ++i ) {
-        
+
         Scan *scan = Scan::allScans.at(i);
-        scan->setRangeFilter( maxDist, minDist ); 
-        scan->setReductionParameter( red, octree, PointType(ptype) ); 
-        
+        scan->setRangeFilter( maxDist, minDist );
+        scan->setReductionParameter( red, octree, PointType(ptype) );
+
         // Find the most near and most distant point in all scans.
         string red_string = (red != -1) ? "xyz reduced show" : "xyz";
-        
+
         // If adaptive parameters are set, find minimum and maximum points in all scans.
         if (d_growth_max_adapt != -1 || n_min_clusterpoints_far != -1) {
             DataXYZ xyz(scan->get(red_string));
@@ -558,17 +558,17 @@ int main(int argc, char **argv)
 
     if (d_growth_max_adapt != -1 || n_min_clusterpoints_far != -1) {
         cout << "Dist of nearest point: " << sqrt(mind2) << endl;
-        cout << "Dist of furthest point: " << sqrt(maxd2) << endl; 
+        cout << "Dist of furthest point: " << sqrt(maxd2) << endl;
     }
 
     // Adapt growth rate
     PlaneScan::setGrowthMaxAdapt(d_growth_max_adapt);
     if (d_growth_max_adapt != -1) {
         PlaneScan::adaptGrowth = {
-            mind2, maxd2, // map these squared distances ... 
+            mind2, maxd2, // map these squared distances ...
             sqr(d_growth), sqr(d_growth_max_adapt), // ... to these growth radii ...
             LINEAR // ... in a linear fashion.
-        }; 
+        };
         cout << "Region growing max. adaptation: " << d_growth_max_adapt << endl;
     }
 
@@ -576,24 +576,24 @@ int main(int argc, char **argv)
     PlaneScan::setMinClusterPointsFar(n_min_clusterpoints_far);
     if (n_min_clusterpoints_far != -1) {
         PlaneScan::adaptNrPts = {
-            mind2, maxd2, // map these squared distances ... 
+            mind2, maxd2, // map these squared distances ...
             (double)n_min_clusterpoints, (double)n_min_clusterpoints_far, // ... to these thresholds ...
             LINEAR // ... in a linear fashion.
         };
         cout << "Minimum cluster-size threshold for far points: " << n_min_clusterpoints_far << endl;
-    } 
+    }
 
     // Setup cluster output directory if necessary
-    if ( cluster_output_path != "" ) 
+    if ( cluster_output_path != "" )
         PlaneScan::setClusterOutputPath( cluster_output_path );
     else if ( !(type == IOType::UOS_RGB || type == IOType::UOSC) )
     {
         std::string save_dir = scandir + "clusters/";
-        if ( !existsDir( save_dir.c_str() ) ) 
+        if ( !existsDir( save_dir.c_str() ) )
         {
             boost::filesystem::create_directory(save_dir);
             cout << "Creating \"" << save_dir << "\"." << endl;
-        } 
+        }
         else cout << save_dir << " exists allready." << endl;
         PlaneScan::setExportClusterOutputRGB(true);
         PlaneScan::setClusterOutputPath( save_dir );
@@ -605,9 +605,9 @@ int main(int argc, char **argv)
     cout.flush();
     PlaneScan *pScan;
     for (uint i = 0; i < Scan::allScans.size(); i++)
-    { 
+    {
         cout << i << " ";
-        cout.flush(); 
+        cout.flush();
         Scan *scan = Scan::allScans.at(i);
         pScan = new PlaneScan( scan );
     }
@@ -620,7 +620,7 @@ int main(int argc, char **argv)
         pScan = PlaneScan::allPlaneScans[i];
         if (i != 0) {
             if (!trustpose) {
-                cout << "Merge scan" << pScan->identifier << " to scan" << prevScan->identifier << endl; 
+                cout << "Merge scan" << pScan->identifier << " to scan" << prevScan->identifier << endl;
                 bool* dimensions = Optimizer::convertDimensionsToBoolArray( dims );
                 pScan->mergeCoordinatesWithRoboterPosition(prevScan, dimensions);
             }
@@ -629,38 +629,38 @@ int main(int argc, char **argv)
             PointClusters clusters = pScan->getGlobalClusters();
             for (uint j = 0; j < clusters.size(); ++j) {
                 NormalPlane *plane = new NormalPlane( clusters[j] );
-                if ( !eigenValueOK(plane->eigen, eigratio) ) 
+                if ( !eigenValueOK(plane->eigen, eigratio) )
                 {
                     delete plane;
                     break;
-                } else 
+                } else
                     PlaneScan::allPlanes.push_back( plane );
-            }   
+            }
 
             prevScan = pScan;
             pScan->labelPoints(match_type, quiet);
-            // TODO :: pScan->labelPoints(5, quiet); ? 
+            // TODO :: pScan->labelPoints(5, quiet); ?
             setOptimizer( opt_iter, opt_type, pScan, dims );
             opt_iter->updateScan();
             // opt_iter->operator()(); // function operator 'cause it looks cool, starts iteration
             // delete opt_iter;
-            
+
             continue;
         }
-        
+
         if (pScan->nrpts < (size_t)min_scansize) continue;
 
         pScan->labelPoints(match_type, quiet); //quiet = false
-        cout << "Scan" << pScan->identifier << " has " << pScan->global_matches.size() << " matches" 
-             << " and " << pScan->correspondences.size() << " correspondences." << endl;        
-        
+        cout << "Scan" << pScan->identifier << " has " << pScan->global_matches.size() << " matches"
+             << " and " << pScan->correspondences.size() << " correspondences." << endl;
+
         prevScan = pScan;
 
         setOptimizer( opt_iter, opt_type, pScan, dims );
         opt_iter->operator()(); // function operator 'cause it looks cool, starts iteration
         //delete opt_iter;
         cout << "Global model update..." << endl;
-        
+
         // Merge corresponding Cluster-2-Plane matches
         cout << "Merge planes..." << endl;
         for (const auto& match : pScan->global_matches)
@@ -670,29 +670,29 @@ int main(int argc, char **argv)
             NormalPlane *new_plane = new NormalPlane( cluster );
             plane->mergeWith( new_plane ); // auto deletes local plane after merging
         }
-            
+
         // Add new planes (Clusters that did not get matched to planes)
         for (const auto& mismatch : pScan->global_mismatches)
         {
             PointCluster cluster = *mismatch;
             NormalPlane* new_plane = new NormalPlane( cluster );
-            if ( eigenValueOK( new_plane->eigen, eigratio ) ) 
+            if ( eigenValueOK( new_plane->eigen, eigratio ) )
             {
                 PlaneScan::allPlanes.push_back( new_plane );
-            } 
+            }
         }
-    
-    } // end outer for i 
+
+    } // end outer for i
 
     unsigned long time_end = GetCurrentTimeInMilliSec();
-    cout << "ELAPSED TIME: " << (time_end - time_start) / 1000.0 << "s." << endl; 
+    cout << "ELAPSED TIME: " << (time_end - time_start) / 1000.0 << "s." << endl;
 
     // Write .frames files to disk from the buffered transformations
     cout << "Writing transformations to .frames..." << endl;
     PlaneScan::writeFrames();
 
     cout << "Writing global planes to hulls/planes.list ..." << endl;
-    PlaneIO::write( PlaneScan::allPlanes, PlaneScan::allPlaneScans.at(0)->basedir );    
+    PlaneIO::write( PlaneScan::allPlanes, PlaneScan::allPlaneScans.at(0)->basedir );
 
     return 0;
 }

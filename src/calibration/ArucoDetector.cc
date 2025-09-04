@@ -8,21 +8,25 @@
 
 namespace calibration {
 
-ArucoDetector::ArucoDetector(std::vector<AprilTag::AprilTag3f> patternPoints, std::string dictionaryName) :
-    _patternPoints(patternPoints),
-    _dictionaryName(dictionaryName)
-{
-    int dictionary_type = 0;
-    if (_dictionaryName.compare("DICT_6X6_250") == 0) {
+int ArucoDetector::dictionaryFromString(const std::string &str) noexcept(false) {
+    int dictionary_type;
+    if (str.compare("DICT_6X6_250") == 0) {
         dictionary_type = cv::aruco::DICT_6X6_250;
-    } else if (_dictionaryName.compare("DICT_6X6_1000") == 0) {
+    } else if (str.compare("DICT_6X6_1000") == 0) {
         dictionary_type = cv::aruco::DICT_6X6_1000;
-    } else if (_dictionaryName.compare("DICT_APRILTAG_36h11") == 0) {
+    } else if (str.compare("DICT_APRILTAG_36h11") == 0) {
         dictionary_type = cv::aruco::DICT_APRILTAG_36h11;
     } else {
         throw(std::invalid_argument("unrecognized dictionary name, only DICT_6X6_250, DICT_6X6_1000 and DICT_APRILTAG_36h11 are supported!"));
     }
+    return dictionary_type;
+}
 
+ArucoDetector::ArucoDetector(std::vector<AprilTag::AprilTag3f> patternPoints, std::string dictionaryName) :
+    _patternPoints(patternPoints),
+    _dictionaryName(dictionaryName)
+{
+    int dictionary_type = dictionaryFromString(dictionaryName);
 
     _dictionary = cv::aruco::getPredefinedDictionary(dictionary_type);
 #if (CV_MAJOR_VERSION >= 4) && (CV_MINOR_VERSION >= 7)

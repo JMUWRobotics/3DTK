@@ -2,10 +2,10 @@
  * @file
  * @brief Program to cluter 3d points based on their planarity.
  * Exports clusters to be read later by preg6d.
- * 
+ *
  * @author Fabian Arzberger, JMU, Germany
- * 
- * Released under GPL version 3. 
+ *
+ * Released under GPL version 3.
  */
 
 #include "cluster.h"
@@ -41,8 +41,8 @@ int main(int argc, char **argv)
                   minDist, octree, red, start, end, k_nearest, n_threads,
                   d_growth, d_growth_max_adapt, n_max_clusters ,n_min_clusterpoints, n_min_clusterpoints_far,
                   eps_alpha_similarity, eps_thickness, color, eigratio, bruteforce, percentile, alg);
-    
-    // We use a PlaneScan object to do clustering 
+
+    // We use a PlaneScan object to do clustering
 
     unsigned int ptype = 0;
     if (type == IOType::UOS_NORMAL || alg != RG) {
@@ -50,10 +50,10 @@ int main(int argc, char **argv)
         ptype = PointType::USE_NORMAL;
 #ifdef _OPENMP
         omp_set_num_threads(n_threads);
-#endif        
+#endif
         cout << "Using normals." << endl;
         cout << "Using " << n_threads << " threads." << endl;
-    } 
+    }
     else {
         std::cout << "Using " << k_nearest << " nearest neighbours for normal calculation." << endl;
         std::cout << "Multithreading requires precalculated normals. Use bin/calc_normals to export into uos_normal format." << endl;
@@ -82,22 +82,22 @@ int main(int argc, char **argv)
     PlaneScan::setPercentileFilter( percentile );
 
     double mind2 = __DBL_MAX__, maxd2 = 0.0;
-    // Open directory 
+    // Open directory
     cout << "Reading Scans from disk:" << endl;
     Scan::openDirectory(scanserver, scandir, type, start, end);
     for (uint i = 0; i < Scan::allScans.size(); ++i ) {
-        
+
         Scan *scan = Scan::allScans.at(i);
         cout << scan->getIdentifier() << " ";
         cout.flush();
-        scan->setRangeFilter( maxDist, minDist ); 
-        scan->setReductionParameter( red, octree, PointType(ptype) ); 
+        scan->setRangeFilter( maxDist, minDist );
+        scan->setReductionParameter( red, octree, PointType(ptype) );
         //scan->calcReducedPoints();
-        
+
         // Find the most near and most distant point in all scans.
         //TODO: Check if we should use "xyz show" here.
         string red_string = (red != -1) ? "xyz reduced show" : "xyz";
-        
+
         // If adaptive parameters are set, find minimum and maximum points in all scans.
         if (d_growth_max_adapt != -1 || n_min_clusterpoints_far != -1) {
             DataXYZ xyz(scan->get(red_string));
@@ -111,17 +111,17 @@ int main(int argc, char **argv)
 
     if (d_growth_max_adapt != -1 || n_min_clusterpoints_far != -1) {
         cout << "Dist of nearest point: " << sqrt(mind2) << endl;
-        cout << "Dist of furthest point: " << sqrt(maxd2) << endl; 
+        cout << "Dist of furthest point: " << sqrt(maxd2) << endl;
     }
 
     // Adapt growth rate
     PlaneScan::setGrowthMaxAdapt(d_growth_max_adapt);
     if (d_growth_max_adapt != -1) {
         PlaneScan::adaptGrowth = {
-            mind2, maxd2, // map these squared distances ... 
+            mind2, maxd2, // map these squared distances ...
             sqr(d_growth), sqr(d_growth_max_adapt), // ... to these growth radii ...
             QUADRATIC // ... in a quadratic fashion.
-        }; 
+        };
         cout << "Region growing max. adaptation: " << d_growth_max_adapt << endl;
     }
 
@@ -134,15 +134,15 @@ int main(int argc, char **argv)
             QUADRATIC
         };
         cout << "Minimum cluster-size threshold for far points: " << n_min_clusterpoints_far << endl;
-    } 
+    }
 
     //setup save directory
     std::string save_dir = scandir + "clusters/";
-    if ( !existsDir( save_dir.c_str() ) ) 
+    if ( !existsDir( save_dir.c_str() ) )
     {
         boost::filesystem::create_directory(save_dir);
         cout << "Creating \"" << save_dir << "\"." << endl;
-    } 
+    }
     else cout << save_dir << " exists allready." << endl;
     PlaneScan::setClusterOutputPath( save_dir );
     if (color) {
@@ -155,10 +155,10 @@ int main(int argc, char **argv)
     {
         #pragma omp parallel for num_threads(n_threads)
         for( unsigned int k = 0; k < Scan::allScans.size() ; ++k)
-        {   
+        {
             Scan *scan = Scan::allScans.at(k);
             // Finds point-2-plane correspondences
-            ps = new PlaneScan( scan ); 
-        }  
+            ps = new PlaneScan( scan );
+        }
     }
 }

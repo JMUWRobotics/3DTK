@@ -17,7 +17,7 @@ PlaneSVD::PlaneSVD( PlaneScan* pScan ) : PlaneSVD()
       << pScan->rPosTheta[2] // left-handed yaw (rotZ)
       << pScan->rPos[0] //x
       << pScan->rPos[1] //y
-      << pScan->rPos[2];//z 
+      << pScan->rPos[2];//z
     updateScan();
 }
 
@@ -53,9 +53,9 @@ void PlaneSVD::iterate()
     do {
         rematch();
         step( n_iter );
-    } while( !stop_condition(X, _eps_convergence) 
+    } while( !stop_condition(X, _eps_convergence)
         &&  (++n_iter <= _max_iter) );
-    
+
     size_t scans_size = PlaneScan::allPlaneScans.size();
     int found = 0;
     for (size_t i = 0; i < scans_size; ++i) {
@@ -80,12 +80,12 @@ void PlaneSVD::rematch()
     ps->global_matches.clear();
     ps->global_mismatches.clear();
     ps->point_pairs.clear();
-    ps->labelPoints( ps->_match_type, true );  
+    ps->labelPoints( ps->_match_type, true );
 }
 
 // TODO: I think there is a bug here.
 // We need to look at src/slam6D/searchTree.cc::109
-// Transform the data points to be in the model reference frame first. 
+// Transform the data points to be in the model reference frame first.
 void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
 {
     for(int j = 0; j < 3; ++j) {
@@ -94,7 +94,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
         if (dtr != 0)
             dtr[j] = 0;
     }
-    
+
     if (ps->isEmpty()) return;
 
     double phi =  X(1) ; // rot x
@@ -103,7 +103,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
     double tx = X(4); // x
     double ty = X(5); // y
     double tz = X(6); // z
-        
+
     double sph = sin(phi);
     double st = sin(theta);
     double sps = sin(psi);
@@ -117,18 +117,18 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
     for (size_t i = 0; i < ps->correspondences.size(); ++i)
     {
         Correspondence cor = ps->correspondences[i];
-    
+
         double x = cor.first[0];
         double y = cor.first[1];
         double z = cor.first[2];
-        
+
         double nx = cor.second->n[0];
         double ny = cor.second->n[1];
         double nz = cor.second->n[2];
         // double norm[3] = {nx, ny, nz};
         // transform3normal(ps->transMat, norm);
-        // nx = norm[0]; ny = norm[1]; nz = norm[2]; 
-        
+        // nx = norm[0]; ny = norm[1]; nz = norm[2];
+
 
         // a = {ax, ay, az} is the center point of the convex hull.
         double ax = cor.second->x[0];
@@ -141,7 +141,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
         double Tpz = x*(sph*sps-cph*cps*st) + y*(cps*sph+cph*st*sps) + z*cph*ct + tz;
 
         double D = nx*(Tpx - ax)  // as you can see, this represents the distance
-                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite 
+                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite
                  + nz*(Tpz - az); // plane. Called "hesse distance"
 
         // Calculate the point projection on the plane, which is used as correspondence.
@@ -150,7 +150,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
         double Ppz = Tpz - D * nz;
 
 #ifdef _OPENMP
-        #pragma omp critical 
+        #pragma omp critical
 #endif
         {
             if (dtr != 0) {
@@ -160,7 +160,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
             }
 
             // Model centroid (plane projections)
-            cm[0] += Ppx; 
+            cm[0] += Ppx;
             cm[1] += Ppy;
             cm[2] += Ppz;
 
@@ -174,7 +174,7 @@ void PlaneSVD::calc_centroids(double* cm, double* cd, double* dtr)
     for (int i = 0; i < 3; ++i) {
         cm[i] /= ps->correspondences.size();
         cd[i] /= ps->correspondences.size();
-        if (dtr != 0) 
+        if (dtr != 0)
             dtr[i] /= ps->correspondences.size();
     }
 
@@ -193,7 +193,7 @@ void PlaneSVD::step(int it)
 
     // cout << "Centroid cm: " << cm[0] << " " << cm[1] << " " << cm[2] << endl;
     // cout << "Centroid cd: " << cd[0] << " " << cd[1] << " " << cd[2] << endl;
-    
+
     // Allocate memory for centered correspondences
     double **m = new double*[ps->correspondences.size()];
     double **d = new double*[ps->correspondences.size()];
@@ -218,17 +218,17 @@ void PlaneSVD::step(int it)
 #endif
     for (unsigned int i = 0; i < ps->correspondences.size(); ++i) {
         Correspondence cor = ps->correspondences[i];
-    
+
         double x = cor.first[0];
         double y = cor.first[1];
         double z = cor.first[2];
-        
+
         double nx = cor.second->n[0];
         double ny = cor.second->n[1];
         double nz = cor.second->n[2];
         // double norm[3] = {nx, ny, nz};
         // transform3normal(ps->transMat, norm);
-        // nx = norm[0]; ny = norm[1]; nz = norm[2]; 
+        // nx = norm[0]; ny = norm[1]; nz = norm[2];
 
         // a = {ax, ay, az} is the center point of the convex hull.
         double ax = cor.second->x[0];
@@ -241,7 +241,7 @@ void PlaneSVD::step(int it)
         double Tpz = x*(sph*sps-cph*cps*st) + y*(cps*sph+cph*st*sps) + z*cph*ct + tz;
 
         double D = nx*(Tpx - ax)  // as you can see, this represents the distance
-                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite 
+                 + ny*(Tpy - ay)  // of the point to an ever extending, infinite
                  + nz*(Tpz - az); // plane. Called "hesse distance"
 
         // Calculate the point projection on the plane, which is used as correspondence.
@@ -263,7 +263,7 @@ void PlaneSVD::step(int it)
     }
     error = sqrt(sum / (double) ps->correspondences.size());
     if ( !_quiet )
-    {   
+    {
         if (it != -1) cout << it << ": ";
         cout << "SVD point-2-plane RMSE in scan" << ps->identifier;
         cout << " = "
@@ -322,13 +322,13 @@ void PlaneSVD::step(int it)
     ColumnVector r_time_colVec = ColumnVector(R*col_vec);
     translation[0] = cm[0] - r_time_colVec(1);
     translation[1] = cm[1] - r_time_colVec(2);
-    translation[2] = cm[2] - r_time_colVec(3); 
+    translation[2] = cm[2] - r_time_colVec(3);
 
     // TODO: check definition of normal direction!
-    // for (size_t i = 0; i < 3; i++) 
+    // for (size_t i = 0; i < 3; i++)
     //     translation[i] = dtr[i];
 
-    // Create 4x4 homogeneous transformation matrix from SVD result 
+    // Create 4x4 homogeneous transformation matrix from SVD result
     double alignfx[16];
     alignfx[0] = R(1,1);
     alignfx[1] = R(2,1);
@@ -351,7 +351,7 @@ void PlaneSVD::step(int it)
     // Convert to 6DoF state vector
     double rot[3], tra[3];
     Matrix4ToEuler(alignfx, rot, tra);
-    
+
     // for(int i = 0; i < 3; ++i) {
     //     X(i+1) = rot[i];
     //     X(i+4) = tra[i];
@@ -374,7 +374,7 @@ void PlaneSVD::step(int it)
     EulerToMatrix4(tra, rot, alignfx);
     this->ps->transform(alignfx);
 
-    // Save resulting transformation in state vector X 
+    // Save resulting transformation in state vector X
     Matrix4ToEuler(ps->transMat, rot, tra);
     for(int i = 0; i < 3; ++i) {
         X(i+1) = rot[i];

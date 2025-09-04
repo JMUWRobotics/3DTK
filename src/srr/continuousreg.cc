@@ -321,7 +321,7 @@ double SSRR(vector<LineScan*> &linescans, vector<LSegment*> lsegments,
     sscans[i]->createSearchTree();
   }
 
-  
+
   if (icp && (abort_flag == nullptr || *abort_flag == false))
     icp->doICP(sscans); // align scans to minimize odometry related errors
 

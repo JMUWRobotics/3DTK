@@ -16,17 +16,17 @@ public:
 
     void iterate();
 
-protected: 
+protected:
 
     /**
      * @brief Set up correspondences from current scan to global model.
      * Then use correspondences to perform SVD to get alignment.
      * Used inside the iterate()-function of this class.
-     * @param it: (Optional) Print this iteration along with RMSE. 
+     * @param it: (Optional) Print this iteration along with RMSE.
      */
     void step(int it=-1);
     void rematch();
-    void calc_centroids(double* cm, double* cd, double* dtr = 0); 
+    void calc_centroids(double* cm, double* cd, double* dtr = 0);
 };
 
 #endif

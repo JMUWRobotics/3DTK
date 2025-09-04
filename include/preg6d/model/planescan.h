@@ -1,16 +1,16 @@
-/** @file 
- *  @brief this file contains the PlaneScan Class that represents a Scan 
+/** @file
+ *  @brief this file contains the PlaneScan Class that represents a Scan
  *  and holds the information about Point-to-Plane correspondences.
  *  The class has many utilities for labeling the points based on various models.
  *  It can hold matches and correspondences between points and planes.
- *  
+ *
  *  The source files for this class are split.
- *  You find the basic class-related stuff, as well as I/O and some other 
+ *  You find the basic class-related stuff, as well as I/O and some other
  *  utilities such as program options, in "planescan.cc".
  *  Everything that has to do with clustering is defined in "clustering.cc"
  *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
  */
 
@@ -45,7 +45,7 @@
  * Cluster stores indices of points, thus is very efficient.
  * It's the internal way of how clustering is processed.
  * PointCluster stores points directly, can be used for I/O between classes.
- * 
+ *
  * The difference between correspondence and match is the following:
  * Correspondence is established between a Point and a global plane.
  * Match is established between a PointCluster and a global plane.
@@ -68,15 +68,15 @@ typedef std::vector<BkdTree*> Forest;
 typedef std::vector<double*> Cache;
 
 /*
- * Some inline util functions 
+ * Some inline util functions
  */
 
 double inline distSqr(double *p1, double *p2) {
     return sqr(p1[0]-p2[0]) + sqr(p1[1]-p2[1]) + sqr(p1[2]-p2[2]);
-} 
+}
 
 double inline distEuklid(double *p1, double *p2) {
-    return sqrt( distSqr(p1, p2) );  
+    return sqrt( distSqr(p1, p2) );
 }
 
 // Returns the smallest angle between n1 and n2 in range [0, pi/2]. Looks at all 4 quadrants. Returns in rad
@@ -94,7 +94,7 @@ double inline angleBetweenNormals(double* n1, double* n2) {
 }
 
 // PlaneScan class
-class PlaneScan 
+class PlaneScan
 {
 public:
 
@@ -109,7 +109,7 @@ public:
 
     Matcher* matcher;
     static int _match_type;
-    
+
     // for each point, store on which plane(s) it lies
     // good for efficient iteration when pairs are needed
     std::vector< Correspondence > correspondences;
@@ -134,30 +134,30 @@ public:
     // Disk data
     std::string basedir;
     std::string identifier;
-    
+
     // We use Quadratic Interpolation Maps for adapting clustering parameters
     static InterpolMap adaptGrowth; // Adaptor for growth rate
     static InterpolMap adaptNrPts; // Adaptor for number of points
-    
+
     // Stores planar clusters (stores indices of pts)
     Clusters clusters;
-    
+
     // Get point
     const double* operator()(int);
-    
+
     /**
-     * @brief Converts the Clusters (which store indices of the points) to 
+     * @brief Converts the Clusters (which store indices of the points) to
      * globaly consistent PointClusters (which store the points in global ref. frame).
      * @return A vector of vector of Points, representing global Point-Clusters.
      */
     vector<vector<double*> > getGlobalClusters();
     vector<vector<double*> > getLocalClusters(); // same but local
 
-    vector<PointPlane*> getGlobalPointPlanes(); 
+    vector<PointPlane*> getGlobalPointPlanes();
     vector<PointPlane*> getLocalPointPlanes();
 
     /**
-     * Label points to planes. 
+     * Label points to planes.
      * This is initially done by the constructor, so you dont have to explicitly call the function
      * unless you want to update correspondences after transforming the scan.
      */
@@ -168,7 +168,7 @@ public:
     void reset();
     size_t index();
 
-    // Static functions 
+    // Static functions
 
     // writes all the frame buffers to .frames files
     static bool writeFrames();
@@ -177,7 +177,7 @@ public:
     static double dist2Plane(const double*, const NormalPlane*);
     static double projDist2Plane(const double*, const double*, NormalPlane*);
     static double projDist2Plane(const double*, NormalPlane*);
-    
+
     // Program option setters (also static)
 
     static void setUseCorrespondenceMin(bool);
@@ -195,7 +195,7 @@ public:
     static void setUseNormalCor(bool);
     static void setMinScansize(size_t);
     static void setPlaneAlgo(plane_alg);
-    
+
     // Region growing related program options:
     static void setPercentileFilter(double);
     static void setKNearest(int);
@@ -218,20 +218,20 @@ public:
 
     double calcErr();
     double calcErrPtPairs();
-    void addFrame(Scan::AlgoType); // adds the current transMat to the .frames file 
+    void addFrame(Scan::AlgoType); // adds the current transMat to the .frames file
     string getFrameData();
 
     // Use this to quickly transform the scan.
     void transform(const double*);
-    
+
     // Use this to quickly apply the intrinsic coordinates with the robot position.
     // Therefore, apply the complete pose change from the previous scan, i.e. odometry extrapolation.
     void mergeCoordinatesWithRoboterPosition(PlaneScan*, bool* dims = 0);
-    
+
     //static helper functions
     static bool isInPlane(double*, double* trans, NormalPlane*);
     static bool similar(double*, double*);
-    
+
     static bool use_correspondence_min;
     static bool use_clustering;
     static bool use_normal_cor;
@@ -251,8 +251,8 @@ private:
     // Cache for mean cluster normals
     vector<double*> ncm_cache;
     // Cache for cluster centroids
-    vector<double*> centroid_cache; 
-    
+    vector<double*> centroid_cache;
+
     /**
      * Dynamic searchtree with all points in the scan.
      * Finds k nearest neighbours for region growing, then deletes those
@@ -261,11 +261,11 @@ private:
     KDtreeIndexed* tree;
     // Normal calculation from all scan data
     void calcNormals(DataXYZ&);
-    
+
     // Instance helper functions for clustering
-    
+
     void calcLocalClusters(Scan *scan);
-    
+
     // Read clusters from RGB scans
     int readClusters(DataRGB&);
     // Read cluster from UOSC (type) scans
@@ -273,7 +273,7 @@ private:
 
     void writeClustersToScanfileRGB(string path);
     void writeClustersToScanfileType(string path);
-    
+
     // Programm options
 
     static double _eps_ppd;
@@ -284,13 +284,13 @@ private:
     static bool read_clusters;
     static size_t min_scansize;
     static plane_alg plane_algo;
-    
+
 
     /* ------------------------------------------------
      *            REGION GROWING RELATED
      * the below fields are only used if rg is selected
      * ------------------------------------------------ */
-    
+
     /*
      * Multiple dynamic searchtrees, each tree for each cluster.
      * We iterativley put the pts in the cluster in a Bkd tree, i.e. multiple balanced kd-trees.
@@ -298,7 +298,7 @@ private:
      */
     vector<BkdTree*> bkd_forest;
     // Only used when there is a cluster without normal information
-    double* calcNormalOnDemand(Cluster&); 
+    double* calcNormalOnDemand(Cluster&);
     // Updates the centroid cache for a cluster c with point j
     void update_centroid_cache(int c, size_t j);
     // Get cached centroid of cluster at index c
@@ -307,12 +307,12 @@ private:
     void update_ncm_cache(int c, size_t j);
     // Get normal vector of cluster at index c (cached, requires use of the above)
     double * normalClusterMeanCached(int c);
-    // Get normal vector of the param. cluster (slow, not cached) 
+    // Get normal vector of the param. cluster (slow, not cached)
     double * normalClusterMean(Cluster&);
     /**
      * @brief Performs the region growing step.
      * @param threadNum: Thread number identifier
-     */ 
+     */
     void regionGrowing(int threadNum = 0);
     /**
      * @brief Performs filtering on clusters.
@@ -331,20 +331,20 @@ private:
     /**
      * @brief BF! Calculates distance from a point to a cluster in O(N). WARN: very slow.
      * @param cluster: vector of point indices, corresponding to a cluster
-     * @param p: query point 
+     * @param p: query point
      * @return Distance from <p> to <cluster>.
      */
     double clusterPointDist(Cluster&, double*);
     /**
      * @brief Calculates distance from a point to a cluster in O(log(N))
      * @param cluster: Pointer to a BkdTree of points, corresponding to a cluster
-     * @param p: query point 
+     * @param p: query point
      * @param threadNum: Thread number index
      * @return Squared distance from <p> to <cluster>.
      */
     double clusterPointDist2(BkdTree*, double*, int threadNum = 0);
     // Calculates distance from a cluster to another cluster, using bkd trees. O(n*log(k))
-    double clusterDistBkd(Cluster&, BkdTree*, int threadNum = 0); 
+    double clusterDistBkd(Cluster&, BkdTree*, int threadNum = 0);
     // Calculates distance from a cluster to another cluster, using brute force. O(n*k)
     double clusterDistBF(Cluster&, Cluster&);
     // Calculates local clusters, if <use_clustering> is set.

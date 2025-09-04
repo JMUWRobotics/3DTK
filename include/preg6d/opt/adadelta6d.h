@@ -27,7 +27,7 @@ public:
     ~AdaDelta();
 
 
-    // Run <arg> iterations of gradient descent 
+    // Run <arg> iterations of gradient descent
     void iterate(int);
     void operator()(int);
 
@@ -37,14 +37,14 @@ public:
 
     // Combination of both top approaches
     /*
-     * The overloaded operator() allows you to initialize 
+     * The overloaded operator() allows you to initialize
      * and run an AdaDelta instance in the following manner:
-     * 
+     *
      * AdaDelta::setMaxIter(10000);
      * AdaDelta::setEpsConvergence(0.0001);
      * AdaDelta iter( my_planescan, Dimensions::ALL );
      * iter();
-     * 
+     *
      * Use -E and -i to set these.
      * Multiple criteria are supported.
      * Running without criteria runs 1000 iterations.
@@ -88,7 +88,7 @@ private:
     // Resets the PlaneScan object to its initial state, i.e. the orientation in the .pose file
     void reset();
 
-    // Update jacobian from state vector X 
+    // Update jacobian from state vector X
     void updateJacobian();
 
     // Update alpha from accumulated gradients and outputs

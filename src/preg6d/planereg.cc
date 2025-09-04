@@ -1,9 +1,9 @@
-/** @file 
- *  @brief Point-to-plane based post registration correction algorithm. 
+/** @file
+ *  @brief Point-to-plane based post registration correction algorithm.
  *  Requires globaly registered scan archive and extracted planes.
- * 
- *  Takes the scans and registers them against the predefined extracted planes. 
- * 
+ *
+ *  Takes the scans and registers them against the predefined extracted planes.
+ *
  *  You can use bin/slam6d or bin/correction for registration.
  *  Use bin/planes to extract planes from a scan.
  *  To extract planes from the globaly registered scan, you have
@@ -11,7 +11,7 @@
  *  Use bin/condense for that.
  *
  *  @author Fabian Arzberger, JMU, Germany.
- * 
+ *
  *  Released under the GPL version 3.
  */
 
@@ -85,16 +85,16 @@ void validate(boost::any& v, const std::vector<std::string>& values,
 
 /*
  * Use boost to set and parse command line options.
- */ 
-int parse_options(  int argc, 
-                    char** argv, 
-                    string &scandir, 
-                    string &planedir, 
-                    IOType &type, 
-                    bool &quiet, 
-                    int &maxDist, 
-                    int &minDist, 
-                    int &octree, 
+ */
+int parse_options(  int argc,
+                    char** argv,
+                    string &scandir,
+                    string &planedir,
+                    IOType &type,
+                    bool &quiet,
+                    int &maxDist,
+                    int &minDist,
+                    int &octree,
                     double &red,
                     bool &scanserver,
                     double &eps_dist,
@@ -118,7 +118,7 @@ int parse_options(  int argc,
                     bool& use_clustering,
                     double& d_growth,
                     double& d_growth_max_adapt,
-                    int& n_min_clusterpoints, 
+                    int& n_min_clusterpoints,
                     double& eps_norm_similarity,
                     string& clusters_outputpath,
                     bool& use_normal_cor,
@@ -199,7 +199,7 @@ int parse_options(  int argc,
         ("eigenratio,R", po::value(&eigratio)->default_value(0.05),
             "Maximum eigenvalue ratio { e1/(e1+e2+e3) }. Everything above is considered a 'bad quality plane'")
         ("write_clusters,w", po::value(&clusters_outputpath)->default_value(""),
-            (string("When used, the program writes the results of the local normal clustering ")+ 
+            (string("When used, the program writes the results of the local normal clustering ")+
             string("to the specified path in <arg>. You can visualize the clusters with nice colors as follows:\n")+
             string("bin/show -c -f uos_rgb /your/dir/ -s 0")).c_str())
         ("color,C", po::bool_switch(&color)->default_value(false),
@@ -217,7 +217,7 @@ int parse_options(  int argc,
     po::options_description cmdoptions;
     cmdoptions.add(generic).add(input);
 
-    // positional argument for input directory 
+    // positional argument for input directory
     po::positional_options_description pos;
     pos.add("input-dir", 1); // max 1 pos arg
 
@@ -226,15 +226,15 @@ int parse_options(  int argc,
     po::store( po::command_line_parser(argc, argv).
                 options(alloptions).
                 positional(pos).
-                run(), 
+                run(),
                 vars);
 
     // help display msg
     if ( vars.count("help") )
     {
         cout << cmdoptions;
-        cout << endl << "Example usage:" << endl 
-            << "\t bin/preg6d dat/ -f uos —planes dat/planes/ —reduce 100 —octree 10 -d 100 -i 50 -k 50 -a 0.01 -c 10 -t 20 —dimensions rolling —anim —max 1500" 
+        cout << endl << "Example usage:" << endl
+            << "\t bin/preg6d dat/ -f uos —planes dat/planes/ —reduce 100 —octree 10 -d 100 -i 50 -k 50 -a 0.01 -c 10 -t 20 —dimensions rolling —anim —max 1500"
             << endl;
         exit(0);
     }
@@ -259,7 +259,7 @@ int main(int argc, char **argv)
     string scandir;
     int startScan = 0;
     int endScan = -1;
-    string planedir; 
+    string planedir;
     IOType type = UOS;
     bool quiet = false;
     int maxDist = -1, minDist = -1;
@@ -292,18 +292,18 @@ int main(int argc, char **argv)
     bool color = false;
     double eigratio = 0.05;
 
-    parse_options(argc, argv, scandir, planedir, type, 
+    parse_options(argc, argv, scandir, planedir, type,
         quiet, maxDist, minDist, octree, red, scanserver,
         eps_dist, eps_ppd, startScan, endScan, n_iter, min_scansize, eps_crit, alpha,
         rPos_alpha_scale, anim, nthreads, dims, autoAlpha, updateCor,
         continuous, use_min_cor, use_frames, k_nearest, use_clustering,
         d_growth, d_growth_max_adapt ,n_min_clusterpoints, eps_norm_similarity, cluster_output_path,
         use_normal_cor, color, eigratio);
-    
+
     Optimizer::setUseP2P(false);
     autoAlpha = false;
     AdaDelta::setAuto(false);
-    // Open and setup all planes 
+    // Open and setup all planes
     PlaneIO::read( planedir );
     std::cout << "Read " << PlaneIO::allPlanes.size() << " planes:" << std::endl;
     {
@@ -330,15 +330,15 @@ int main(int argc, char **argv)
     if (n_iter != -1) {
         std::cout << "Using maximum " << n_iter << " iterations." << std::endl;
         Optimizer::setMaxIter(n_iter);
-    } 
+    }
     //if (eps_crit != -1) {
         std::cout << "Quickstop if convergence < " << eps_crit << std::endl;
         Optimizer::setEpsConvergence(eps_crit);
     //}
-    
-    std::cout << "Scaling alpha applied to position about " << rPos_alpha_scale << std::endl;  
+
+    std::cout << "Scaling alpha applied to position about " << rPos_alpha_scale << std::endl;
     AdaDelta::setRPosAlphaScale( rPos_alpha_scale );
-    Optimizer::setUpdateCor( updateCor ); // k iteration value 
+    Optimizer::setUpdateCor( updateCor ); // k iteration value
     if (quiet) {
         std::cout << "Quiet mode." << std::endl;
         Optimizer::setQuiet(true);
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
         Optimizer::setAnim(anim);
     }
     std::cout << "Updating correspondences " << updateCor << " times." << std::endl;
-    if (use_normal_cor && use_clustering) 
+    if (use_normal_cor && use_clustering)
     {
         cout << "Both normals and clustering correspondences are activated." << endl;
         cout << "Please deactivate one of them. You cannot use both of them at the same time." << endl;
@@ -373,20 +373,20 @@ int main(int argc, char **argv)
             maxd2 = max(maxd2, tmp_maxd2);
         }
         PlaneScan::setGrowthMaxAdapt(d_growth_max_adapt);
-        PlaneScan::adaptGrowth = {mind2, maxd2, 
-                                sqr(d_growth), sqr(d_growth_max_adapt), 
+        PlaneScan::adaptGrowth = {mind2, maxd2,
+                                sqr(d_growth), sqr(d_growth_max_adapt),
                                 QUADRATIC };
         cout << "Region growing max. adaptation: " << d_growth_max_adapt << endl;
     }
     PlaneScan::setEpsSimilarity( eps_norm_similarity );
     PlaneScan::setMinClusterPoints( n_min_clusterpoints );
-    
+
     // You can read normals to save time during clustering.
     if (type == IOType::UOS_NORMAL) {
         PlaneScan::setReadNormals(true);
         cout << "Using normals." << endl;
-    } 
-    // You can read entire clusters 
+    }
+    // You can read entire clusters
     else if (type == IOType::UOS_RGB) {
         PlaneScan::setReadClusters(true);
         cout << "Reading clusters." << endl;
@@ -399,7 +399,7 @@ int main(int argc, char **argv)
     if (use_frames) Scan::continueProcessing(true);
     Scan::setProcessingCommand(argc, argv);
     Scan::openDirectory(scanserver, scandir, type, startScan, endScan);
-    
+
     // Converting the Scan objects into PlaneScan objects
     PlaneScan::setEpsDist( eps_dist );
     PlaneScan::setEpsPPD( eps_ppd );
@@ -421,35 +421,35 @@ int main(int argc, char **argv)
     if ( use_normal_cor ) {
         PlaneScan::_match_type = 3;
     } else {
-        PlaneScan::_match_type = use_min_cor ? 2 : 1;  
+        PlaneScan::_match_type = use_min_cor ? 2 : 1;
     }
     //PlaneScan::_match_type = 4;
     PlaneScan *ps;
     {
         #pragma omp parallel for schedule(dynamic)
         for( unsigned int k = 0; k < Scan::allScans.size() ; ++k)
-        {   
+        {
             Scan *scan = Scan::allScans.at(k);
             cout << "Reading scan" << scan->getIdentifier() << endl;
-            scan->setRangeFilter( maxDist, minDist ); 
-            scan->setReductionParameter( red, octree ); 
+            scan->setRangeFilter( maxDist, minDist );
+            scan->setReductionParameter( red, octree );
             // Finds point-2-plane correspondences
-            ps = new PlaneScan( scan ); 
+            ps = new PlaneScan( scan );
             if (!continuous) ps->labelPoints(PlaneScan::_match_type, false);
-        }  
+        }
     }
 
     // Iterate all the scans. Transformations are buffered between iterations
-    PlaneScan *prevScan; 
+    PlaneScan *prevScan;
     Optimizer *iter;
     if (continuous)
     {
         for ( unsigned int k = 0; k < PlaneScan::allPlaneScans.size(); ++k)
         {
             PlaneScan *pScan = PlaneScan::allPlaneScans.at(k);
-            if (k != 0) 
+            if (k != 0)
             {
-                cout << "Merge scan" << pScan->identifier << " to scan" << prevScan->identifier << endl; 
+                cout << "Merge scan" << pScan->identifier << " to scan" << prevScan->identifier << endl;
                 bool* dims_array = Optimizer::convertDimensionsToBoolArray(dims);
                 pScan->mergeCoordinatesWithRoboterPosition(prevScan, dims_array);
             }
@@ -463,7 +463,7 @@ int main(int argc, char **argv)
             delete iter;
         }
     }
-    else 
+    else
     {
         // #pragma omp parallel for schedule(dynamic)
         for ( unsigned int k = 0; k < PlaneScan::allPlaneScans.size(); ++k)
@@ -513,6 +513,6 @@ int main(int argc, char **argv)
     //PlaneScan::fillFrames();
     // Write .frames files to disk from the buffered transformations
     PlaneScan::writeFrames();
-    
+
     return 0;
 }

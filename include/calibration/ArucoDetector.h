@@ -28,6 +28,8 @@ public:
     void writeDetectionsToFile(const std::string& path);
     void readDetectionsFromFile(const std::string& path);
 
+    static int dictionaryFromString(const std::string &str) noexcept(false);
+
 private:
     std::vector<AprilTag::AprilTag3f> _patternPoints;
     std::string _dictionaryName;

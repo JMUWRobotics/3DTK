@@ -84,7 +84,7 @@ bool LineScan::applyCustomFilter(const Point& point, int &filterMode, int &nrOfP
           break;
       case 2:
           // As Custom Filter 1: asymetrical axis-parallel cuboid, with additional max range limitation
-          // parameters: xFilterRangeLow xFilterRangeHigh yFilterRangeLow yFilterRangeHigh zFilterRangeLow zFilterRangeHigh maxRange 
+          // parameters: xFilterRangeLow xFilterRangeHigh yFilterRangeLow yFilterRangeHigh zFilterRangeLow zFilterRangeHigh maxRange
         if (point.x < custFiltParams[0] || point.x > custFiltParams[1]
           || point.y < custFiltParams[2] || point.y > custFiltParams[3]
           || point.z < custFiltParams[4] || point.z > custFiltParams[5]){
@@ -293,20 +293,20 @@ void LScan::writeAllPtPairs(vector<LScan *> &scans, int rnd, double max_dist_mat
   double centroid_d[3];
   vector<PtPair> pairs;
   ofstream fout(filename.c_str());
-  
+
   int k = 0; {
     for (unsigned int l = 0; l < scans.size(); l++) {
       getPtPairs(&pairs, scans[k], scans[l], 0, rnd, max_dist_match2, centroid_m, centroid_d);
       for (unsigned int j = 0; j < pairs.size(); j++) {
-        fout << 
-          pairs[j].p1.x << " " << pairs[j].p1.y << " " << pairs[j].p1.z 
-          << " " << 
-          pairs[j].p2.x << " " << pairs[j].p2.y << " " << pairs[j].p2.z 
+        fout <<
+          pairs[j].p1.x << " " << pairs[j].p1.y << " " << pairs[j].p1.z
+          << " " <<
+          pairs[j].p2.x << " " << pairs[j].p2.y << " " << pairs[j].p2.z
           << endl;
       }
     }
   }
-  
+
   fout.close();
   fout.clear();
 
@@ -318,10 +318,10 @@ void LScan::writePtPairs(LScan *LSource, LScan* LTarget, int rnd, double max_dis
   ofstream fout(filename.c_str());
   getPtPairs(&pairs, LSource, LTarget, 0, rnd, max_dist_match2, centroid_m, centroid_d);
   for (unsigned int j = 0; j < pairs.size(); j++) {
-    fout << 
-      pairs[j].p1.x << " " << pairs[j].p1.y << " " << pairs[j].p1.z 
-      << " " << 
-      pairs[j].p2.x << " " << pairs[j].p2.y << " " << pairs[j].p2.z 
+    fout <<
+      pairs[j].p1.x << " " << pairs[j].p1.y << " " << pairs[j].p1.z
+      << " " <<
+      pairs[j].p2.x << " " << pairs[j].p2.y << " " << pairs[j].p2.z
       << endl;
   }
 
@@ -332,7 +332,7 @@ void LScan::writePtPairs(LScan *LSource, LScan* LTarget, int rnd, double max_dis
 }
 
 //#define GROUND_TRUTH_PAIRS
-  
+
 void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  int thread_num,
               int rnd, double max_dist_match2, double *centroid_m, double *centroid_d) {
 #ifdef GROUND_TRUTH_PAIRS
@@ -368,7 +368,7 @@ void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  in
       e = end1;
     }
   }
-  
+
   for (int j = beg2; j <= end2; j++) {  // use beg2 and end2 if no links are i > 0
     LineScan *scan = LineScan::allLineScans[j];
     double **points = scan->getPoints();
@@ -390,7 +390,7 @@ void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  in
       centroid_d[0] += t[0];
       centroid_d[1] += t[1];
       centroid_d[2] += t[2];
-      centroid_m[0] += s[0];  
+      centroid_m[0] += s[0];
       centroid_m[1] += s[1];
       centroid_m[2] += s[2];
       np++;
@@ -399,7 +399,7 @@ void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  in
   centroid_d[0] /= np;
   centroid_d[1] /= np;
   centroid_d[2] /= np;
-  centroid_m[0] /= np;  
+  centroid_m[0] /= np;
   centroid_m[1] /= np;
   centroid_m[2] /= np;
 
@@ -419,7 +419,7 @@ void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  in
     }
   }
   ///////////////////
-  
+
   centroid_m[0] /= pairs->size();
   centroid_m[1] /= pairs->size();
   centroid_m[2] /= pairs->size();
@@ -467,7 +467,7 @@ void LScan::getPtPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,  in
         centroid_d[0] += s[0];
         centroid_d[1] += s[1];
         centroid_d[2] += s[2];
-        centroid_m[0] += s[0];  
+        centroid_m[0] += s[0];
         centroid_m[1] += s[1];
         centroid_m[2] += s[2];
 
@@ -497,10 +497,10 @@ void LScan::getOdomPairs(vector <PtPair> *pairs, LScan *Source, LScan* Target,
   centroid_d[0] = 0.0;
   centroid_d[1] = 0.0;
   centroid_d[2] = 0.0;
-  
+
   LineScan *target = LineScan::allLineScans[Target->getRepresentative()];
   LineScan *source = LineScan::allLineScans[Source->getRepresentative()];
-  
+
 
   double *orig_mat_prev;
   double *orig_mat;
@@ -529,22 +529,22 @@ if (ground_truth) {
   cout << "MP   " << mat_prev << endl;
   cout << "G2OD " << glob2odo << endl;
 }
-    
+
   unsigned int max_counter = 9;  // number of point pairs that "anchor" the scan
-  
+
 
   for (unsigned int i = 0; i < 100; i++) {
     double s[3], t[3];
     t[0] = s[0] = (rand() / (double)RAND_MAX) * 100.0;
     t[1] = s[1] = (rand() / (double)RAND_MAX) * 100.0;
     t[2] = s[2] = (rand() / (double)RAND_MAX) * 100.0;
-    
+
     ::transform(s, source->transMat);
     ::transform(s, odo);
     ::transform(t, target->transMat);
     PtPair myPair(s, t);
     pairs->push_back(myPair);
-    centroid_m[0] += s[0];  
+    centroid_m[0] += s[0];
     centroid_m[1] += s[1];
     centroid_m[2] += s[2];
     centroid_d[0] += t[0];
@@ -554,16 +554,16 @@ if (ground_truth) {
 
   for (unsigned int i = 0; i < max_counter/3; i++) {
     double s[3], t[3];
-    t[0] = s[0] = 1.0; 
+    t[0] = s[0] = 1.0;
     t[1] = s[1] = 0.0;
     t[2] = s[2] = 0.0;
-    
+
     ::transform(s, source->transMat);
     ::transform(s, odo);
     ::transform(t, target->transMat);
     PtPair myPair(s, t);
     pairs->push_back(myPair);
-    centroid_m[0] += s[0];  
+    centroid_m[0] += s[0];
     centroid_m[1] += s[1];
     centroid_m[2] += s[2];
     centroid_d[0] += t[0];
@@ -572,16 +572,16 @@ if (ground_truth) {
   }
   for (unsigned int i = 0; i < max_counter/3; i++) {
     double s[3], t[3];
-    t[0] = s[0] = 0.0; 
+    t[0] = s[0] = 0.0;
     t[1] = s[1] = 1.0;
     t[2] = s[2] = 0.0;
-    
+
     ::transform(s, source->transMat);
     ::transform(s, odo);
     ::transform(t, target->transMat);
     PtPair myPair(s, t);
     pairs->push_back(myPair);
-    centroid_m[0] += s[0];  
+    centroid_m[0] += s[0];
     centroid_m[1] += s[1];
     centroid_m[2] += s[2];
     centroid_d[0] += t[0];
@@ -590,7 +590,7 @@ if (ground_truth) {
   }
   for (unsigned int i = 0; i < max_counter/3; i++) {
     double s[3], t[3];
-    t[0] = s[0] = 0.0; 
+    t[0] = s[0] = 0.0;
     t[1] = s[1] = 0.0;
     t[2] = s[2] = 1.0;
 
@@ -599,7 +599,7 @@ if (ground_truth) {
     ::transform(t, target->transMat);
     PtPair myPair(s, t);
     pairs->push_back(myPair);
-    centroid_m[0] += s[0];  
+    centroid_m[0] += s[0];
     centroid_m[1] += s[1];
     centroid_m[2] += s[2];
     centroid_d[0] += t[0];
@@ -617,7 +617,7 @@ if (ground_truth) {
   return;
 }
 
-  
+
 void LScan::transformToEuler(double rP[3], double rPT[3], const Scan::AlgoType type, int islum ) {
   // this is called by lum6dEuler
   EulerToMatrix4(rP, rPT, transMat);
@@ -641,10 +641,10 @@ void LineScan::getPtPairs(vector <PtPair> *pairs, LineScan *Source, LineScan* Ta
   // check if anything should be done
   if ( ((int)Source->index - (int)maxdist <= (int)Target->index && (int)Target->index <= (int)Source->index - (int)mindist) ||
        ((int)Source->index + (int)mindist <= (int)Target->index && (int)Target->index <= (int)Source->index + (int)maxdist) ) {
-  
+
     Mcorr::iterator corrs = Target->correspondences.find(Source->index);
     if (corrs == Target->correspondences.end() ) return;
-    
+
     vlppair &corpts = corrs->second;
 
     // for each corresponding point
@@ -658,7 +658,7 @@ void LineScan::getPtPairs(vector <PtPair> *pairs, LineScan *Source, LineScan* Ta
       centroid_d[0] += t[0];
       centroid_d[1] += t[1];
       centroid_d[2] += t[2];
-      centroid_m[0] += s[0];  
+      centroid_m[0] += s[0];
       centroid_m[1] += s[1];
       centroid_m[2] += s[2];
 
@@ -670,7 +670,7 @@ void LineScan::getPtPairs(vector <PtPair> *pairs, LineScan *Source, LineScan* Ta
 
 void LineScan::findPtPairs(int i, double max_dist_match2) {
   if (i < 0 || i >= (int)allLineScans.size())
-    return; 
+    return;
 
   vector<lppair> vpairs;
 
@@ -731,7 +731,7 @@ omp_set_num_threads(OPENMP_NUM_THREADS);
   for (unsigned int i = 0; i < allLineScans.size(); i++) {
     allLineScans[i]->findPtPairs(max_dist_match2);
     cout << i << endl;
-    
+
   }
 #endif
 }
@@ -779,10 +779,10 @@ void LineScan::printPtPairs() {
       for (unsigned int i = 0; i < it->second.size(); i++) {
         double *p = it->second[i].first;
         double *q = it->second[i].second;
-        cerr << p[0] << " " << p[1] << " " << p[2] << " " << q[0] << " " << q[1] << " " << q[2] 
+        cerr << p[0] << " " << p[1] << " " << p[2] << " " << q[0] << " " << q[1] << " " << q[2]
           << endl;
       }
-      
+
     }
   }
 }

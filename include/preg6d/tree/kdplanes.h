@@ -7,8 +7,8 @@
 
 #include "model/normalplane.h"
 
-/* 
- * Accociation between a point and corresponding plane pointer. 
+/*
+ * Accociation between a point and corresponding plane pointer.
  * Usually, struct instances of this have 16 bytes on a 64bit operating system.
  */
 struct PointPlane {
