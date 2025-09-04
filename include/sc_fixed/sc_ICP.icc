@@ -1,0 +1,50 @@
+/*
+ * ICP-fixpoint implementation
+ *
+ * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
+ *
+ * Released under the GPL version 3.
+ *
+ */
+
+/**
+ * @file
+ * @brief Implementation of 3D scan matching with ICP
+ * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
+ */
+
+/**
+ * Get the maximal distance for matching
+ *
+ * @return the maximal distance for matching
+ */
+inline f_float sc_ICP::get_max_dist_match2() {
+  return max_dist_match2;
+}
+
+/**
+ * Set the maximal distance for matching
+ *
+ * @param max_dist_match2 the maximal distance (^2 !!!) for matching
+ */
+inline void sc_ICP::set_max_dist_match2(f_float max_dist_match2) {
+  this->max_dist_match2 = max_dist_match2;
+}
+
+/**
+ * Set the Maximum number of iterations
+ *
+ * @param max_num_iterations Maximum number of iterations
+ */
+inline void sc_ICP::set_max_num_iterations(int max_num_iterations) {
+  this->max_num_iterations = max_num_iterations;
+}
+
+/**
+ * Get the nr of point pairs
+ *
+ * @return the nr of point pairs
+ */
+inline int sc_ICP::get_nr_pointPair() {
+  return nr_pointPair;
+}

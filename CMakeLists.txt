@@ -147,6 +147,7 @@ option(WITH_3DMOUSE "Support for 3DConnexion Space Mouse" OFF)
 option(WITH_TSDF "Complie with TSDF (openVDB)" OFF)
 option(WITH_CALIB "Complie with calibration" OFF)
 option(WITH_SYSTEM_APRILTAG "Link against system-wide apriltag library" OFF)
+option(WITH_SYSTEMC "Compile with SystemC library for fixedPoint arithmetic" ON)
 
 # Adds imgui to show using opengl2 and glut
 if(WITH_IMGUI)
@@ -455,6 +456,7 @@ add_subdirectory(src/gps)
 add_subdirectory(src/curvefusion)
 add_subdirectory(src/mesh)
 add_subdirectory(src/detectCylinder)
+add_subdirectory(src/sc_fixed)
 # 3rdparty must come before src/calibration because it sets
 # APRILTAG_INCLUDE_DIRS
 add_subdirectory(3rdparty)
@@ -474,9 +476,42 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 enable_testing()
 add_subdirectory(testing)
 
+
+# SystemC integration
+
+# Configurable constants for SystemC fixed-point value
+set(FIXED_WORD_LENGTH 48 CACHE STRING "Word length for fixed-point type")
+set(FIXED_INT_WORD_LENGTH 36 CACHE STRING "Integer word length for fixed-point type")
+set(FIXED_HERON_ITERATIONS 3 CACHE STRING "Iterations ins heron algorithm for square root calculations for fixed point numbers")
+
+if(WITH_SYSTEMC)
+  message(STATUS "SystemC support enabled")
+  find_package(SystemC REQUIRED)
+
+  if(SystemC_FOUND)
+    message(STATUS "SystemC installation found")
+    include_directories(${SYSTEMC_INCLUDE_DIR})
+    add_definitions(-DWITH_SYSTEMC)
+    # Set configurable constants for SystemC fixed-point value as compiler definition
+    target_compile_definitions(icpFixpoint PRIVATE
+      FIXED_WORD_LENGTH=${FIXED_WORD_LENGTH}
+      FIXED_INT_WORD_LENGTH=${FIXED_INT_WORD_LENGTH}
+      FIXED_HERON_ITERATIONS=${FIXED_HERON_ITERATIONS}
+    )
+    set(SYSTEMC_LINK_LIBS ${SYSTEMC_LIBRARY})
+
+  else()
+    message(FATAL_ERROR "SystemC was enabled, but could not be found")
+  endif()
+
+  set(SYSTEMC_INCLUDE_DIR)
+
+else()
+  message(STATUS "SystemC support disabled")
+endif()
 # Dummy target with all header files
 # This is a hint for some IDEs, such as Qt Creator, to show all headers in the project tree
 file(GLOB_RECURSE 3DTK_HEADER_FILES "include/*.h")
 add_custom_target(headers SOURCES ${3DTK_HEADER_FILES})
 
-message (STATUS "Build environment is set up!")
+message(STATUS "Build environment is set up!")
