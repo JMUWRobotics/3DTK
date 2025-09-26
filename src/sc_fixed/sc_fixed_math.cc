@@ -150,7 +150,7 @@ void MMult(const fixed_val M1[16], const std::array<fixed_val, 16>& M2, std::arr
   Mout[15] = M1[ 3]*M2[12]+M1[ 7]*M2[13]+M1[11]*M2[14]+M1[15]*M2[15];
 }
 
-// Absolutbetrag einer fixed_val-Zahl
+// Absolutbetrag einer fixed-point Zahl
 fixed_val sc_abs(fixed_val x) {
   return (x < fixed_val(0)) ? fixed_val(-x) : x;
 }
