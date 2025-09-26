@@ -18,7 +18,7 @@
  *
  * @return the maximal distance for matching
  */
-inline f_float sc_ICP::get_max_dist_match2() {
+inline fixed_val sc_ICP::get_max_dist_match2() {
   return max_dist_match2;
 }
 
@@ -27,7 +27,7 @@ inline f_float sc_ICP::get_max_dist_match2() {
  *
  * @param max_dist_match2 the maximal distance (^2 !!!) for matching
  */
-inline void sc_ICP::set_max_dist_match2(f_float max_dist_match2) {
+inline void sc_ICP::set_max_dist_match2(fixed_val max_dist_match2) {
   this->max_dist_match2 = max_dist_match2;
 }
 

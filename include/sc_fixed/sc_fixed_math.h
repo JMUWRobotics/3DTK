@@ -21,17 +21,17 @@
 #endif
 
 using namespace sc_dt;
-using f_float = sc_fixed<FIXED_WORD_LENGTH, FIXED_INT_WORD_LENGTH>;
+using fixed_val = sc_fixed<FIXED_WORD_LENGTH, FIXED_INT_WORD_LENGTH>;
 
-f_float sc_fixed_heron_sqrt(f_float s);
-bool sc_choldc(f_float A[3][3], f_float diag[3]);
-void sc_cholsl(f_float A[3][3], f_float diag[3], f_float B[3], f_float x[3]);
+fixed_val sc_fixed_heron_sqrt(fixed_val s);
+bool sc_choldc(fixed_val A[3][3], fixed_val diag[3]);
+void sc_cholsl(fixed_val A[3][3], fixed_val diag[3], fixed_val B[3], fixed_val x[3]);
 
-void transform(std::vector<std::array<f_float, 3>>& scan, f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame, int islum);
-void transformPoints(const f_float alignxf[16], std::vector<std::array<f_float, 3>>& scan);
-void transformMatrix(const f_float alignxf[16], std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf);
-void transform3(const f_float alignxf[16], std::array<f_float, 3>& point);
-void MMult(const f_float M1[16], const std::array<f_float, 16>& M2, std::array<f_float, 16>& Mout);
-f_float sc_abs(f_float);
+void transform(std::vector<std::array<fixed_val, 3>>& scan, fixed_val alignxf[16], std::array<fixed_val, 16>& transMat, std::array<fixed_val, 16>& dalignxf, std::ofstream& frame, int islum);
+void transformPoints(const fixed_val alignxf[16], std::vector<std::array<fixed_val, 3>>& scan);
+void transformMatrix(const fixed_val alignxf[16], std::array<fixed_val, 16>& transMat, std::array<fixed_val, 16>& dalignxf);
+void transform3(const fixed_val alignxf[16], std::array<fixed_val, 3>& point);
+void MMult(const fixed_val M1[16], const std::array<fixed_val, 16>& M2, std::array<fixed_val, 16>& Mout);
+fixed_val sc_abs(fixed_val);
 
 #endif // SC_FIXED_MATH_H

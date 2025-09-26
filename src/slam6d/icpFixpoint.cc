@@ -165,8 +165,8 @@ int sc_main(int argc, char **argv)
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
   
   // lege die transMat's und dalignxf's für alle Scans an
-  std::vector<std::array<f_float, 16>> transMats;
-  std::vector<std::array<f_float, 16>> dalignxfs;
+  std::vector<std::array<fixed_val, 16>> transMats;
+  std::vector<std::array<fixed_val, 16>> dalignxfs;
   transMats.reserve(Scan::allScans.size());
   dalignxfs.reserve(Scan::allScans.size());
   
@@ -190,7 +190,7 @@ int sc_main(int argc, char **argv)
     std::cerr << "Leere Daten bei Index 0" << std::endl;
   }
   DataXYZ prevDat(prevXYZ);
-  std::vector<std::array<f_float, 3>> prevFixed = array2fixedArray(prevDat);
+  std::vector<std::array<fixed_val, 3>> prevFixed = array2fixedArray(prevDat);
   
   for(unsigned int i = 1; i < Scan::allScans.size(); i++){
     Scan *currentScan = Scan::allScans[i];
@@ -205,7 +205,7 @@ int sc_main(int argc, char **argv)
     }
     
     DataXYZ currentDat(currentXYZ);
-    std::vector<std::array<f_float, 3>> currentFixed = array2fixedArray(currentDat);
+    std::vector<std::array<fixed_val, 3>> currentFixed = array2fixedArray(currentDat);
 
     std::cout <<std::endl << "RUNNING..." << std::endl;
     

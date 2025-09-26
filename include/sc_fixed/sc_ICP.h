@@ -25,7 +25,7 @@ public:
    * Constructor
    */
   sc_ICP(sc_ICPminimizer *my_sc_ICPminimizer,
-	   f_float max_dist_match = 25.0,
+	   fixed_val max_dist_match = 25.0,
 	   int max_num_iterations = 50,
 	   bool quiet = false,
 	   int epsilonICPexp = 3);
@@ -35,10 +35,10 @@ public:
    */
   virtual ~sc_ICP() {};
 
-  virtual int match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame);
+  virtual int match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std::array<fixed_val, 3>>& target, std::array<fixed_val, 16>& transMat, std::array<fixed_val, 16>& dalignxf, std::ofstream& frame);
 
-  inline f_float get_max_dist_match2();
-  inline void set_max_dist_match2(f_float max_dist_match2);
+  inline fixed_val get_max_dist_match2();
+  inline void set_max_dist_match2(fixed_val max_dist_match2);
   inline void set_max_num_iterations(int max_num_iterations);
   inline int get_nr_pointPair();
 
@@ -52,7 +52,7 @@ protected:
   /**
    * the maximal distance (^2 !!!) for matching
    */
-  f_float max_dist_match2;
+  fixed_val max_dist_match2;
 
   /**
    * the maximal number of iterations
@@ -63,7 +63,7 @@ protected:
    * epsilon for stopping ICP algorithm ( convergence criterium )
    */
   int epsilonICPexp;
-  f_float epsilonICP;
+  fixed_val epsilonICP;
 
   /**
    * ptr to ICP error function minimizer functor

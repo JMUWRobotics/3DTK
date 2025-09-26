@@ -46,11 +46,11 @@ public:
   // Understanding (CVIU), Elsevier Science, Volume 114, Issue 8,
   // pp. 963-980, August 2010.
 
-  virtual f_float Align(const std::vector<std::array<f_float, 3>>& matchedSource,
-                     const std::vector<std::array<f_float, 3>>& matchedTarget,
-                     f_float *alignxf,
-                     const std::array<f_float, 3> centerSource,
-                     const std::array<f_float, 3> centerTarget) = 0;
+  virtual fixed_val Align(const std::vector<std::array<fixed_val, 3>>& matchedSource,
+                     const std::vector<std::array<fixed_val, 3>>& matchedTarget,
+                     fixed_val *alignxf,
+                     const std::array<fixed_val, 3> centerSource,
+                     const std::array<fixed_val, 3> centerTarget) = 0;
 
   virtual int getAlgorithmID() = 0;
 

@@ -33,9 +33,9 @@ using std::cerr;
  * @param quiet Whether to print to the standard output
  * @param epsilonICPexp Exponent for termination criterion
  */
-sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, f_float max_dist_match, int max_num_iterations, bool quiet, int epsilonICPexp) {
+sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, fixed_val max_dist_match, int max_num_iterations, bool quiet, int epsilonICPexp) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
-  this->epsilonICP = f_float(std::pow(10.0, -epsilonICPexp));
+  this->epsilonICP = fixed_val(std::pow(10.0, -epsilonICPexp));
   
   if (!quiet) {
     cout << endl <<  "ICP fixed-point algorithm will proceed with the following parameters: " << endl
@@ -73,8 +73,8 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, f_float max_dist_match, int 
  * @param dalignxf virtuell angewendete delta-Transformation
  * @param frame Stream, auf den die Transformationen in die .frames-Datei des target-Scans geschrieben werden
  */
-int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::array<f_float, 3>>& target, std::array<f_float, 16>& transMat, std::array<f_float, 16>& dalignxf, std::ofstream& frame) {
-  f_float id[16];
+int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std::array<fixed_val, 3>>& target, std::array<fixed_val, 16>& transMat, std::array<fixed_val, 16>& dalignxf, std::ofstream& frame) {
+  fixed_val id[16];
   M4identity(id);
   
   transform(target, id, transMat, dalignxf, frame, 0);
@@ -84,30 +84,30 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     return 0;
   }
   
-  f_float alignxf[16];
-  f_float ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
+  fixed_val alignxf[16];
+  fixed_val ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
   
   // ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
         
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
-    std::vector<std::array<f_float, 3>> matchedTarget;
-    std::vector<std::array<f_float, 3>> matchedSource;
+    std::vector<std::array<fixed_val, 3>> matchedTarget;
+    std::vector<std::array<fixed_val, 3>> matchedSource;
     for (size_t j = 0; j < target.size(); j++){
-      std::array<f_float, 3> tgt = target[j];
+      std::array<fixed_val, 3> tgt = target[j];
       
-      f_float minDist;
+      fixed_val minDist;
       bool first = true;
-      std::array<f_float, 3> closest;
+      std::array<fixed_val, 3> closest;
       
       for (size_t i = 0; i < source.size(); i++){
-        std::array<f_float, 3> src = source[i];
+        std::array<fixed_val, 3> src = source[i];
       
-        f_float dx = tgt[0] - src[0];
-        f_float dy = tgt[1] - src[1];
-        f_float dz = tgt[2] - src[2];
-        f_float dist = (dx * dx) + (dy * dy) + (dz * dz);
+        fixed_val dx = tgt[0] - src[0];
+        fixed_val dy = tgt[1] - src[1];
+        fixed_val dz = tgt[2] - src[2];
+        fixed_val dist = (dx * dx) + (dy * dy) + (dz * dz);
 
         if (first) {
           minDist = dist;
@@ -129,8 +129,8 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
     prev_ret = ret;
   
     // Schwerpunkte bestimmen
-    std::array<f_float, 3> centerSource = {0.0, 0.0, 0.0};
-    std::array<f_float, 3> centerTarget = {0.0, 0.0, 0.0};
+    std::array<fixed_val, 3> centerSource = {0.0, 0.0, 0.0};
+    std::array<fixed_val, 3> centerTarget = {0.0, 0.0, 0.0};
 
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
   
@@ -146,8 +146,8 @@ int sc_ICP::match(std::vector<std::array<f_float, 3>>& source, std::vector<std::
       centerTarget[2] += matchedTarget[i][2];
     }
 
-    f_float srcSize = static_cast<f_float>(matchedSource.size());
-    f_float trgSize = static_cast<f_float>(matchedTarget.size());
+    fixed_val srcSize = static_cast<fixed_val>(matchedSource.size());
+    fixed_val trgSize = static_cast<fixed_val>(matchedTarget.size());
     
     centerSource[0] /= srcSize;
     centerSource[1] /= srcSize;

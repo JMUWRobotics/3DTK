@@ -31,25 +31,25 @@
  * @param alignxf: resulting transformation matrix
  * @return Error estimation of the matching (rms)
  */
-f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSource,
-                      const std::vector<std::array<f_float, 3>>& matchedTarget,
-                      f_float *alignxf,
-                      const std::array<f_float, 3> centerSource,
-                      const std::array<f_float, 3> centerTarget){
+fixed_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedSource,
+                      const std::vector<std::array<fixed_val, 3>>& matchedTarget,
+                      fixed_val *alignxf,
+                      const std::array<fixed_val, 3> centerSource,
+                      const std::array<fixed_val, 3> centerTarget){
   int n = matchedSource.size();
   
-  f_float A[3][3];
-  f_float B[3]; 
+  fixed_val A[3][3];
+  fixed_val B[3]; 
 
   for(int i = 0; i < 3; i++) {
-    B[i] = f_float(0.0);
+    B[i] = fixed_val(0.0);
     for(int j = 0; j < 3; j++){
-      A[i][j] = f_float(0.0); 
+      A[i][j] = fixed_val(0.0); 
     }
   }	
 
-  f_float sum = 0.0; 
-  f_float p1[3], p2[3]; 
+  fixed_val sum = 0.0; 
+  fixed_val p1[3], p2[3]; 
 
   for(size_t i = 0; i < matchedSource.size(); ++i){
     p1[0] = matchedSource[i][0];
@@ -59,8 +59,8 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
     p2[1] = matchedTarget[i][1];
     p2[2] = matchedTarget[i][2]; 
 
-    f_float p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
-    f_float p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};  
+    fixed_val p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
+    fixed_val p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};  
 
     sum += p12[0]*p12[0] + p12[1]*p12[1] + p12[2]*p12[2];
 
@@ -75,25 +75,25 @@ f_float sc_ICPapx::Align(const std::vector<std::array<f_float, 3>>& matchedSourc
     A[2][2] += ((p2c[0])*(p2c[0]) + (p2c[1])*(p2c[1]));
   }
   
-  f_float error = sc_fixed_heron_sqrt(sum / n);
+  fixed_val error = sc_fixed_heron_sqrt(sum / n);
   
-  f_float diag[3];
+  fixed_val diag[3];
  
   if (!sc_choldc(A, diag)) {
     std::cout << "Couldn't find transform" << std::endl;
     return -1.0;
   }
   
-  f_float x[3];
+  fixed_val x[3];
   sc_cholsl(A, diag, B, x);
 
   // Interpret results
-  f_float sx = x[0];
-  f_float cx = sc_fixed_heron_sqrt(1.0 - sx*sx);
-  f_float sy = x[1];
-  f_float cy = sc_fixed_heron_sqrt(1.0 - sy*sy);
-  f_float sz = x[2];
-  f_float cz = sc_fixed_heron_sqrt(1.0 - sz*sz);
+  fixed_val sx = x[0];
+  fixed_val cx = sc_fixed_heron_sqrt(1.0 - sx*sx);
+  fixed_val sy = x[1];
+  fixed_val cy = sc_fixed_heron_sqrt(1.0 - sy*sy);
+  fixed_val sz = x[2];
+  fixed_val cz = sc_fixed_heron_sqrt(1.0 - sz*sz);
 
   alignxf[0]  = cy*cz;
   alignxf[1]  = sx*sy*cz + cx*sz;
