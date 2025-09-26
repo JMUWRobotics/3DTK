@@ -1,5 +1,5 @@
 /*
- * sc_fixed_val_converter implementation
+ * sc_fixed_converter implementation
  *
  * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
  *
@@ -9,7 +9,7 @@
 
 /**
  * @file
- * @brief Implementation of conversion functions between double/DataXYZ and SystemC fixed_val
+ * @brief Implementation of conversion functions between double/DataXYZ and SystemC fixed-point
  * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
