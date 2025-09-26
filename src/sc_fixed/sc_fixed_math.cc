@@ -1,5 +1,5 @@
 /*
- * sc_fixed_val_math implementation
+ * sc_fixed_math implementation
  *
  * Copyright (C) Tom Fleischmann, Jonas Wiesner, Yannik Winzer
  *
@@ -9,7 +9,7 @@
 
 /**
  * @file
- * @brief Implementation of mathematical functions with SystemC fixpoint numbers
+ * @brief Implementation of mathematical functions with SystemC fixpoint numbers (fixed_val's)
  * @author Tom Fleischmann, Jonas Wiesner, Yannik Winzer. Institute of Computer Science, University of Wuerzburg, Germany.
  */
 
