@@ -85,6 +85,7 @@
 #define gluPerspective(a, b, c, d) ((void)0)
 #define gluPickMatrix(a, b, c, d, e) ((void)0)
 #define gluUnProject(a, b, c, d, e, f, g, h, i) ((void)0)
+#define gluProject(a, b, c, d, e, f, g, h, i) ((void)0)
 #define gluInit(a, b) ((void)0)
 
 #define glutSwapBuffers() ((void)0)

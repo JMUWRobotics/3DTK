@@ -664,9 +664,12 @@ protected:
             unsigned int length = points[0].length;
             T *point = &(points[1].v);  // first point
             for(unsigned int iterator = 0; iterator < length; iterator++ ) {
-              if (ScreenDist(point) < brushsize && RayDist(point) > 100.0)
+              //check if point is behind the nearplane and infront of the farplane
+              float z_dis = RadialDistCamera(point);
+              if (z_dis >= 0 && z_dis <= 1 && ScreenDist(point) < brushsize){
                 selpoints.insert(point);
-              point+=POINTDIM;
+              }
+            point+=POINTDIM;
             }
           }
         } else { // recurse
@@ -694,8 +697,10 @@ protected:
             unsigned int length = points[0].length;
             T *point = &(points[1].v);  // first point
             for(unsigned int iterator = 0; iterator < length; iterator++ ) {
+              //check if point is behind the nearplane and infront of the farplane
+              float z_dis = RadialDistCamera(point);
               T dist = RayDist(point);
-              if (min > dist && ScreenDist(point) < 5 && dist > 100.0) {
+              if (z_dis >= 0 && z_dis <= 1 && min > dist && ScreenDist(point) < 5) {
                 selpoint = point;
                 min = dist;
               }

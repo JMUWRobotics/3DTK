@@ -120,6 +120,21 @@ template <class T> bool HitBoundingBox(const T center[3], T size )
 void calcRay(int x, int y, double znear, double zfar);
 
 #include <float.h>
+//calculates the z value of a point on the screen (0 = nearplane, 1 = farplane):
+template <class T>
+float RadialDistCamera(T *point){
+  GLdouble modelMatrix[16];
+  GLdouble projMatrix[16];
+  int viewport[4];
+  glGetDoublev(GL_MODELVIEW_MATRIX,modelMatrix);
+  glGetDoublev(GL_PROJECTION_MATRIX,projMatrix);
+  glGetIntegerv(GL_VIEWPORT,viewport);
+  double winX, winY, winZ;
+  gluProject(point[0], point[1], point[2], modelMatrix, projMatrix, viewport, &winX, &winY, &winZ);
+  winY = viewport[3] - winY;
+  return winZ;
+}
+
 template <class T>
 float RayDist(T *point)
 {
