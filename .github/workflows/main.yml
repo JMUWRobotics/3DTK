@@ -65,9 +65,9 @@ jobs:
           rm -rf -- * .[!.]* ..?*
       - name: Checkout code
         run: |
-	git clone https://github.com/JMUWRobotics/3DTK.git .
-	git submodule sync --recursive
-	git submodule update --init --recursive
+	  git clone https://github.com/JMUWRobotics/3DTK.git .
+	  git submodule sync --recursive
+	  git submodule update --init --recursive
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
