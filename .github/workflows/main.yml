@@ -96,7 +96,5 @@ jobs:
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
       - name: Build and Test
         run: |
-	  git submodule sync --recursive
-	  git submodule update --init --recursive
           cmake --build .build --config RelWithDebInfo
           CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
