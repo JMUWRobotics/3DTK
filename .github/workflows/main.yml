@@ -48,7 +48,7 @@ jobs:
       GIT_SUBMODULE_STRATEGY: recursive
     strategy:
       matrix:
-        os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
+        os: ['debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
     container: ${{ matrix.os }}
     steps:
       # - uses: actions/checkout@v2 ## THIS CHECKOUT USES GLIBC2.28, WHICH IS UNAVAILABLE IN OLD CONTAINERS
