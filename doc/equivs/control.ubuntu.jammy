@@ -24,6 +24,7 @@ Depends:
  libboost-system-dev,
  libboost-thread-dev,
  libboost-timer-dev,
+ libboost-math-dev,
  libcgal-dev,
  libcgal-qt5-dev,
  libconfig-dev,
