@@ -44,6 +44,8 @@ jobs:
   #        CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --target test --config RelWithDebInfo
   linux:
     runs-on: ubuntu-latest
+    variables:
+      GIT_SUBMODULE_STRATEGY: recursive
     strategy:
       matrix:
         os: ['debian:buster', 'debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
