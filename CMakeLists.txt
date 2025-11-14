@@ -145,9 +145,9 @@ option(WITH_LASLIB "Whether to build LASlib based scanio library" ON)
 option(WITH_E57 "Build library for e57 file format support." OFF)
 option(WITH_3DMOUSE "Support for 3DConnexion Space Mouse" OFF)
 option(WITH_TSDF "Complie with TSDF (openVDB)" OFF)
-option(WITH_CALIB "Complie with calibration" OFF)
+option(WITH_CALIB "Complie with calibration" ON)
 option(WITH_SYSTEM_APRILTAG "Link against system-wide apriltag library" OFF)
-option(WITH_SYSTEMC "Compile with SystemC library for fixedPoint arithmetic" ON)
+option(WITH_SYSTEMC "Compile with SystemC library for fixedPoint arithmetic" OFF)
 
 # Adds imgui to show using opengl2 and glut
 if(WITH_IMGUI)
