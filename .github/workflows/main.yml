@@ -44,8 +44,6 @@ jobs:
   #        CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --target test --config RelWithDebInfo
   linux:
     runs-on: ubuntu-latest
-    variables:
-      GIT_SUBMODULE_STRATEGY: recursive
     strategy:
       matrix:
         os: ['debian:bullseye', 'ubuntu:bionic', 'ubuntu:focal', 'ubuntu:jammy', 'ubuntu:noble']
@@ -66,7 +64,10 @@ jobs:
         run: |
           rm -rf -- * .[!.]* ..?*
       - name: Checkout code
-        run: git clone https://github.com/JMUWRobotics/3DTK.git .
+        run: |
+	git clone https://github.com/JMUWRobotics/3DTK.git .
+	git submodule sync --recursive
+	git submodule update --init --recursive
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
