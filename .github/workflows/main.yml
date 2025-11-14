@@ -64,10 +64,7 @@ jobs:
         run: |
           rm -rf -- * .[!.]* ..?*
       - name: Checkout code
-        run: |
-	  git clone https://github.com/JMUWRobotics/3DTK.git .
-	  git submodule sync --recursive
-	  git submodule update --init --recursive
+        run: git clone https://github.com/JMUWRobotics/3DTK.git .
       - name: Install basic dependencies
         run: |
           cat /etc/os-release
@@ -99,5 +96,7 @@ jobs:
           cmake -H. -B.build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_VERBOSE_MAKEFILE=ON -G Ninja
       - name: Build and Test
         run: |
+	  git submodule sync --recursive
+	  git submodule update --init --recursive
           cmake --build .build --config RelWithDebInfo
           CTEST_OUTPUT_ON_FAILURE=true cmake --build .build --config RelWithDebInfo --target test
