@@ -23,6 +23,7 @@ Depends:
  libboost-regex-dev,
  libboost-system-dev,
  libboost-thread-dev,
+ libboost-timer-dev,
  libcgal-dev,
  libcgal-qt5-dev,
  libconfig-dev,
