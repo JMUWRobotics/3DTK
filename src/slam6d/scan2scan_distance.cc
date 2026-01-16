@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
       (pairing_mode == CLOSEST_PLANE_SIMPLE)) {
     types = PointType::USE_NORMAL;
   }
-  reference->setReductionParameter(-1, 0); //, PointType(types));
+  reference->setReductionParameter(-1, 0); //, PointType(types);
   reference->setSearchTreeParameter(simpleKD,20);
 
   scan->setRangeFilter(-1,-1);

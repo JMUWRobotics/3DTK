@@ -67,7 +67,7 @@ public:
   inline double get_max_dist_match2();
   inline void set_max_dist_match2(double max_dist_match2);
   inline void set_max_num_iterations(int max_num_iterations);
-  inline void set_cad_matching (bool cad_matching);
+  inline void set_cad_matching (bool cad_matching, int cad_index = 0);
   inline bool get_cad_matching (void);
   inline void set_meta(bool meta);
   inline int get_nr_pointPair();
@@ -138,6 +138,11 @@ protected:
    * determines if CAD models are matched against one scan
    */
   bool cad_matching;
+
+  /**
+   * the index of the scan to match against in cad_matching
+   */
+  int cad_index;
 
   /**
    * number of matched points in ICP

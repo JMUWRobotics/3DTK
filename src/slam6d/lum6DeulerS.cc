@@ -361,7 +361,7 @@ double lum6DEuler::doGraphSlam6D(Graph gr, vector <Scan *> allScans, int nrIt)
     if (nrIt > 1 && !quiet) cout << "Iteration " << iteration << " of " << nrIt << endl;
 
     // * Calculate X and CX from all Dij and Cij
-    int n = (gr.getNrScans() - 1);
+    int n = (allScans.size() - 1);
 
     // Construct the linear equation system..
     GraphMatrix *G = new GraphMatrix();
@@ -377,7 +377,7 @@ double lum6DEuler::doGraphSlam6D(Graph gr, vector <Scan *> allScans, int nrIt)
     double sum_position_diff = 0.0;
 
     // Start with second Scan
-    int loop_end = gr.getNrScans();
+    int loop_end = allScans.size();
 #ifdef _OPENMP
 #pragma omp parallel for reduction(+:sum_position_diff)
 #endif
@@ -427,6 +427,12 @@ double lum6DEuler::doGraphSlam6D(Graph gr, vector <Scan *> allScans, int nrIt)
       // Correct pose estimate
       ColumnVector result = Ha * Xtmp;
 
+      double poseDiff = sqr(result.element(0)) + sqr(result.element(1)) + sqr(result.element(2));
+      if (poseDiff > sqr(1000.0) || std::isnan(poseDiff)) {
+          cerr << "Pose update for scan " << i << " is too large: " << poseDiff << ". Ignoring update." << endl;
+          continue;
+      }
+
       if(!quiet) {
         cout << "Old pose estimate, Scan " << i << endl;
         cout <<  "x: " << allScans[i]->get_rPos()[0]
@@ -454,7 +460,7 @@ double lum6DEuler::doGraphSlam6D(Graph gr, vector <Scan *> allScans, int nrIt)
       }
 
       // Update the Pose
-      if (i != gr.getNrScans() - 1) {
+      if (i != allScans.size() - 1) {
         allScans[i]->transformToEuler(rPos, rPosTheta, Scan::LUM, 1);
       } else {
         allScans[i]->transformToEuler(rPos, rPosTheta, Scan::LUM, 2);
@@ -476,7 +482,7 @@ double lum6DEuler::doGraphSlam6D(Graph gr, vector <Scan *> allScans, int nrIt)
       sum_position_diff += Len(x);
     }
     cout << "Sum of Position differences = " << sum_position_diff << endl;
-    ret = (sum_position_diff / (double)gr.getNrScans());
+    ret = (sum_position_diff / (double)allScans.size());
   }
 
   return ret;

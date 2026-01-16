@@ -36,7 +36,7 @@ using std::cerr;
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, fixed_val max_dist_match, int max_num_iterations, bool quiet, int epsilonICPexp) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
   this->epsilonICP = fixed_val(std::pow(10.0, -epsilonICPexp));
-  
+
   if (!quiet) {
     cout << endl <<  "ICP fixed-point algorithm will proceed with the following parameters: " << endl
          << "Maximal distance match      : " << max_dist_match << endl
@@ -76,34 +76,34 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, fixed_val max_dist_match, in
 int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std::array<fixed_val, 3>>& target, std::array<fixed_val, 16>& transMat, std::array<fixed_val, 16>& dalignxf, std::ofstream& frame) {
   fixed_val id[16];
   M4identity(id);
-  
+
   transform(target, id, transMat, dalignxf, frame, 0);
-  
+
   // wenn ICP nicht angewendet werden soll, nur die Identitätsmatrix schreiben und return 0
   if (max_num_iterations == 0) {
     return 0;
   }
-  
+
   fixed_val alignxf[16];
   fixed_val ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
-  
+
   // ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
-        
+
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<fixed_val, 3>> matchedTarget;
     std::vector<std::array<fixed_val, 3>> matchedSource;
     for (size_t j = 0; j < target.size(); j++){
       std::array<fixed_val, 3> tgt = target[j];
-      
+
       fixed_val minDist;
       bool first = true;
       std::array<fixed_val, 3> closest;
-      
+
       for (size_t i = 0; i < source.size(); i++){
         std::array<fixed_val, 3> src = source[i];
-      
+
         fixed_val dx = tgt[0] - src[0];
         fixed_val dy = tgt[1] - src[1];
         fixed_val dz = tgt[2] - src[2];
@@ -124,16 +124,16 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
         matchedSource.push_back(closest);
       }
     }
-        
+
     prev_prev_ret = prev_ret;
     prev_ret = ret;
-  
+
     // Schwerpunkte bestimmen
     std::array<fixed_val, 3> centerSource = {0.0, 0.0, 0.0};
     std::array<fixed_val, 3> centerTarget = {0.0, 0.0, 0.0};
 
     size_t count = std::min(matchedSource.size(), matchedTarget.size());
-  
+
     for (size_t i = 0; i < count; ++i) {
       // entspricht centroid_m (model = source = not moving)
       centerSource[0] += matchedSource[i][0];
@@ -148,7 +148,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
 
     fixed_val srcSize = static_cast<fixed_val>(matchedSource.size());
     fixed_val trgSize = static_cast<fixed_val>(matchedTarget.size());
-    
+
     centerSource[0] /= srcSize;
     centerSource[1] /= srcSize;
     centerSource[2] /= srcSize;
@@ -159,7 +159,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
 
     // Rotation und Translation berechnen
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
-    
+
     if (iter == 0) {
       transform(target, alignxf, transMat, dalignxf, frame, 0);
     }
@@ -168,7 +168,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
     }
 
     std::cout << "iteration: " << iter << " |" << " point-to-point error: " << ret << " using " << count << " points" << std::endl;
-    
+
     // Abbruchbedingung
     if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
       // write end pose -> Transformation mit Identitätsmatrix, vgl. icp6D.cc Z.289

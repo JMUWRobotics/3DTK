@@ -91,14 +91,16 @@ inline void icp6D::set_max_num_iterations(int max_num_iterations) {
 }
 
 /**
- * @brief Enable / Disable CAD matching (i.e. matching only against first scan)
+ * @brief Enable / Disable CAD matching (i.e. matching only against one scan)
  *
  * @param cad_matching The new value to determine if CAD matching should
  * be done
+ * @param cad_index Match other scans against scan with this index. Defaults to 0
  */
-inline void icp6D::set_cad_matching (bool cad_matching)
+inline void icp6D::set_cad_matching (bool cad_matching, int cad_index)
 {
   this->cad_matching = cad_matching;
+  this->cad_index = cad_index;
 }
 
 inline bool icp6D::get_cad_matching (void)

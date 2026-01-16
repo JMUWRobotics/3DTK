@@ -28,12 +28,20 @@ MetaScan::MetaScan(std::vector<Scan*> scans, int nns_method) : m_scans(scans)
 {
   // add this to the global vector for addFrame reasons
   Scan::allScans.push_back(this);
-  m_pairs = *(new std::map<std::string, std::pair<unsigned char*, size_t> >);
+
+  if (m_scans.size() > 0) {
+    m_identifier = "MetaScan("
+      + std::string(m_scans.at(0)->getIdentifier())
+      + "-" + std::string(m_scans.at(m_scans.size() - 1)->getIdentifier())
+      + ")";
+  } else {
+    m_identifier = "metascan(empty)";
+  }
 }
 
 MetaScan::~MetaScan()
 {
-  // remove this from the global vector for addFrame reasons
+  // remove this from the global vector
   for(ScanVector::iterator it = Scan::allScans.begin();
       it != Scan::allScans.end();
       ++it) {
@@ -42,6 +50,11 @@ MetaScan::~MetaScan()
       break;
     }
   }
+  // use clear to delete data
+  for (auto& pair : m_pairs) {
+    delete[] pair.second.first;
+  }
+  m_pairs.clear();
 }
 
 void MetaScan::createSearchTreePrivate()
@@ -54,6 +67,40 @@ void MetaScan::createSearchTreePrivate()
   // because no reduced points are copied, this could be
   // implemented if e.g. cuda is required on metascans
   kd = new KDtreeMetaManaged(m_scans);
+
+  /*
+  Potential fix for above todo:
+  Simliar to BasicScan, we now have m_pairs such that MetaScan
+  is able to store its own points, if requested.
+  So we might want to include some flag to indicate if we want to use
+  a MetaManaged KDtree, or just use another type of tree, constructed from
+  the MetaScan points stored in m_pairs (if available).
+  */
+
+  // DataXYZ xyz_orig(get("xyz reduced original"));
+  // PointerArray<double> ar(xyz_orig);
+  // switch(searchtree_nnstype)
+  //   {
+  //   case simpleKD:
+  //     kd = new KDtree(ar.get(), xyz_orig.size(), searchtree_bucketsize);
+  //     break;
+  //   case ANNTree:
+  //     kd = new ANNtree(ar, xyz_orig.size());
+  //     break;
+  //   case BOCTree:
+  //     kd = new BOctTree<double>(ar.get(),
+  //                               xyz_orig.size(),
+  //                               10.0,
+  //                               PointType(), true);
+  //     break;
+  //   case BruteForce:
+  //       kd = new BruteForceNotATree(ar.get(),xyz_orig.size());
+  //       break;
+  //   case -1:
+  //     throw std::runtime_error("Cannot create a SearchTree without setting a type.");
+  //   default:
+  //     throw std::runtime_error("SearchTree type not implemented");
+  //   }
 
 #ifdef WITH_METRICS
   ClientMetric::create_metatree_time.end(tc);

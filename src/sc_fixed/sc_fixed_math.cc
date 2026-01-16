@@ -29,22 +29,22 @@ fixed_val sc_fixed_heron_sqrt(fixed_val s) {
 
   fixed_val x = s / 2 + 1;
   fixed_val x_n;
-  
+
   for(int i = FIXED_HERON_ITERATIONS; i > 0; i--) {
     x_n = (x + s / x) / 2;
     x = x_n;
   }
 
   return x_n;
-  
+
 }
 
 // function to compute cholesky decomposition
 bool sc_choldc(fixed_val A[3][3], fixed_val diag[3]) {
 
   unsigned int N = 3;
-  const fixed_val epsilon = (fixed_val) float(1e-3);  
-  
+  const fixed_val epsilon = (fixed_val) float(1e-3);
+
   for (unsigned int i = 0; i < N; i++) {
     for (unsigned int j = i; j < N; j++) {
       fixed_val sum = A[i][j];
@@ -92,7 +92,7 @@ void transform(std::vector<std::array<fixed_val, 3>>& scan, fixed_val alignxf[16
 
   // update matrices
   transformMatrix(alignxf, transMat, dalignxf);
-  
+
   // speichere Transformation in .frames-Datei (falls islum == 0 statt -1)
   if (islum == 0) {
     writeFrame(frame, transMat, 1);

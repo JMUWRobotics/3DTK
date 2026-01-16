@@ -40,7 +40,7 @@ int parse_options(
     int& iter_lum,
     double& epsICP,
     double& epsSLAM,
-    int& subsize,
+    size_t& subsize,
     int& clpairs,
     bool& meta,
     int& max_num_metascans,
@@ -95,7 +95,7 @@ int parse_options(
             "Stop Graph SLAM if difference is smaller than <arg>")
         ("clpairs,c", po::value<int>(&clpairs)->default_value(20),
             "Consider an edge in the graph if more than <arg> point pairs exist")
-        ("size,S", po::value<int>(&subsize)->default_value(5),
+        ("size,S", po::value<size_t>(&subsize)->default_value(5),
             "Number of scans in the subgraphs.")
         ("metascan,2", po::bool_switch(&meta)->default_value(false),
             "Match current scan against a meta scan of all previous scans (default match against the last scan only)")

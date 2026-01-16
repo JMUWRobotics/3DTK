@@ -163,7 +163,7 @@ int parse_options(int argc, char **argv, string &dir, double &red, int &rand,
               double &epsilonICP, double &epsilonSLAM,  int &nns_method, bool &exportPts, double &distLoop,
               int &iterLoop, double &graphDist, int &octree, IOType &type,
               bool& scanserver, PairingMode &pairing_mode, bool &continue_processing, int &bucketSize,
-              boost::filesystem::path &loopclosefile, int &max_num_metascans)
+              boost::filesystem::path &loopclosefile, int &max_num_metascans, int &cad_index)
 {
 
 po::options_description generic("Generic options");
@@ -293,7 +293,9 @@ po::options_description generic("Generic options");
     ("loopclosefile", po::value<boost::filesystem::path>(&loopclosefile),
     "filename to write scan poses")
     ("maxmeta", po::value<int>(&max_num_metascans)->default_value(-1),
-     "maximum nr of previous scans to combine to a metascan in scan matching");
+    "maximum nr of previous scans to combine to a metascan in scan matching")
+    ("cad_index", po::value<int>(&cad_index)->default_value(-1),
+    "If provided, match all scans against the scan with index <NR>");
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
@@ -583,6 +585,7 @@ int main(int argc, char **argv)
   int bucketSize = 20;
   boost::filesystem::path loopclose("loopclose.pts");
   int max_num_metascans = -1;
+  int cad_index = -1;
 
   parse_options(argc, argv, dir, red, rand, mdm, mdml, mdmll, mni, start, end,
             maxDist, minDist, customFilter, quiet, veryQuiet, eP, meta,
@@ -590,7 +593,7 @@ int main(int argc, char **argv)
             mni_lum, net, cldist, clpairs, loopsize, epsilonICP, epsilonSLAM,
             nns_method, exportPts, distLoop, iterLoop, graphDist, octree, type,
             scanserver, pairing_mode, continue_processing, bucketSize,
-            loopclose, max_num_metascans);
+            loopclose, max_num_metascans, cad_index);
 
   /* writing frames in zip archives is not supported by BasicScan */
   if(!boost::filesystem::is_directory(dir)) {
@@ -713,10 +716,15 @@ int main(int argc, char **argv)
     icp6D *my_icp = 0;
     my_icp = new icp6D(my_icp6Dminimizer, mdm, mni, quiet, meta, rand, eP,
                        anim, epsilonICP, nns_method,false,false,max_num_metascans);
-    // check if CAD matching was selected as type
+    // UOS_CAD is not available as file type, keep it for legacy reasons
     if (type == UOS_CAD)
     {
-      my_icp->set_cad_matching (true);
+      my_icp->set_cad_matching(true); // will match against index 0
+    }
+    // Match against given index
+    if (cad_index != -1)
+    {
+      my_icp->set_cad_matching (true, cad_index);
     }
 
     if (my_icp) my_icp->doICP(Scan::allScans, pairing_mode);

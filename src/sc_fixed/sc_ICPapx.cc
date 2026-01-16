@@ -37,19 +37,19 @@ fixed_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedS
                       const std::array<fixed_val, 3> centerSource,
                       const std::array<fixed_val, 3> centerTarget){
   int n = matchedSource.size();
-  
+
   fixed_val A[3][3];
-  fixed_val B[3]; 
+  fixed_val B[3];
 
   for(int i = 0; i < 3; i++) {
     B[i] = fixed_val(0.0);
     for(int j = 0; j < 3; j++){
-      A[i][j] = fixed_val(0.0); 
+      A[i][j] = fixed_val(0.0);
     }
-  }	
+  }
 
-  fixed_val sum = 0.0; 
-  fixed_val p1[3], p2[3]; 
+  fixed_val sum = 0.0;
+  fixed_val p1[3], p2[3];
 
   for(size_t i = 0; i < matchedSource.size(); ++i){
     p1[0] = matchedSource[i][0];
@@ -57,10 +57,10 @@ fixed_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedS
     p1[2] = matchedSource[i][2];
     p2[0] = matchedTarget[i][0];
     p2[1] = matchedTarget[i][1];
-    p2[2] = matchedTarget[i][2]; 
+    p2[2] = matchedTarget[i][2];
 
     fixed_val p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
-    fixed_val p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};  
+    fixed_val p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};
 
     sum += p12[0]*p12[0] + p12[1]*p12[1] + p12[2]*p12[2];
 
@@ -74,16 +74,16 @@ fixed_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedS
     A[1][2] -= p2c[1] * p2c[2];
     A[2][2] += ((p2c[0])*(p2c[0]) + (p2c[1])*(p2c[1]));
   }
-  
+
   fixed_val error = sc_fixed_heron_sqrt(sum / n);
-  
+
   fixed_val diag[3];
- 
+
   if (!sc_choldc(A, diag)) {
     std::cout << "Couldn't find transform" << std::endl;
     return -1.0;
   }
-  
+
   fixed_val x[3];
   sc_cholsl(A, diag, B, x);
 
@@ -111,6 +111,6 @@ fixed_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedS
   alignxf[13] = centerSource[1] - alignxf[1]*centerTarget[0] - alignxf[5]*centerTarget[1] - alignxf[9]*centerTarget[2];
   alignxf[14] = centerSource[2] - alignxf[2]*centerTarget[0] - alignxf[6]*centerTarget[1] - alignxf[10]*centerTarget[2];
   alignxf[15] = 1;
-  
+
   return error; // aktueller Fehler
 }

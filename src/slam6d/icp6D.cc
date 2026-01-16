@@ -398,7 +398,13 @@ void icp6D::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
         match(my_MetaScan, CurrentScan, pairing_mode);
       } else
 	if (cad_matching) {
-	  match(allScans[0], CurrentScan, pairing_mode);
+    if (cad_index < allScans.size()) {
+	    match(allScans[cad_index], CurrentScan, pairing_mode);
+    } else {
+      std::cout << "WARN: cad_index (" << cad_index << ") > last scan index(" << allScans.size() - 1 << ")\n"
+        << "Using cad_index = " << allScans.size() - 1 << " instead." << std::endl;
+      match(allScans[allScans.size() - 1], CurrentScan, pairing_mode);
+    }
 	} else {
 	  match(PreviousScan, CurrentScan, pairing_mode);
 	}
