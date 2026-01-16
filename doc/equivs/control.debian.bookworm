@@ -21,6 +21,7 @@ Depends:
  libboost-program-options-dev,
  libboost-python-dev,
  libboost-regex-dev,
+ libboost-stacktrace-dev,
  libboost-system-dev,
  libboost-thread-dev,
  libcgal-dev,
