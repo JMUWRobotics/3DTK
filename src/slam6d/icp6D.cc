@@ -396,18 +396,24 @@ void icp6D::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
     if (i > 0) {
       if (meta) {
         match(my_MetaScan, CurrentScan, pairing_mode);
-      } else
-	if (cad_matching) {
-    if (cad_index < allScans.size()) {
-	    match(allScans[cad_index], CurrentScan, pairing_mode);
-    } else {
-      std::cout << "WARN: cad_index (" << cad_index << ") > last scan index(" << allScans.size() - 1 << ")\n"
-        << "Using cad_index = " << allScans.size() - 1 << " instead." << std::endl;
-      match(allScans[allScans.size() - 1], CurrentScan, pairing_mode);
+      }
+      else if (cad_matching) {
+        if (cad_index < allScans.size()) {
+          match(allScans[cad_index], CurrentScan, pairing_mode);
+        } else {
+          std::cout << "WARN: cad_index (" << cad_index << ") > last scan index(" << allScans.size() - 1 << ")\n"
+            << "Using cad_index = " << allScans.size() - 1 << " instead." << std::endl;
+          match(allScans[allScans.size() - 1], CurrentScan, pairing_mode);
+        }
+      }
+      else {
+        match(PreviousScan, CurrentScan, pairing_mode);
+      }
     }
-	} else {
-	  match(PreviousScan, CurrentScan, pairing_mode);
-	}
+
+    // Usually the scan with idx 0 does not move, but with cad_index != 0, it could (should!)
+    if (i == 0 && cad_matching && cad_index != 0) {
+      match(allScans[cad_index], CurrentScan, pairing_mode);
     }
 
     // push processed scan

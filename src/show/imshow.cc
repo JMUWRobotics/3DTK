@@ -23,6 +23,7 @@
 #include "imgui.h"
 #include "imgui_impl_glut.h"
 #include "imgui_impl_opengl2.h"
+#include "GL/freeglut.h"
 #define GL_SILENCE_DEPRECATION
 #include "imGuIZMOquat.h"
 
@@ -356,7 +357,7 @@ static bool coloranimbool;
  * After this function, you have to manually collect and render, e.g.:
  * 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
  */
-void renderImGuiWindows()
+void renderImGuiWindows(bool update_logic = true)
 {
   // ImGUI Renderings First:
   ImGui_ImplOpenGL2_NewFrame();
@@ -766,43 +767,26 @@ void renderImGuiWindows()
     }
 
     // If non-idle and always all
-  } else if (always_all_pts) {
-    // interuptable always_all_pts mode
-    checkForInterrupt();
-    // Start loading the points, show a modal dialog (render twice because rendering cycles...)
-    if (!isInterrupted() && pointmode != 1 && !mousemoving && !keypressed && modal_renderings < 2 &&
-        haveToUpdate != 6) {
-      ImGui::OpenPopup("Please wait");
-      if (ImGui::BeginPopupModal("Please wait")) {
-        ImGui::Text("Loading all the points at once...");
-        ImGui::Text("Interact to abort.");
-        ImGui::EndPopup();
+  } else if (always_all_pts && update_logic) {
+    if (!mousemoving && !keypressed) {
+      if (pointmode != 1) {
+        pointmode = 1;
+        // Don't issue a redisplay here either for the same reason.
+        // The mouse release event likely already triggered a redisplay.
+        // Only if we need to force a re-draw (e.g. if idle) would we need this,
+        // but transitioning from moving to not moving implies an event happened.
+        // glutPostRedisplay();
       }
-      modal_renderings++;
-      haveToUpdate = 1;
-      // If we are interrupted, reset mode to display only reduced points internally
-    } else if (mousemoving || keypressed || isInterrupted()) {
+    } else {
+      // If we are moving, we switch to reduced points immediately
       if (pointmode != -1) {
         pointmode = -1;
-        if (haveToUpdate != 3)
-          haveToUpdate = 1;
+        // Don't issue a redisplay; the interaction event (motion/mouse)
+        // already issued a redisplay. Issuing another one here might
+        // cause a double-buffer swap glitch or race condition.
+        // glutPostRedisplay();
       }
-      if (ImGui::IsPopupOpen("Please wait")) {
-        ImGui::CloseCurrentPopup();
-      }
-      modal_renderings = 0;
-
-      // If we did not get interrupted and have rendered the modal dialog, start rendering all points
-    } else if (modal_renderings >= 2 && pointmode != 1) {
-      // Change pointmode to always all
-      pointmode = 1;
-      if (ImGui::IsPopupOpen("Please wait")) {
-        ImGui::CloseCurrentPopup();
-      }
-      modal_renderings = 0;
-      glutPostRedisplay();
     }
-    // If no idle and no checkbox
   } else if (!always_reduce_pts && !always_all_pts && (mousemoving || keypressed)) {
     // Change to always reduce
     if (pointmode != -1) {
@@ -984,10 +968,13 @@ void DrawPointsIm(GLenum mode, bool interruptable)
         glMultMatrixd(frame);
 
         ExtractFrustum(pointsize);
-        checkForInterrupt();
-        if (pointmode == 1 && !mousemoving && !keypressed && !isInterrupted()) {
+        // Only pump events if we are allowed to interrupt!
+        // Otherwise we might change state (mousemoving) mid-frame and cause flickering (mixed LOD/Full scans)
+        if (interruptable) checkForInterrupt();
+
+        if (pointmode == 1) {
           octpts[iterator]->display();
-        } else if (interruptable) {
+        } else if (interruptable && pointmode != -1) {
           checkForInterrupt();
           // ATTENTION: We sneak ImGui here when
           // force-drawing the points ImGui
@@ -996,8 +983,7 @@ void DrawPointsIm(GLenum mode, bool interruptable)
           if (!invert) {
             glDisable(GL_COLOR_LOGIC_OP);
           }
-          // Sneak imgui
-          renderImGuiWindows();
+
           ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
           // Reset color to before state
           if (invert) {
@@ -1023,7 +1009,7 @@ void DrawPointsIm(GLenum mode, bool interruptable)
           glPointSize(pointsize + 2.0);
           glBegin(GL_POINTS);
           for (std::set<sfloat *>::iterator it = selected_points[iterator].begin();
-               it != selected_points[iterator].end(); it++) {
+          it != selected_points[iterator].end(); it++) {
             glVertex3d((*it)[0], (*it)[1], (*it)[2]);
           }
           glEnd();
@@ -1032,12 +1018,45 @@ void DrawPointsIm(GLenum mode, bool interruptable)
 
         glPopMatrix();
       }
+      // Sneak imgui
+      if (interruptable && pointmode != 1) {
+        if (!invert) {
+          glDisable(GL_COLOR_LOGIC_OP);
+        }
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+        if (!invert) {
+          glEnable(GL_COLOR_LOGIC_OP);
+          glLogicOp(GL_COPY_INVERTED);
+        }
+        glFlush();
+        glFinish();
+      }
+    }
+
+    if (interruptable && pointmode == 1) {
+      if (!invert) {
+        glDisable(GL_COLOR_LOGIC_OP);
+      }
+      ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+      if (!invert) {
+        glEnable(GL_COLOR_LOGIC_OP);
+        glLogicOp(GL_COPY_INVERTED);
+      }
+      glFlush();
+      glFinish();
     }
   }
 
   checkForInterrupt();
   if (pointmode == 1 && !mousemoving && !keypressed && !isInterrupted()) {
     fullydisplayed = true;
+    // We also need to update lastfps here, otherwise LevelOfDetail might drift to 0
+    // while in full point mode, causing invisible points when switching to reduced mode.
+    unsigned long td = (GetCurrentTimeInMilliSec() - time);
+    if (td > 0)
+      lastfps = 1000.0 / td;
+    else
+      lastfps = 1000.0;
   } else {
     unsigned long td = (GetCurrentTimeInMilliSec() - time);
     if (td > 0)
@@ -1073,7 +1092,7 @@ void DisplayItFuncIm(GLenum mode, bool interruptable)
   }
 
   // clear the color and depth buffer bit
-  if (!interruptable) { // single buffer mode, we need the depth buffer
+  if (!interruptable || pointmode == 1 || pointmode == -1) { // single buffer mode, we need the depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -1235,7 +1254,7 @@ void displayIm()
   /* TODO : Think about a fourth mode, similar to -1 (reduce all), but only when interacted */
   if (pointmode == -1 || ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
     if (pointmode != 0)
-      glutPostRedisplay();
+    glutPostRedisplay();
   }
 }
 
