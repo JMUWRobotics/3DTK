@@ -1032,19 +1032,6 @@ void DrawPointsIm(GLenum mode, bool interruptable)
         glFinish();
       }
     }
-
-    if (interruptable && pointmode == 1) {
-      if (!invert) {
-        glDisable(GL_COLOR_LOGIC_OP);
-      }
-      ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-      if (!invert) {
-        glEnable(GL_COLOR_LOGIC_OP);
-        glLogicOp(GL_COPY_INVERTED);
-      }
-      glFlush();
-      glFinish();
-    }
   }
 
   checkForInterrupt();
