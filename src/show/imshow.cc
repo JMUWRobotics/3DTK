@@ -116,6 +116,12 @@ int spacenavHandlerIm()
           fixTranslation = !fixTranslation;
         }
       }
+    } else {
+#ifdef _WIN32
+      Sleep(1);
+#else
+      usleep(1000);
+#endif
     }
   }
 #else
@@ -253,10 +259,17 @@ extern bool classLabels;
 
 // Show Interrupt handlers:
 static bool interrupted = false;
+static int last_input_ms = -1000000;
+static const int redisplay_grace_ms = 100;
 
 void interruptDrawing() { interrupted = true; }
 
 void checkForInterrupt() { interrupted = false; }
+
+static inline void noteInputActivity()
+{
+  last_input_ms = glutGet(GLUT_ELAPSED_TIME);
+}
 
 bool isInterrupted()
 {
@@ -286,6 +299,7 @@ void keyPressedIm(unsigned char key, int x, int y)
 {
   // We need to update unless we are in an animation
   if (haveToUpdate != 3) haveToUpdate = 1;
+  noteInputActivity();
   interruptDrawing();
   ImGuiIO &io = ImGui::GetIO();
   ImGui_ImplGLUT_KeyboardFunc(key, x, y);
@@ -297,6 +311,7 @@ void keyPressedIm(unsigned char key, int x, int y)
 void keyPressedUpIm(unsigned char key, int x, int y)
 {
   if (haveToUpdate != 3) haveToUpdate = 1;
+  noteInputActivity();
   interruptDrawing();
   ImGui_ImplGLUT_KeyboardUpFunc(key, x, y);
   callbacks::glut::keyReleased(key, x, y);
@@ -307,6 +322,7 @@ void keyPressedUpIm(unsigned char key, int x, int y)
 void mouseButtonIm(int button, int state, int x, int y)
 {
   if (haveToUpdate != 3) haveToUpdate = 1;
+  noteInputActivity();
   interruptDrawing();
   ImGui_ImplGLUT_MouseFunc(button, state, x, y);
   callbacks::glut::mouseButton(button, state, x, y);
@@ -323,6 +339,7 @@ void reshapeIm(int width, int height)
 void mouseMoveIm(int x, int y)
 {
   if (haveToUpdate != 3) haveToUpdate = 1;
+  noteInputActivity();
   interruptDrawing();
   ImGui_ImplGLUT_MotionFunc(x, y);
   ImGuiIO &io = ImGui::GetIO();
@@ -334,7 +351,6 @@ void mouseMoveIm(int x, int y)
 static vgm::Quat qRotVgm = vgm::Quat(1.f, 0.f, 0.f, 0.f);
 static double t[3] = {0, 0, 0}, mat[16], rPT[3];
 static int colorTypeVal = 0;
-static int modal_renderings = 0;
 static int colorMapVal = 0;
 static bool cam_mouse_nav_bool = true;
 static bool always_all_pts = false;
@@ -357,7 +373,7 @@ static bool coloranimbool;
  * After this function, you have to manually collect and render, e.g.:
  * 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
  */
-void renderImGuiWindows(bool update_logic = true)
+void renderImGuiWindows()
 {
   // ImGUI Renderings First:
   ImGui_ImplOpenGL2_NewFrame();
@@ -371,8 +387,8 @@ void renderImGuiWindows(bool update_logic = true)
     ImGui::SetNextWindowPos(ImVec2(START_WIDTH_IMGUI * 0.83, START_HEIGHT_IMGUI * 0.01),
           ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(START_WIDTH_IMGUI * 0.165, START_HEIGHT_IMGUI * 0.80),
-           ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
+          ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowCollapsed(false, ImGuiCond_FirstUseEver);
     ImGui::Begin("Selection");
 
     if (ImGui::TreeNode("Draw")) {
@@ -626,8 +642,8 @@ void renderImGuiWindows(bool update_logic = true)
     ImGui::SetNextWindowPos(ImVec2(START_WIDTH_IMGUI * 0.01, START_HEIGHT_IMGUI * 0.01),
           ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(START_WIDTH_IMGUI * 0.655, START_HEIGHT_IMGUI * 0.20),
-           ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowCollapsed(true, ImGuiCond_FirstUseEver);
+          ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowCollapsed(false, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Controls")) {
 
       bool table_exists = ImGui::BeginTable(
@@ -645,18 +661,18 @@ void renderImGuiWindows(bool update_logic = true)
 
       // Column 2
       ImGui::TableNextColumn();
-      ImGui::Text("Zoom settings");
+      ImGui::Text("FoV/Zoom");
       if (showViewMode == 0) {
-        ImGui::SliderFloat("Field of View", &cangle, 1.0, 180.0, "%.1f");
+        ImGui::SliderFloat("", &cangle, 1.0, 180.0, "%.1f");
         ImGui::Text("Currently in: Normal view.");
       }
       if (showViewMode == 1) {
-        ImGui::SliderFloat("Parallel Zoom", &pzoom, 0.1, 100000.0, "%.1f",
+        ImGui::SliderFloat("", &pzoom, 0.1, 100000.0, "%.1f",
                ImGuiSliderFlags_Logarithmic);
         ImGui::Text("Currently in: Ortographic view.");
       }
       if (showViewMode == 2) {
-        ImGui::SliderFloat("Rotate Zoom", &rzoom, 0.001, 100000.0, "%.3f",
+        ImGui::SliderFloat("", &rzoom, 0.001, 100000.0, "%.3f",
                ImGuiSliderFlags_Logarithmic);
         ImGui::Text("Currently in: Rotate view.");
       }
@@ -703,7 +719,7 @@ void renderImGuiWindows(bool update_logic = true)
       // Column 4
       ImGui::TableNextColumn();
       ImGui::Text("Camera");
-      ImGui::SliderInt("Choose camera", &signed_int_cam_choice, 0, cams.size());
+      ImGui::SliderInt("", &signed_int_cam_choice, 0, cams.size());
       cam_choice = signed_int_cam_choice;
       if (ImGui::Button("Add camera"))
         callAddCamera(0);
@@ -767,24 +783,15 @@ void renderImGuiWindows(bool update_logic = true)
     }
 
     // If non-idle and always all
-  } else if (always_all_pts && update_logic) {
+  } else if (always_all_pts) {
     if (!mousemoving && !keypressed) {
       if (pointmode != 1) {
         pointmode = 1;
-        // Don't issue a redisplay here either for the same reason.
-        // The mouse release event likely already triggered a redisplay.
-        // Only if we need to force a re-draw (e.g. if idle) would we need this,
-        // but transitioning from moving to not moving implies an event happened.
-        // glutPostRedisplay();
       }
     } else {
       // If we are moving, we switch to reduced points immediately
       if (pointmode != -1) {
         pointmode = -1;
-        // Don't issue a redisplay; the interaction event (motion/mouse)
-        // already issued a redisplay. Issuing another one here might
-        // cause a double-buffer swap glitch or race condition.
-        // glutPostRedisplay();
       }
     }
   } else if (!always_reduce_pts && !always_all_pts && (mousemoving || keypressed)) {
@@ -983,7 +990,7 @@ void DrawPointsIm(GLenum mode, bool interruptable)
           if (!invert) {
             glDisable(GL_COLOR_LOGIC_OP);
           }
-
+          // Just put the already available render data above the points
           ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
           // Reset color to before state
           if (invert) {
@@ -1224,7 +1231,7 @@ void displayIm()
 #ifdef _WIN32
     Sleep(5); // legacy show: Sleep(25)
 #else
-    usleep(50000); // legacy show: usleep(250000)
+    usleep(1000); // legacy show: usleep(250000)
 #endif
   }
 
@@ -1237,12 +1244,6 @@ void displayIm()
 
   // Draw the buffer
   glutSwapBuffers();
-  // Update if ImGui wants attention or reduce pts (interactive mode)
-  /* TODO : Think about a fourth mode, similar to -1 (reduce all), but only when interacted */
-  if (pointmode == -1 || ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
-    if (pointmode != 0)
-    glutPostRedisplay();
-  }
 }
 
 /**
@@ -1254,18 +1255,38 @@ void displayIm()
  */
 void idleIm(void)
 {
+  // Adaptive Sleep
+  // If there is nothing to be done, we can sleep a bit longer to save CPU cycles
+  if (haveToUpdate == 0 && (fullydisplayed || pointmode == 1 || pointmode == -1)) {
 #ifdef _WIN32
-  Sleep(1);
+    Sleep(20);
 #else
-  usleep(1000);
+    usleep(20000);
 #endif
-
+  } else {
+    // If we are accumulating points (pointmode == 0) or updating, yield briefly
+#ifdef _WIN32
+    Sleep(1);
+#else
+    usleep(1000);
+#endif
+  }
 
   if (glutGetWindow() != window_id)
     glutSetWindow(window_id);
 
   // return as nothing has to be updated
   if (haveToUpdate == 0) {
+    // Continuous redraw is only needed during active interaction.
+    // This keeps CPU usage low when the scene is stable.
+    int now_ms = glutGet(GLUT_ELAPSED_TIME);
+    bool active_input = (mousemoving && mouseNavButton != -1) || keypressed;
+    bool redraw_grace = (now_ms - last_input_ms) <= redisplay_grace_ms;
+    if (active_input || redraw_grace) {
+      update_callback();
+      return;
+    }
+
     if (!fullydisplayed && !mousemoving && !keypressed && pointmode == 0) {
       glDrawBuffer(buffermode);
       // Call the display function

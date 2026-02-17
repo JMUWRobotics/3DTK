@@ -388,7 +388,7 @@ void icp6D::doICP(vector <Scan *> allScans, PairingMode pairing_mode)
 
     if (i > 0) {
       PreviousScan = allScans[i-1];
-      if (eP) {                             // extrapolate odometry
+      if (eP && cad_index != i) { // extrapolate odometry (if not cad matching)
         CurrentScan->mergeCoordinatesWithRoboterPosition(PreviousScan);
       }
     }
