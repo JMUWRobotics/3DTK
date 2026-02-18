@@ -328,7 +328,27 @@ po::options_description generic("Generic options");
          << "\t./bin/slam6d -s 2 -e 10 dat" << std::endl;
     exit(0);
   }
+
+
   po::notify(vm);
+
+  // CAD matching is not always possible:
+  if (cad_index >= 0 && meta) {
+    cerr << "Error: CAD matching is not possible in MetaScan mode." << endl;
+    exit(1);
+  }
+  if (cad_index >= 0 && loopSlam6DAlgo != 0) {
+    cerr << "Error: CAD matching is not possible with Graph SLAM." << endl;
+    exit(1);
+  }
+  if (cad_index >= 0 && lum6DAlgo != 0) {
+    cerr << "Error: CAD matching is not possible with Global Relaxiation." << endl;
+    exit(1);
+  }
+  if (cad_index >= 0 && mni_lum > 0) {
+    cerr << "Error: CAD matching is not possible with Loop Closing." << endl;
+    exit(1);
+  }
 
 #ifndef _MSC_VER
   if (dir[dir.length()-1] != '/') dir = dir + "/";
@@ -608,7 +628,7 @@ int main(int argc, char **argv)
   if (continue_processing) Scan::continueProcessing();
   Scan::setProcessingCommand(argc, argv);
 
-  Scan::openDirectory(scanserver, dir, type, start, end);
+  Scan::openDirectory(scanserver, dir, type, start, cad_index > end ? cad_index : end);
 
   if(Scan::allScans.size() == 0) {
     cerr << "No scans found. Did you use the correct format?" << endl;
@@ -725,9 +745,24 @@ int main(int argc, char **argv)
     if (cad_index != -1)
     {
       my_icp->set_cad_matching (true, cad_index);
+      if (cad_index > end) {
+        vector<Scan*> cad_scanvec;
+        cad_scanvec.reserve(end + 2);
+        for (int i = 0; i <= end; ++i) {
+          cad_scanvec.push_back(Scan::allScans[i]);
+        }
+        cad_scanvec.push_back(Scan::allScans[cad_index]);
+        my_icp->set_cad_matching(true, end + 1);
+        my_icp->doICP(cad_scanvec, pairing_mode);
+      } else {
+        my_icp->doICP(Scan::allScans, pairing_mode);
+      }
+    } // The usual successive matching
+    else
+    {
+      if (my_icp) my_icp->doICP(Scan::allScans, pairing_mode);
     }
 
-    if (my_icp) my_icp->doICP(Scan::allScans, pairing_mode);
     delete my_icp;
   } else if (clpairs > -1) {
     //!!!!!!!!!!!!!!!!!!!!!!!!

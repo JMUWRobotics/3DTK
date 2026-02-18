@@ -74,9 +74,9 @@ po::options_description generic("Generic options");
     ("max,m", po::value<int>(&maxDist)->default_value(-1),
     "neglegt all data points with a distance larger than NR 'units'")
     ("skipEmpty", po::bool_switch(&skip_empty)->default_value(false),
-     "Use global reference frame for export")
-    ("trustPose", po::bool_switch(&trustpose)->default_value(false),
-     "Use global reference frame for export");
+     "Skip empty scans (use it if you have condensed with it!)")
+    ("trustpose", po::bool_switch(&trustpose)->default_value(true),
+     "Does not do anything. Just to support copy/paste of condense args");
 
   po::options_description hidden("Hidden options");
   hidden.add_options()
