@@ -16,23 +16,28 @@
 namespace po = boost::program_options;
 
 // remove dynamic points
-static void update_for_icp(Scan* scan, const std::set<size_t> &dynamic_indices) {
-	DataXYZ xyz(scan->get("xyz"));
-	std::vector<Point> static_pts;
-	static_pts.reserve(xyz.size() - dynamic_indices.size());
-	for (size_t i = 0; i < xyz.size(); ++i) {
+static void update_for_icp(Scan *scan, const DataXYZ &orig_xyz, const std::set<size_t> &dynamic_indices)
+{
+	const size_t n = orig_xyz.size();
+	size_t static_count = 0;
+	for (size_t i = 0; i < n; ++i) {
 		if (dynamic_indices.find(i) == dynamic_indices.end()) {
-			const double *p = xyz[i];
-			static_pts.emplace_back(p[0], p[1], p[2]);
+			++static_count;
 		}
 	}
-    scan->clear("xyz");
-    DataPointer dp = scan->create("xyz", sizeof(double)*3*static_pts.size());
-    double *dptr = reinterpret_cast<double*>(dp.get_raw_pointer());
-	for (size_t k = 0; k < static_pts.size(); ++k) {
-		dptr[3*k]   = static_pts[k].x;
-		dptr[3*k+1] = static_pts[k].y;
-		dptr[3*k+2] = static_pts[k].z;
+	scan->clear("xyz reduced");
+	DataPointer dp = scan->create("xyz reduced", sizeof(double) * 3 * static_count);
+	double *dptr = reinterpret_cast<double *>(dp.get_raw_pointer());
+
+	size_t k = 0;
+	for (size_t i = 0; i < n; ++i) {
+		if (dynamic_indices.find(i) == dynamic_indices.end()) {
+			const double *p = orig_xyz[i];
+			dptr[3 * k] = p[0];
+			dptr[3 * k + 1] = p[1];
+			dptr[3 * k + 2] = p[2];
+			++k;
+		}
 	}
 }
 
@@ -56,9 +61,9 @@ int main(int argc, char *argv[])
 
 	size_t done = 0;
 
-	int iterations = 3;
+	int iterations = 2;
 	int icp_iter	= 100;
-	double icp_maxdist = 1.0;
+	double icp_maxdist = 100.0;
 #ifdef WITH_MMAP_SCAN
 	std::string cachedir;
 #endif
@@ -122,6 +127,8 @@ int main(int argc, char *argv[])
 		 * different length.
 		 */
 		scan->setRangeFilter(-1, voxel_diagonal);
+		scan->setReductionParameter(-1.0, 0, PointType(0));
+		scan->setSearchTreeParameter(simpleKD, 20);
 		DataXYZ xyz_orig(scan->get("xyz"));
 		// copy points
 		size_t raw_orig_data_size =
@@ -206,7 +213,7 @@ int main(int argc, char *argv[])
 		// registration
 		{
 			icp6Dminimizer *icpMin = new icp6D_SVD(false);
-			icp6D *my_icp = new icp6D(icpMin, icp_maxdist, icp_iter, false, false, -1, false, -1, 0.00001, simpleKD);
+			icp6D *my_icp = new icp6D(icpMin, icp_maxdist, icp_iter);
 			std::cerr << "ICP..." << std::endl;
 			my_icp->doICP(Scan::allScans, CLOSEST_POINT);
 			delete my_icp; 
@@ -220,13 +227,15 @@ int main(int argc, char *argv[])
 			DataXYZ orig = orig_points_by_slice[ii];
 			size_t n = orig.size();
 			double *glob = new double[3 * n];
-			const double *transMat = Scan::allScans[scan_id]->get_transMatOrg();
+			const double *transMat = Scan::allScans[scan_id]->get_transMat();
 			for (size_t k = 0; k < n; ++k) {
 				double p[3] = {orig[k][0], orig[k][1], orig[k][2]};
 				transform3(transMat, p);
-				glob[3*k]   = p[0]; glob[3*k+1] = p[1]; glob[3*k+2] = p[2];
+				glob[3*k]   = p[0];
+				glob[3*k+1] = p[1];
+				glob[3*k+2] = p[2];
 			}
-			  points_by_slice[ii] = DataXYZ(DataPointer((unsigned char*)glob, n*sizeof(double)*3));
+			points_by_slice[ii] = DataXYZ(DataPointer((unsigned char*)glob, n*sizeof(double)*3));
 			trajectory[ii] = std::make_tuple(Scan::allScans[scan_id]->get_rPos(), Scan::allScans[scan_id]->get_rPosTheta(), transMat);
 		}
 	std::cerr << "calculate voxel occupation" << std::endl;
@@ -581,7 +590,7 @@ int main(int argc, char *argv[])
 		}
 		for(size_t scan_id=0; scan_id<Scan::allScans.size(); ++scan_id) {
 			size_t ii = scan_id + start;
-			update_for_icp(Scan::allScans[scan_id], dyn_idx[ii]);
+			update_for_icp(Scan::allScans[scan_id], orig_points_by_slice[ii], dyn_idx[ii]);
 		}
 	}
 	std::cerr << "write partitioning" << std::endl;
