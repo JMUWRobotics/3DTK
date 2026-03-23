@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
 
 	size_t done = 0;
 
-	int iterations = 2;
+	int iterations = 3;
 	int icp_iter	= 100;
-	double icp_maxdist = 100.0;
+	double icp_maxdist = 20.0;
 #ifdef WITH_MMAP_SCAN
 	std::string cachedir;
 #endif
@@ -209,7 +209,20 @@ int main(int argc, char *argv[])
 	std::set<struct voxel> last_free_voxels;
 	std::unordered_map<struct voxel, std::set<size_t>> last_half_voxels;
 	for (int iter = 0; iter < iterations; ++iter) {
-		std::cerr << "\niteration " << iter+1 << " / " << iterations << "\n" << std::endl;
+		std::cerr << "\niteration " << iter << " / " << iterations << "\n" << std::endl;
+		//load static points
+		if (iter > 0) {
+			Scan::closeDirectory();
+
+			std::string last_dir = dir + "/iteration_" + std::to_string(iter - 1);
+			Scan::openDirectory(false, last_dir, format, start, end);
+
+			for (Scan *scan : Scan::allScans) {
+				scan->setRangeFilter(-1, voxel_diagonal);
+				scan->setReductionParameter(-1.0, 0, PointType(0));
+				scan->setSearchTreeParameter(simpleKD, 20);
+			}
+		}
 		// registration
 		{
 			icp6Dminimizer *icpMin = new icp6D_SVD(false);
@@ -588,10 +601,49 @@ int main(int argc, char *argv[])
 					dyn_idx[ii].insert(j);
 			}
 		}
+		std::string iter_dir = dir + "/iteration_" + std::to_string(iter);
+		boost::filesystem::create_directories(iter_dir);
+		//save static points for next iteration
+		std::cerr << "write static points for next iteration" << std::endl;
+		for (size_t scan_id = 0; scan_id < Scan::allScans.size(); ++scan_id) {
+			size_t ii = scan_id + start;
+
+			std::ostringstream out;
+			out << iter_dir << "/scan" << std::setw(3) << std::setfill('0') << ii << ".3d";
+			FILE *out_scan = fopen(out.str().c_str(), "wb");
+			if (!out_scan) {
+				std::cerr << "cannot open " << out.str() << std::endl;
+				exit(1);
+			}
+
+			const DataXYZ &orig = orig_points_by_slice[ii];
+			for (size_t j = 0; j < orig.size(); ++j) {
+				if (!dyn_idx[ii].count(j))
+					fprintf(out_scan, "%a %a %a\n", orig[j][0], orig[j][1], orig[j][2]);
+			}
+			fclose(out_scan);
+
+			std::ostringstream out_pose;
+			out_pose << iter_dir << "/scan" << std::setw(3) << std::setfill('0') << ii << ".pose";
+			FILE *pose = fopen(out_pose.str().c_str(), "wb");
+			if (!pose) {
+				std::cerr << "cannot open " << out_pose.str() << std::endl;
+				exit(1);
+			}
+			fprintf(pose, "%.17f %.17f %.17f\n%.17f %.17f %.17f\n",
+				std::get<0>(trajectory[ii])[0],
+				std::get<0>(trajectory[ii])[1],
+				std::get<0>(trajectory[ii])[2],
+				std::get<1>(trajectory[ii])[0] * 180 / M_PI,
+				std::get<1>(trajectory[ii])[1] * 180 / M_PI,
+				std::get<1>(trajectory[ii])[2] * 180 / M_PI);
+			fclose(pose);
+		}
+		/*
 		for(size_t scan_id=0; scan_id<Scan::allScans.size(); ++scan_id) {
 			size_t ii = scan_id + start;
 			update_for_icp(Scan::allScans[scan_id], orig_points_by_slice[ii], dyn_idx[ii]);
-		}
+		}*/
 	}
 	std::cerr << "write partitioning" << std::endl;
 #ifndef _MSC_VER
