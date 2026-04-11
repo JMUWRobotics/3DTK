@@ -41,6 +41,17 @@ static void update_for_icp(Scan *scan, const DataXYZ &orig_xyz, const std::set<s
 	}
 }
 
+static void free_points(std::unordered_map<size_t, DataXYZ> &points_by_slice)
+{
+	for (std::pair<const size_t, DataXYZ> &entry : points_by_slice) {
+		unsigned char *ptr = entry.second.get_raw_pointer();
+		if (ptr != nullptr) {
+			delete[] reinterpret_cast<double *>(ptr);
+		}
+	}
+	points_by_slice.clear();
+}
+
 int main(int argc, char *argv[])
 {
 	ssize_t start, end;
@@ -62,17 +73,56 @@ int main(int argc, char *argv[])
 	size_t done = 0;
 
 	int iterations = 3;
-	int icp_iter	= 100;
-	double icp_maxdist = 20.0;
+	int mni = 100;
+	double mdm = 20.0;
+	double red = -1.0;
+	int octree = 0;
+	double epsilonICP = 0.0000001;
+	std::vector<std::string> forwarded_arg_col;
+	std::vector<char *> forwarded_argv;
+	{
+		po::options_description icp_options("ICP options");
+		icp_options.add_options()
+			("iterations",
+			po::value<int>(&iterations)->default_value(iterations),
+			"Outer loop iterations")
+			("iter,i", po::value<int>(&mni)->default_value(mni),
+			"sets the maximal number of ICP iterations to <NR>")
+			("dist,d", po::value<double>(&mdm)->default_value(mdm),
+			"sets the maximal point-to-point distance for matching with ICP "
+			"to <NR> 'units'"
+			"(unit of scan data, e.g. cm)")
+			("icp-reduce,r", po::value<double>(&red)->default_value(red),
+			"turns on octree based point reduction (voxel size=<NR>)")
+			("octree,O", po::value<int>(&octree)->default_value(octree),
+			"use randomized octree based point reduction (pts per voxel=<NR>)")
+			("epsICP,5",
+			po::value<double>(&epsilonICP)->default_value(epsilonICP),
+			"stop ICP iteration if difference is smaller than NR");
+
+		po::parsed_options parsed = po::command_line_parser(argc, argv).options(icp_options).allow_unregistered().run();
+
+		po::variables_map vm;
+		po::store(parsed, vm);
+		po::notify(vm);
+
+		forwarded_arg_col = po::collect_unrecognized(parsed.options, po::include_positional);
+		forwarded_argv.reserve(forwarded_arg_col.size() + 1);
+		forwarded_argv.push_back(argv[0]);
+		for (std::string &arg : forwarded_arg_col) {
+			forwarded_argv.push_back(const_cast<char *>(arg.c_str()));
+		}
+	}
 #ifdef WITH_MMAP_SCAN
 	std::string cachedir;
 #endif
 
-	parse_cmdline(argc, argv, start, end, format, fuzz, voxel_size, diff,
+	parse_cmdline(forwarded_argv.size(),
+		      forwarded_argv.data(), start, end, format, fuzz,
+		      voxel_size, diff,
 		      normal_knearest, cluster_size, normal_method,
 		      maxrange_method, maskdir, staticdir, dir,
-		      no_subvoxel_accuracy, write_maxranges, jobs, reduce//,
-			  //iterations, icp_iter, icp_maxdist
+		      no_subvoxel_accuracy, write_maxranges, jobs, reduce
 #ifdef WITH_MMAP_SCAN
 		      ,
 		      cachedir
@@ -127,7 +177,7 @@ int main(int argc, char *argv[])
 		 * different length.
 		 */
 		scan->setRangeFilter(-1, voxel_diagonal);
-		scan->setReductionParameter(-1.0, 0, PointType(0));
+		scan->setReductionParameter(red, octree, PointType(0));
 		scan->setSearchTreeParameter(simpleKD, 20);
 		DataXYZ xyz_orig(scan->get("xyz"));
 		// copy points
@@ -219,21 +269,21 @@ int main(int argc, char *argv[])
 
 			for (Scan *scan : Scan::allScans) {
 				scan->setRangeFilter(-1, voxel_diagonal);
-				scan->setReductionParameter(-1.0, 0, PointType(0));
-				scan->setSearchTreeParameter(simpleKD, 20);
+				scan->setReductionParameter(red, octree, PointType(0));
+				scan->setSearchTreeParameter(simpleKD);
 			}
 		}
 		// registration
 		{
 			icp6Dminimizer *icpMin = new icp6D_SVD(false);
-			icp6D *my_icp = new icp6D(icpMin, icp_maxdist, icp_iter);
+			icp6D *my_icp = new icp6D(icpMin, mdm, mni, false, false, 1, true, -1, epsilonICP);
 			std::cerr << "ICP..." << std::endl;
 			my_icp->doICP(Scan::allScans, CLOSEST_POINT);
 			delete my_icp; 
 			delete icpMin;
 		}
 		// rebuild global points and trajectory
-		points_by_slice.clear();
+		free_points(points_by_slice);
 		trajectory.clear();
 		for (size_t scan_id = 0; scan_id < Scan::allScans.size(); ++scan_id) {
 			size_t ii = scan_id + start;
@@ -260,6 +310,7 @@ int main(int argc, char *argv[])
 	    voxel_occupied_by_slice;
 	std::cerr << "0 %\r";
 	std::cerr.flush();
+	done = 0;
 	for (std::pair<size_t, DataXYZ> element : points_by_slice) {
 		for (size_t i = 0; i < element.second.size(); ++i) {
 			voxel_occupied_by_slice
