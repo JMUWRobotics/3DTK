@@ -1,5 +1,5 @@
 /*
- * frames2riegl implementation
+ * frames2kitti implementation
  *
  * Copyright (C) Shitong Du
  *
@@ -60,13 +60,14 @@ int parseArgs(int argc,char **argv, char dir[255], int& start, int& end,int& seq
   if (optind != argc-1) {
     cerr << "\n*** Directory missing ***\n" << endl;
     cout << endl
-	  << "Usage: " << argv[0] << "  [-s NR] [-e NR] directory" << endl << endl;
+	  << "Usage: " << argv[0] << "  [-s NR] [-e NR] [-q NR] directory" << endl << endl;
 
     cout << "  -s NR   start at scan NR (i.e., neglects the first NR scans)" << endl
-       << "          [ATTENTION: counting starts with 0]" << endl
-	  << "  -e NR   end after scan NR" << "" << endl
-	  << endl;
-    cout << "Reads frame files from directory/scan???.frames and converts them to directory/scan???.4x4 in the RIEGL pose file format." << endl;
+	 << "          [ATTENTION: counting starts with 0]" << endl
+	 << "  -e NR   end after scan NR" << "" << endl
+	 << "  -q NR   sequence number for output file" << endl
+	 << endl;
+    cout << "Reads frame files from directory/scan???.frames and converts them to directory/??.txt in KITTI odometry pose format." << endl;
     abort();
   }
   strncpy(dir,argv[optind],255);
@@ -125,10 +126,6 @@ int main(int argc, char **argv)
   inMatrix[ 9] =-tMatrix[6];
   inMatrix[10] =tMatrix[10];
   inMatrix[11] =tMatrix[14];
-  inMatrix[12] =tMatrix[3];
-  inMatrix[13] =tMatrix[7];;
-  inMatrix[14] =tMatrix[11];
-  inMatrix[15] =tMatrix[15];
 
     inMatrix[3] /= 100;
     inMatrix[7] /= 100;
@@ -140,11 +137,10 @@ int main(int argc, char **argv)
 
     cout << "Writing Kitti pose... " << poseFileName << endl;
 
-    for (int i=0; i < 12; i++) {
-      pose_out << inMatrix[i] << " ";
-     // if((i % 4) == 3) pose_out << endl;
+    pose_out << inMatrix[0];
+    for(int i = 1; i < 12; i++){
+      pose_out << " " << inMatrix[i];
     }
-
     pose_out << endl;
     pose_out.close();
     pose_out.clear();
