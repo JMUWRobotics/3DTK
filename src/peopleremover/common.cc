@@ -117,7 +117,7 @@ void walk_voxels(
 		void *data
 		)
 {
-	double *direction = new double[3];
+	double direction[3];
 	direction[0] = end_pos[0] - start_pos[0];
 	direction[1] = end_pos[1] - start_pos[1];
 	direction[2] = end_pos[2] - start_pos[2];
@@ -301,7 +301,6 @@ void walk_voxels(
 			break;
 		}
 	}
-	delete[] direction;
 	return;
 }
 
