@@ -1,3 +1,4 @@
+add_subdirectory(new_click_tool/MVP)
 if (WITH_OPENCV)
   find_package(OpenCV REQUIRED)
 

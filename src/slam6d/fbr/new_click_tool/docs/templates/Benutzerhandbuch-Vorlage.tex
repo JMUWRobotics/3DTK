@@ -1,0 +1,97 @@
+\documentclass[a4paper,10pt]{scrartcl}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[babel,german=quotes]{csquotes}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{multicol}
+
+\setlength\parindent{0pt}
+\setitemize{itemsep=0pt}
+
+
+\geometry{
+	a4paper,
+	left=20mm,
+	top=20mm,
+	bottom=15mm,
+	footskip=5mm
+}
+
+\subject{Gruppe \textit{Nummer}}
+\title{Benutzerhandbuch für das Thema \glqq\textit{Titel}\grqq}
+\subtitle{Betreuer: \textit{Name}}
+\author{\textit{Namen der Teilnehmenden}}
+\date{\textit{Datum}}
+
+\begin{document}
+
+\maketitle
+
+\textit{\textbf{Anmerkung:} Alles, was in diesem Dokument kursiv geschrieben ist, muss von der Gruppe entsprechend ihres Themas angepasst (und diese und alle übrigen Anmerkungen entfernt) werden}
+
+\tableofcontents
+
+\newpage
+
+\section{Benutzungsoberfläche}
+
+\textit{\textbf{Anmerkung:} In diesem Abschnitt soll (sofern vorhanden) die Benutzungsoberfläche beschrieben werden; dafür sollen Screenshots verwendet und beschrieben werden, wobei Teile der Oberfläche mit mehreren Komponenten anhand einer Nummerierung des Screenshots (wie im folgenden Beispiel) erklärt werden sollen}
+
+\subsection{Übersicht}
+
+\textit{Kurze Beschreibung der Funktionen der Oberfläche mit (sofern vorhanden) Screenshot der primären Ansicht und Verweis auf die Abbildung \ref{sample-screenshot}}
+
+\begin{figure}[h]
+\caption{Beispiel für einen Screenshot mit nummerierten Bereichs-Markierungen}
+\label{sample-screenshot}
+\includegraphics[width=\textwidth]{sample-screenshot.png}
+\end{figure}
+
+\begin{enumerate}
+    \item \textit{Beschreibung des mit 1 markierten Teils der Oberfläche}
+    \begin{itemize}
+        \item \textit{Ggf. stichpunktartige, detailliertere Beschreibung des 1. Teils}
+        \item \textit{...}
+    \end{itemize}
+    \item \textit{...}
+\end{enumerate}
+
+\textit{Ggf. weitere Erläuterungen zu der gesamten Oberfläche (falls nötig auch mit weiteren Screenshots)}
+
+\subsection{\textit{Unter-/Detail-Seite 1}}
+
+\textit{Beschreibung der nächsten bzw. einer weiteren Ansicht im gleichen Aufbau wie oben (also mit Screenshot und Erläuterung des Screenshots)}
+
+\subsection{\textit{...}}
+
+\newpage
+
+\section{REST-Schnittstelle}
+
+\textit{\textbf{Anmerkung:} In diesem Abschnitt soll (sofern vorhanden) die REST-Schnittstelle beschrieben werden (als Sicht einer die Software benutzende Person auf das Backend); dafür sollen die einzelnen Endpunkte, die dabei zu verwendende HTTP-Anfragemethode, was sie zurückgeben und (sofern benötigt) die erwarteten Parameter erläutert werden}
+
+\subsection{\textit{Abschnitt 1 der REST-Schnittstelle}}
+
+\textit{Kurze Beschreibung eines ersten Abschnitts der REST-Schnittstelle (z.B. alle Funktion für die An- und Abmeldung an der Oberfläche)\\}
+
+\texttt{\textit{path/to/first/endpoint} $\rightarrow$ \textit{Ergebnis-Format (z.B. \glqq string\grqq)} \dotfill \textit{Methode (z.B. POST)}}
+\begin{itemize}[label={}]
+    \item \textbf{\textit{nameOfParameter}} (\textit{Parameter-Format (z.B. \glqq string\grqq)}): \textit{Kurze Beschreibung des Parameters}
+\end{itemize}
+
+\texttt{\textit{...}}
+
+\subsection{\textit{...}}
+
+\newpage
+
+\section{\textit{Ggf. weitere Schnittstelle(n)}}
+
+\textit{\textbf{Anmerkung:} Sofern die Anwendung über weitere Schnittstellen verfügt (z.B. für die Verwendung über die Kommandozeile) sollen diese hier (und falls nötig in weiteren Abschnitten) beschrieben werden}
+
+\end{document}
