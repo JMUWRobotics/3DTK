@@ -1,6 +1,6 @@
 #define GL_SILENCE_DEPRECATION
 
-#include <glad/glad.h>
+// #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -33,9 +33,9 @@ int main(int argc, char** argv) {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); 
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+  /*  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         return -1;
-    }
+    }*/
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
