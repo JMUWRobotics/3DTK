@@ -23,7 +23,9 @@ add_executable(new_click_tool main.cpp App.cpp
 ../../../../../3rdparty/imgui/backends/imgui_impl_glfw.cpp
 ../../../../../3rdparty/imgui/backends/imgui_impl_opengl3.cpp)
 
-target_include_directories(new_click_tool PRIVATE ${IMGUI_INCLUDE_DIRS}) ##
+target_include_directories(new_click_tool PRIVATE 
+../../../../../3rdparty/imgui
+../../../../../3rdparty/imgui/backends) ##
 
 target_link_libraries(new_click_tool PRIVATE
    # imgui::imgui

@@ -121,7 +121,7 @@ void App::Update() {
             m_panY += io.MouseDelta.y;
         }
 
-        // Zoom (Mausrad)
+ /*       // Zoom (Mausrad)
         if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
             // Zoom in die Mitte des Bildschirms justieren
             float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
@@ -130,7 +130,26 @@ void App::Update() {
             // Angepasste Limits für extrem große Bilder
             if (m_zoom < 0.01f) m_zoom = 0.01f; 
             if (m_zoom > 20.0f) m_zoom = 20.0f;
+        }*/
+        
+             // Zoom (Mausrad) ALTERNATIVE: Zoom to mouse position
+        if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
+            // current mouse / pixel-position
+            ImVec2 mousePosition = ImGui::GetMousePos();
+            float curX = (mousePosition.x -(viewport -> WorkPos.x + m_panX))/m_zoom;
+            float curY = (mousePosition.y -(viewport->WorkPos.y + m_panY)) / m_zoom;
+            float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
+            m_zoom *= zoomFactor;
+            
+            // Angepasste Limits für extrem große Bilder
+            if (m_zoom < 0.01f) m_zoom = 0.01f; 
+            if (m_zoom > 20.0f) m_zoom = 20.0f;
+            
+            // fix pan-position: 
+            m_panX = mousePosition.x - viewport-> WorkPos.x - curX*m_zoom;
+            m_panY = mousePosition.y - viewport->WorkPos.y - curY* m_zoom;
         }
+        
 
         ImVec2 p_min = ImVec2(viewport->WorkPos.x + m_panX, viewport->WorkPos.y + m_panY);
         ImVec2 p_max = ImVec2(p_min.x + m_imgWidth * m_zoom, p_min.y + m_imgHeight * m_zoom);
