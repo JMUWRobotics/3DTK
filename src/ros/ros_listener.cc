@@ -1,8 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <cassert>
 #include <string>
-#include <queue>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -11,18 +9,14 @@
 
 #include <ros/ros.h>
 #include <ros/spinner.h>
-#include <ros/callback_queue.h>
 #include <std_msgs/Header.h>
-#include <geometry_msgs/Quaternion.h>
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/Imu.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/PCLPointCloud2.h>
+#include <pcl/point_types.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -41,37 +35,28 @@ using namespace chrono;
 namespace po = boost::program_options;
 
 const char* PATH; // Current directory
-const int POSE_WINDOW_SIZE = 2; // Size of pose sliding window average
-bool have_pose_topic = true;
-
 const int PATH_CHAR_LEN = 5000; // what a shit define... maximum buffer size for output path
 const double conv_rad2deg = 57.29577951308232;
 
-// Pose stream is usually very fast wrt. LiDAR, so we assign an individual callback queue
-ros::CallbackQueue callbacks_poses;
-std::queue<geometry_msgs::PoseStamped> current_poses;
-bool ignore_stamps = false;
 bool skip_points = false;
+bool export_intensity = false;
 double min_dist2;
 double max_dist2;
+string map_frame = "";
 
 uint seq; // this counts the scanfiles, starting from 000, 001, 002, ... , 999, 1000, 1001,...
 bool firstLidarCallback = false;
 bool verbose;
 
-// Transform between IMU frame and Laserscan frame
-tf::StampedTransform transform_lidar2pose;
-// These can be filled using the inital callbacks.
 string lidar_frame = "";
-string source_frame = "";
+tf::TransformListener* tf_listener = nullptr;
 
 int parse_options (int argc, char** argv,
   string& outdir,
   string& lidar_topic,
-  string& pose_topic,
+  string& map_frame,
   bool& skip_points,
-  int& pose_type,
-  bool& ignore_timestamps,
+  bool& export_intensity,
   bool& verbose,
   double& minDist,
   double& maxDist
@@ -86,22 +71,19 @@ int parse_options (int argc, char** argv,
     ("lidar_topic,L", po::value<string>(&lidar_topic)->default_value("/lidar"),
      "Provide the name of the topic where LiDAR data gets published.\n"
      "Currently, only sensor_msgs::PointCloud2 format is supported.")
-    ("pose_topic,P", po::value<string>(&pose_topic)->default_value(""),
-     "Provide the name of the topic where pose data gets published.")
-    ("pose_type", po::value<int>(&pose_type)->default_value(1),
-     "Chose the ROS data type of pose input:\n"
-     " 1 - geometry_msgs::PoseStamped\n"
-     " 2 - sensor_msgs::Imu (this will only use rotation)")
+    ("map_frame,F", po::value<string>(&map_frame)->default_value("map"),
+     "Name of the fixed (world) frame in the TF tree. The LiDAR frame will be\n"
+     "looked up relative to this frame to obtain the scanner pose.")
     ("minDist,m", po::value<double>(&minDist)->default_value(0),
       "Ignore points closer to <arg> cm")
     ("maxDist,M", po::value<double>(&maxDist)->default_value(std::numeric_limits<double>::max()),
       "Ignore points further than <arg> cm")
     ("skip_points,s", po::bool_switch(&skip_points)->default_value(false),
     "Exports only pose data. Use if re-run on a bagfile where points have already been exported.")
+    ("intensity,I", po::bool_switch(&export_intensity)->default_value(false),
+    "Export intensity as a 4th column. If not set, only XYZ are exported.")
     ("verbose,v", po::bool_switch(&verbose)->default_value(false),
-     "Makes this program talk more. Use to print debug information.")
-    ("ignore_timestamps", po::bool_switch(&ignore_timestamps)->default_value(false),
-    "Ignores timestamps in header and default to ROS msg receive time. Not recommended.");
+     "Makes this program talk more. Use to print debug information.");
   hidden.add_options()
     ("output-dir", po::value<string>(&outdir), "output-dir");
   // All options together
@@ -129,7 +111,7 @@ int parse_options (int argc, char** argv,
     {
         cout << cmdoptions;
         cout << endl << "Example usage:" << endl
-           << "\t bin/ros_listener dat/your/out/dir --lidar_topic=/livox/lidar --pose_topic=/camera/pose" << endl;
+           << "\t bin/ros_listener dat/your/out/dir --lidar_topic=/livox/lidar --map_frame=map" << endl;
         exit(0);
     }
     po::notify(vars);
@@ -212,139 +194,17 @@ static inline void Matrix4ToEuler(const double *alignxf,
   }
 }
 
-inline void waitForSlidingWindow(double t)
-{
-  // Print the timestamp constraints to check if t_front < t < t_back
-  // if (verbose && current_poses.size() > 0) ROS_INFO("%f < %f < %f", current_poses.front().header.stamp.toSec(), t, current_poses.back().header.stamp.toSec());
-
-  // Wait for the queue to be not empty
-  while(current_poses.size() < POSE_WINDOW_SIZE && ros::ok()) callbacks_poses.callOne( ros::WallDuration() );
-
-  // If timestamps are not used, we can return at this point.
-  if (ignore_stamps) callbacks_poses.callAvailable( ros::WallDuration() );
-
-  // If timestamps are used, we need to check if we are lagging behind the accumulator
-  if (t < current_poses.front().header.stamp.toSec()) {
-    ROS_WARN_COND(verbose, "Lagging behind because %f [current] < %f [front]", t, current_poses.front().header.stamp.toSec());
-    return;
-  }
-
-  // If timestamps are used, wait for the LiDAR timestamp to be between the pose timestamps.
-  else while( !(current_poses.front().header.stamp.toSec() < t
-      && t < current_poses.back().header.stamp.toSec())
-      && ros::ok() ) {
-        if (verbose) ROS_INFO("Cycling...");
-        callbacks_poses.callOne( ros::WallDuration() ); // next pose Callback
-        //if (verbose && current_poses.size() > 0) ROS_INFO("%f < %f < %f", current_poses.front().header.stamp.toSec(), t, current_poses.back().header.stamp.toSec());
-      }
-  return;
-}
-
-void slidingWindow(geometry_msgs::PoseStamped& pose)
-{
-  if (verbose) ROS_INFO("Moving the sliding window...");
-  // If we have reached the current window size we remove the first
-  // element and pushback the new element
-  if(current_poses.size() == POSE_WINDOW_SIZE)
-  {
-    current_poses.pop();
-    current_poses.push(pose);
-  }
-  // Otherwise we simply pushback
-  else
-  {
-    current_poses.push(pose);
-  }
-
-  // Vector should be window size or less
-  assert(current_poses.size() <= POSE_WINDOW_SIZE);
-}
-
-void poseMsgCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
-  // Copy msg data
-  geometry_msgs::PoseStamped pose = geometry_msgs::PoseStamped();
-  pose.header = msg->header;
-  pose.pose = msg->pose;
-  source_frame = msg->header.frame_id;
-  slidingWindow(pose);
-}
-
-void imuMsgCallback(const sensor_msgs::Imu::ConstPtr& msg)
-{
-  if (verbose) ROS_INFO("IMU callback");
-  geometry_msgs::PoseStamped pose = geometry_msgs::PoseStamped();
-  pose.header = msg->header;
-  // Fill the pose here but leave out the position part.
-  pose.pose.orientation = msg->orientation;
-  pose.pose.position = geometry_msgs::Point(); // initializes with 0
-  source_frame = msg->header.frame_id;
-  slidingWindow(pose);
-}
-
-geometry_msgs::PoseStamped interpolate_pose_at(double t)
-{
-  // Construct a new time-stamped pose via interpolation, or default to the origin
-  if (verbose) ROS_INFO("Interpolation of pose");
-  geometry_msgs::PoseStamped avg = geometry_msgs::PoseStamped();
-  tf::quaternionTFToMsg(tf::createIdentityQuaternion(), avg.pose.orientation);
-  if (!have_pose_topic) return avg;
-
-  // Get timestamps for interpolation
-  if (verbose) ROS_INFO("Waiting...");
-  waitForSlidingWindow(t); // we have to wait for the LiDAR timestamp to be between pose measurement timestamps
-  if (verbose) ROS_INFO("Finished waiting. Size of pose queue: %ld", current_poses.size());
-  double t_res;
-  if (ignore_stamps) t_res = 0.5; // use standard average (Slerp using same weighting) of the pose-queue, if stamps are ignored
-  else {
-    double t1 = current_poses.front().header.stamp.toSec();
-    double t2 = current_poses.back().header.stamp.toSec();
-    t_res = (t - t1) / (t2 - t1);
-  }
-
-  // Perform slerp
-  tf::Quaternion q1, q2, qres;
-  tf::Vector3 v1, v2, vres;
-  tf::quaternionMsgToTF(current_poses.front().pose.orientation, q1);
-  tf::quaternionMsgToTF(current_poses.back().pose.orientation, q2);
-  tf::pointMsgToTF(current_poses.front().pose.position, v1);
-  tf::pointMsgToTF(current_poses.back().pose.position, v2);
-  qres = tf::slerp(q1, q2, t_res);
-  vres = tf::lerp(v1, v2, t_res); // linear interpolation of position
-
-  // Construct result
-  tf::poseTFToMsg(tf::Pose(qres, vres), avg.pose);
-  avg.header.stamp = ros::Time(t);
-  return avg; // either origin, standard average, or interpolation.
-}
-
 void lidarMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
   if (verbose) ROS_INFO("Callback LIDAR");
 
-  // First Callback
+  // First Callback: record the LiDAR frame_id (done only once)
   if (!firstLidarCallback) {
     std::string info_string = std::string("Writing files to ")
                                     + std::string(PATH);
     ROS_INFO("%s", info_string.c_str());
-    lidar_frame=msg->header.frame_id;
-    while(source_frame == "") {
-      callbacks_poses.callOne(ros::WallDuration());
-    }
-    ROS_INFO("Lidar frame \"%s\", Pose frame \"%s\"", lidar_frame.c_str(), source_frame.c_str());
-    tf::TransformListener listener;
-    listener.waitForTransform(lidar_frame, source_frame, ros::Time(0), ros::Duration(30.0) );
-    listener.lookupTransform(lidar_frame, source_frame, ros::Time(ros::Time(0)), transform_lidar2pose);
-    ROS_INFO("Transform found : %f %f %f %f %f %f %f",
-      transform_lidar2pose.getOrigin().getX(),
-      transform_lidar2pose.getOrigin().getY(),
-      transform_lidar2pose.getOrigin().getZ(),
-      transform_lidar2pose.getRotation().getX(),
-      transform_lidar2pose.getRotation().getY(),
-      transform_lidar2pose.getRotation().getZ(),
-      transform_lidar2pose.getRotation().getW()
-    );
-
+    lidar_frame = msg->header.frame_id;
+    ROS_INFO("LiDAR frame: \"%s\", map frame: \"%s\"", lidar_frame.c_str(), map_frame.c_str());
     firstLidarCallback = true;
   }
 
@@ -357,40 +217,68 @@ void lidarMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   if (!skip_points) {
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*msg,pcl_pc2);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+    bool has_intensity = false;
+    for (size_t i = 0; i < msg->fields.size(); ++i) {
+      if (msg->fields[i].name == "intensity") {
+        has_intensity = true;
+        break;
+      }
+    }
+
     // Writing the lidar data to the text file
     file_3d = fopen(file_name, "wb");;
-    // This is a left handed coordinate system and we convert the values to cm
-    for (size_t i = 0; i < temp_cloud->points.size(); ++i)
-    {
-        pcl::PointXYZI p = temp_cloud->points[i];
-        double dist2 = 100*100*(p.x*p.x+p.y*p.y+p.z*p.z);
-        if (std::isnan(dist2) || dist2 < min_dist2 || dist2 > max_dist2 )
-          continue;
-        // Convert to left handed
-        fprintf(file_3d, "%lf %lf %lf %lf\n", 100*-p.y, 100*p.z, 100*p.x, temp_cloud->points[i].intensity);
+    // This is a left handed coordinate system and we convert the values to cm.
+    if (export_intensity && has_intensity) {
+      pcl::PointCloud<pcl::PointXYZI>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+      pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
+      for (size_t i = 0; i < temp_cloud->points.size(); ++i)
+      {
+          pcl::PointXYZI p = temp_cloud->points[i];
+          double dist2 = 100*100*(p.x*p.x+p.y*p.y+p.z*p.z);
+          if (std::isnan(dist2) || dist2 < min_dist2 || dist2 > max_dist2 )
+            continue;
+          // Convert to left handed and export XYZ + intensity
+          fprintf(file_3d, "%lf %lf %lf %lf\n", 100*-p.y, 100*p.z, 100*p.x, p.intensity);
+      }
+    } else {
+      if (export_intensity && !has_intensity) {
+        ROS_WARN_THROTTLE(5.0, "Input cloud has no intensity field. Exporting XYZ only.");
+      }
+      pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+      pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
+      for (size_t i = 0; i < temp_cloud->points.size(); ++i)
+      {
+          pcl::PointXYZ p = temp_cloud->points[i];
+          double dist2 = 100*100*(p.x*p.x+p.y*p.y+p.z*p.z);
+          if (std::isnan(dist2) || dist2 < min_dist2 || dist2 > max_dist2 )
+            continue;
+          // Convert to left handed and export XYZ only
+          fprintf(file_3d, "%lf %lf %lf\n", 100*-p.y, 100*p.z, 100*p.x);
+      }
     }
     fclose(file_3d);
   }
   auto stop_clock_pts = high_resolution_clock::now();
 
-  // Get current pose average
-  geometry_msgs::PoseStamped current_pose_avg = interpolate_pose_at(msg->header.stamp.toSec());
+  // Look up the transform from the LiDAR frame into the fixed map frame via TF
+  tf::StampedTransform lidar_to_map;
+  try {
+    tf_listener->waitForTransform(map_frame, lidar_frame, msg->header.stamp, ros::Duration(1.0));
+    tf_listener->lookupTransform(map_frame, lidar_frame, msg->header.stamp, lidar_to_map);
+  } catch (tf::TransformException& ex) {
+    ROS_WARN("TF lookup failed, skipping scan %d: %s", seq, ex.what());
+    delete[] file_name;
+    return;
+  }
 
-  // Getting the current pose as homgeneous transformation (4x4)
-  tf::Quaternion q(current_pose_avg.pose.orientation.x,
-                  current_pose_avg.pose.orientation.y,
-                  current_pose_avg.pose.orientation.z,
-                  current_pose_avg.pose.orientation.w);
-
-  // Get pose of LiDAR sensor by applying transform between pose and LiDAR frame
-  q = q * transform_lidar2pose.getRotation();
-  tf::Matrix3x3 m(q);
-  const double in_matrix[16] ={m[0][0],m[0][1],m[0][2], current_pose_avg.pose.position.x + transform_lidar2pose.getOrigin().getX(),
-                               m[1][0],m[1][1],m[1][2], current_pose_avg.pose.position.y + transform_lidar2pose.getOrigin().getY(),
-                               m[2][0],m[2][1],m[2][2], current_pose_avg.pose.position.z + transform_lidar2pose.getOrigin().getZ(),
-			                         0      ,0      ,0      , 1};
+  // Build homogeneous transformation matrix from TF result
+  tf::Matrix3x3 m(lidar_to_map.getRotation());
+  const double in_matrix[16] = {
+    m[0][0], m[0][1], m[0][2], lidar_to_map.getOrigin().getX(),
+    m[1][0], m[1][1], m[1][2], lidar_to_map.getOrigin().getY(),
+    m[2][0], m[2][1], m[2][2], lidar_to_map.getOrigin().getZ(),
+    0,       0,       0,       1
+  };
 
   // Converting to left handed matrix for 3DTK (OpenGL style)
   double out_matrix[16], rPos[3], rPosTheta[16];
@@ -404,14 +292,6 @@ void lidarMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   double roll  = 1.0 * rPosTheta[0];
   double pitch = 1.0 * rPosTheta[1];
   double yaw   = 1.0 * rPosTheta[2];
-  if (!have_pose_topic) {
-      x = 0;
-      y = 0;
-      z = 0;
-      roll = 0;
-      pitch = 0;
-      yaw = 0;
-  }
 
   // Writing to the pose file
   // This is also a left hand coordinate system
@@ -425,7 +305,7 @@ void lidarMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   fprintf(file_pose, "%lf %lf %lf %lf %lf %lf", x, y, z, roll*conv_rad2deg, pitch*conv_rad2deg, yaw*conv_rad2deg);
   fclose(file_pose);
   seq++;
-  delete file_name;
+  delete[] file_name;
 }
 
 int main(int argc, char **argv)
@@ -441,15 +321,13 @@ int main(int argc, char **argv)
     // Declaration of program parameters
     string outdir;
     string lidar_topic;
-    string pose_topic;
-    int pose_type;
     double min_dist;
     double max_dist;
 
-   // Definition and allocation of parameters
+    // Definition and allocation of parameters
     parse_options(argc, argv,
-        outdir, lidar_topic, pose_topic, skip_points,
-        pose_type, ignore_stamps, verbose, min_dist, max_dist);
+        outdir, lidar_topic, map_frame, skip_points,
+      export_intensity, verbose, min_dist, max_dist);
 
     min_dist2 = min_dist*min_dist;
     max_dist2 = max_dist*max_dist;
@@ -468,40 +346,16 @@ int main(int argc, char **argv)
     // Init iteration variable, count number of LiDAR callbacks
     seq = 0; // counts nrscans
 
-    // Skip pose topic if unavailable (pose will contain all 0 values)
-    if (pose_topic.compare("") == 0) {
-      ROS_WARN("No pose topic given. LiDAR trajectory defaults to origin.");
-      have_pose_topic = false;
-    }
+    // Create the TF listener (must live for the duration of the program)
+    tf::TransformListener listener;
+    tf_listener = &listener;
 
-    // Setting up the pose stream node handle.
-    // NOTE: This node handle gets its own callback queue, such that the poses
-    // are always up to date and we dont interfere with the lidar thread.
+    // Lidar Node Handle
     ros::NodeHandle nh_lidar;
-    ros::NodeHandle nh_pose;
-    nh_pose.setCallbackQueue(&callbacks_poses);
-    ros::Subscriber pose_sub;
-    if (have_pose_topic) {
-      switch (pose_type) {
-        case 1:
-          pose_sub = nh_pose.subscribe(pose_topic, 100000, poseMsgCallback);
-          break;
-        case 2:
-          pose_sub = nh_pose.subscribe(pose_topic, 100000, imuMsgCallback);
-          break;
-      }
-    }
-
-    // Lidar Node Handle, this one uses the default callback queue
     ros::Subscriber lidar_sub = nh_lidar.subscribe(lidar_topic, 100000, lidarMsgCallback);
 
-    // Do the ROS spinning loop manually (we have two callback queues)
-    ros::Rate sleeprate(200); // Hz
-    while ( ros::ok() ) {
-      ros::spinOnce(); // standard callback queue for LiDAR data
-      callbacks_poses.callOne();
-      sleeprate.sleep();
-    }
+    // Spin
+    ros::spin();
 
     return 0; // normal program end
 }
