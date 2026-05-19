@@ -1,2 +1,0 @@
-/usr/bin/ar qc libglad.a CMakeFiles/glad.dir/Users/terratombo/Documents/UNI/6.Semester/Softwarepraktikum/3DTK/3rdparty/glad/src/glad.c.o
-/usr/bin/ranlib libglad.a
