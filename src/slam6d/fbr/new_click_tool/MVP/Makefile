@@ -1,14 +1,30 @@
-VCPKG_ROOT ?= $(HOME)/vcpkg
+# Variablen
+BUILD_DIR = build
+EXEC = ImGuiKoorTool
 
+# Default Target
 all: configure
-	cmake --build build
+	@echo "Kompiliere das Projekt..."
+	cmake --build $(BUILD_DIR) -j 8
 
 configure:
-	cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
+	@echo "Konfiguriere CMake (Lokale 3rdparty-Abhaengigkeiten)..."
+	cmake -B $(BUILD_DIR) -S .
 
 clean:
-	rm -rf build
+	@echo "Loesche Build-Ordner..."
+	rm -rf $(BUILD_DIR)
+
+# fclean (Full clean) löscht zusätzlich den generierten Koordinaten-Ordner
+fclean: clean
+	@echo "Loesche generierte Koordinaten..."
+	rm -rf Koordinaten
 
 re: fclean all
 
-.PHONY: all configure fclean re
+# Run-Befehl 
+run: all
+	@echo "Starte $(EXEC)..."
+	./$(BUILD_DIR)/$(EXEC) $(IMAGE)
+
+.PHONY: all configure clean fclean re run

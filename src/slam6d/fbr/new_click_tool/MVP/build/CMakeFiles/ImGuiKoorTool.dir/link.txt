@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/ImGuiKoorTool.dir/main.cpp.o CMakeFiles/ImGuiKoorTool.dir/App.cpp.o -o ImGuiKoorTool  libimgui.a libglad.a glfw_build/src/libglfw3.a -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -framework Cocoa -framework IOKit -framework CoreFoundation

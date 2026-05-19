@@ -6,7 +6,7 @@ Ein C++ Tool mit Dear ImGui zur visuellen Auswahl und Speicherung von Bildkoordi
 
 ## Voraussetzungen (Requirements)
 
-Damit das Projekt gebaut werden kann, wird ein C++ Compiler, **CMake**, **Git** und den Paketmanager **vcpkg** benötigt. Wähle die passenden Befehle für dein Betriebssystem:
+Damit das Projekt gebaut werden kann, wird ein C++ Compiler, **CMake** und **Git**. Wähle die passenden Befehle für dein Betriebssystem:
 
 ### macOS
 Nutze den Paketmanager [Homebrew](https://brew.sh/):
@@ -23,23 +23,15 @@ Nutze den Paketmanager [Homebrew](https://brew.sh/):
 `sudo pacman -Syu` /
 `sudo pacman -S base-devel cmake git curl zip unzip tar pkg-config`
 
-### vcpkg (Paketmanager) installieren (Alle Systeme)
-Am Besten `vcpkg` im Home-Verzeichnis abzulegen, damit CMake ihn leicht findet:
-`git clone https://github.com/microsoft/vcpkg ~/vcpkg` /
-`~/vcpkg/bootstrap-vcpkg.sh`
-
 ---
 
 ## Installation und Bauen
 
-Dank `vcpkg.json` müssen Bibliotheken wie ImGui oder GLFW nicht manuell heruntergeladen werden. CMake installiert diese beim Konfigurieren vollautomatisch.
-
 **1. Repository klonen & Ordner öffnen**
 `git clone <repo-link>` /
-`cd Softwarepraktikum/MVP`
+`cd 3DTK/src/slam6d/fbr/new_click_tool/MVP`
 
 **2. Projekt bauen**
-*Hinweis: Wenn vcpkg in einem anderen Ordner als `~/vcpkg` installiert ist, passe den Pfad im Makefile entsprechend an.*
 `make`
 
 **3. Tool mit Beispielbild starten**
