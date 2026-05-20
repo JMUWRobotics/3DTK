@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(ImGuiKoorTool CXX C)
+project(new_click_tool CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -40,13 +40,13 @@ target_include_directories(glad PUBLIC ${GLAD_DIR}/include)
 # ==========================================
 # Haupt-Executable & Linken
 # ==========================================
-add_executable(ImGuiKoorTool main.cpp App.cpp)
+add_executable(new_click_tool main.cpp App.cpp)
 
 # 4. stb_image (nur Header, daher direkt ans Executable gehangen)
-target_include_directories(ImGuiKoorTool PRIVATE ${THIRDPARTY_DIR}/stb)
+target_include_directories(new_click_tool PRIVATE ${THIRDPARTY_DIR}/stb)
 
 # Linken der Bibliotheken
-target_link_libraries(ImGuiKoorTool PRIVATE imgui glad glfw)
+target_link_libraries(new_click_tool PRIVATE imgui glad glfw)
 
 # macOS Spezifische Frameworks
 if (APPLE)
@@ -55,10 +55,29 @@ if (APPLE)
     find_library(IOKIT_FRAMEWORK IOKit)
     find_library(COREVIDEO_FRAMEWORK CoreVideo)
     
-    target_link_libraries(ImGuiKoorTool PRIVATE
+    target_link_libraries(new_click_tool PRIVATE
         ${COCOA_FRAMEWORK}
         ${OPENGL_FRAMEWORK}
         ${IOKIT_FRAMEWORK}
         ${COREVIDEO_FRAMEWORK}
     )
 endif()
+
+
+# ==========================================
+# Binary Export (Speichern in Project/bin)
+# ==========================================
+
+# Von MVP -> new_click_tool -> fbr -> slam6d -> src -> Project
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
+set(BIN_DIR ${PROJECT_ROOT}/bin)
+
+set_target_properties(new_click_tool PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
+
+# Erstelle automatisch eine Verknüpfung (Symlink) in deinem lokalen build/ Ordner
+add_custom_command(TARGET new_click_tool POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+    $<TARGET_FILE:new_click_tool>
+    ${CMAKE_CURRENT_BINARY_DIR}/new_click_tool
+    COMMENT "Erstelle Symlink im lokalen build-Ordner..."
+)

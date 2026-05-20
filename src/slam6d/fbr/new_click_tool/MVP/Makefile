@@ -1,6 +1,6 @@
 # Variablen
 BUILD_DIR = build
-EXEC = ImGuiKoorTool
+EXEC = new_click_tool
 
 # Default Target
 all: configure
