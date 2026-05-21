@@ -1,7 +1,13 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <glad/glad.h>
+//#include <glad/glad.h>
+
+#ifdef __APPLE__ 
+#include <OpenGL/gl3.h> 
+#else 
+#include <GL/gl.h> 
+#endif
 
 struct Point {
     float x, y;
