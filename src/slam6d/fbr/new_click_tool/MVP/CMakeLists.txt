@@ -45,10 +45,16 @@ add_executable(new_click_tool main.cpp App.cpp)
 # 4. stb_image (nur Header, daher direkt ans Executable gehangen)
 target_include_directories(new_click_tool PRIVATE ${THIRDPARTY_DIR}/stb)
 
-# Linken der Bibliotheken
+# Basis-Linken der lokalen Bibliotheken
 target_link_libraries(new_click_tool PRIVATE imgui glad glfw)
 
-# macOS Spezifische Frameworks
+# Linux / WSL Spezifische OpenGL Linkung (wird auf dem Mac ignoriert)
+if (NOT APPLE)
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(new_click_tool PRIVATE OpenGL::GL)
+endif()
+
+# macOS Spezifische Frameworks (wird auf Linux ignoriert)
 if (APPLE)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(OPENGL_FRAMEWORK OpenGL)
