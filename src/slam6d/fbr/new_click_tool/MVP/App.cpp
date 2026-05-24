@@ -1,18 +1,17 @@
 #include "App.h"
 #include "imgui.h"
+#include "slam6d/fbr/panorama.h"
 #include <algorithm> // Für std::min
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include "slam6d/fbr/panorama.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-int run(int argc, char** argv);
-
+int run(int argc, char **argv);
 
 namespace fs = std::filesystem;
 
@@ -23,57 +22,58 @@ App::~App()
 		glDeleteTextures(1, &m_texture);
 }
 
-std::string App::Create_Panorama(std::string& startScan){
+std::string App::Create_Panorama(std::string &startScan)
+{
 
-std::filesystem::path p(startScan);
-std::string scanDir = p.parent_path().string();
-std::string scanName = p.stem().string();
-std::string scanOutDir = m_outputDir.empty() ? p.parent_path().string() : m_outputDir;
-int scanNr = std::stoi(p.stem().string().substr(4));
-//std::vector<std::string> args ={"scan_to_panorama", p.parent_path().string(), std::to_string(scanNr), std::to_string(scanNr + 1), scanOutDir};
-// command line for scan_to_panorama with normalized range
-std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr)+ " -e " + std::to_string(scanNr + 1) + "-f rxp -A -a -F PNG -O " + scanOutDir;
-//convert command line to string array
-std::stringstream commandStream(command);
-std::vector<std::string> args;
-std::string argTemp;
+	std::filesystem::path p(startScan);
+	std::string scanDir = p.parent_path().string();
+	std::string scanName = p.stem().string();
+	std::string scanOutDir = m_outputDir.empty() ? p.parent_path().string() : m_outputDir;
+	int scanNr = std::stoi(p.stem().string().substr(4));
+	// std::vector<std::string> args ={"scan_to_panorama", p.parent_path().string(), std::to_string(scanNr),
+	// std::to_string(scanNr + 1), scanOutDir};
+	//  command line for scan_to_panorama with normalized range
+	std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr) + " -e " +
+			      std::to_string(scanNr) + " -f uos -A -a -F PNG -O " + scanOutDir;
+	// convert command line to string array
+	std::stringstream commandStream(command);
+	std::vector<std::string> args;
+	std::string argTemp;
 
-while(commandStream >> argTemp){
-    args.push_back(argTemp);
-}
-//vector for scan_to_panorama-input
-std::vector<char*> args_char;
-for(std::string& a: args){
-    args_char.push_back(a.data());
+	while (commandStream >> argTemp) {
+		args.push_back(argTemp);
+	}
+	// vector for scan_to_panorama-input
+	std::vector<char *> args_char;
+	for (std::string &a : args) {
+		args_char.push_back(a.data());
+	}
+
+	// Use scan_to_panorama
+	run(args_char.size(), args_char.data());
+
+	// check if conversion worked
+	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
+	if (!std::filesystem::exists(genImName)) {
+		std::cout << "Failed generating panorama from " << scanName;
+		return "";
+	} else {
+		std::cout << "Panorama created in " << scanOutDir << std::endl;
+		return genImName;
+	}
 }
 
-//Use scan_to_panorama
-run(args_char.size(), args_char.data());
-
-// check if conversion worked
-std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
-if(!std::filesystem::exists(genImName)){
-    std::cout<<"Failed generating panorama from " << scanName;
-    return "";}
-else{
-    std::cout <<"Panorama created in "<< scanOutDir<< std::endl;
-    return genImName;
-}
-}
-
-void App::setOutDir(std::string outputDir){
-    m_outputDir = outputDir;
-}
+void App::setOutDir(std::string outputDir) { m_outputDir = outputDir; }
 
 void App::Init(const std::string &initialImagePath)
 {
-    if(m_outputDir.empty()){
-        std::filesystem::path p(initialImagePath);
-        m_outputDir = p.parent_path().string();
-    }
-	//if (!fs::exists(m_outputDir + "/Koordinaten")) {
-	//	fs::create_directory(m_outputDir + "/Koordinaten");
+	//if (m_outputDir.empty()) {
+	//	std::filesystem::path p(initialImagePath);
+	//	m_outputDir = p.parent_path().string();
 	//}
+	// if (!fs::exists(m_outputDir + "/Koordinaten")) {
+	//	fs::create_directory(m_outputDir + "/Koordinaten");
+	// }
 
 	if (!initialImagePath.empty()) {
 		LoadWorkspace(initialImagePath);
@@ -90,7 +90,11 @@ void App::LoadWorkspace(const std::string &imagePath)
 
 	if (m_imageLoaded) {
 		fs::path p(imagePath);
-		m_currentTxtPath = "Koordinaten/" + p.stem().string() + "_koordinaten.txt";
+
+        m_outputDir = m_outputDir.empty() ? p.parent_path().string() : m_outputDir;
+
+
+		m_currentTxtPath = m_outputDir + "/Koordinaten/" + p.stem().string() + "_koordinaten.txt";
 		LoadPointsFromFile();
 		// das Bild im ersten Frame zentrieren und vollständig darstellen
 		m_needsFit = true;
@@ -140,6 +144,11 @@ void App::SavePointsToFile()
 {
 	if (m_currentTxtPath.empty())
 		return;
+
+if (!fs::exists(m_outputDir + "/Koordinaten")) {
+		fs::create_directory(m_outputDir + "/Koordinaten");
+	 }
+
 	std::ofstream file(m_currentTxtPath, std::ios::trunc);
 	for (const auto &p : m_points) {
 		file << p.x << "," << p.y << "\n";

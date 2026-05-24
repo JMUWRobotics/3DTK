@@ -15,21 +15,23 @@ void usage(char **argv)
 	std::cout << std::endl;
 	std::cout << "Usage:" << std::endl;
 	std::cout << std::endl;
-	std::cout << "-help \t \t \t \t \t Option list" << std::endl;
-	std::cout << "No Arguments \t \t \t Open empty window" << std::endl;
-	std::cout << "-im <imagePath> \t \t \t Open one image, default directory" << std::endl;
-	std::cout << "-scan <scanPath> \t \t \t Open one image based on 3D-scan, default directory" << std::endl;
+	std::cout << "-help \t \t \t \t \t \t \t Option list" << std::endl;
+    std::cout << std::endl;
+	std::cout << " No Arguments \t \t \t \t \t \t Open empty window" << std::endl;
+	std::cout << "-im <imagePath> \t \t \t \t \t Open one image, default directory" << std::endl;
+	std::cout << "-scan <scanPath> \t \t \t \t \t Open one image based on 3D-scan, default directory" << std::endl;
 	std::cout << "-scan <scanPath> -im <imagePath> \t \t \t Open two images, default directory" << std::endl;
-	std::cout << "-im <imagePath> ... -out <outDir> \t \t \t Set output Directory";
+	std::cout << "-im <imagePath> ... -out <outDir> \t \t \t Set output Directory" << std::endl;
 	std::cout << std::endl;
-	std::cout << "Default output directory = directory of first loaded image/scan";
+	std::cout << "Default output directory = directory of first loaded image/scan" << std::endl;
+    std::cout << "Converted scans: output directory or directory of scan" << std::endl;
 	std::cout << std::endl;
 	std::cout << std::endl;
 	std::cout << "imFormat:" << std::endl;
 	std::cout << "-im \t \t \t 2D-image Format" << std::endl;
 	std::cout << "-scan \t \t \t 3D-scan Format, internally converted with scan_to_panorama" << std::endl;
 	std::cout << std::endl;
-	std::cout << "Example: \t -im /pictures/myPicture.png -scan /scans/scan001.3D -out /users/desktop/click_tool \n"
+	std::cout << "Example: \t \t -im /pictures/myPicture.png -scan /scans/scan001.3D -out /users/desktop/click_tool \n"
 		  << std::endl;
 	std::cout << std::endl;
 }
@@ -107,9 +109,6 @@ int main(int argc, char **argv)
 			}
 
 			else if (argString == "-scan") { // 3D-scan: Convert with slam6d/fbr/scan_to_panorama
-				// TODO umwandeln mit prüfun wie oben, bild speichern input = output dir oder wenn
-				// output dir gegeben da rein, startImage 1/2 = neu generiertes bild UMWANDELN NICHT
-				// HIER WEGEN OUPUT DIR! vlt am ende dieser funktion dann if (scanflag 1 / 2 ...)
 				if (i + 1 < argc) {
 					if (startImage.empty()) {
 						startScan = argv[++i];
@@ -135,7 +134,10 @@ int main(int argc, char **argv)
 					usage(argv);
 					return 1;
 				}
-			} else {
+			} else if (argString == "-help"){
+                usage(argv);
+                return 1;
+            } else{
 				std::cout << "Invalid argument." << std::endl;
 				usage(argv);
 				return 1;
