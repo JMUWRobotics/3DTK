@@ -1,7 +1,7 @@
-add_subdirectory(new_click_tool/MVP)
+cmake_minimum_required(VERSION 3.14)
+
 if (WITH_OPENCV)
   find_package(OpenCV REQUIRED)
-
   set(FBR_LIBS scan show ${OpenCV_LIBS})
 
   if(WITH_OPENCV_NONFREE)
@@ -40,8 +40,12 @@ if (WITH_OPENCV)
 
 
     add_library(fbr scan_cv.cc panorama.cc projection.cc feature.cc feature_matcher.cc registration.cc fbr_global.cc feature_drawer.cc geoRefrencing.cc fbr_global.cc)
-    target_link_libraries(fbr ${FBR_LIBS} scan ${ANN_LIBRARIES} ${OpenCV_LIBS} show)
+     
 
+  add_library(scan_to_panorama_lib STATIC scan_to_panorama.cc) 
+  target_link_libraries(scan_to_panorama_lib fbr ${FBR_LIBS} ) 
+    target_link_libraries(fbr ${FBR_LIBS} scan ${ANN_LIBRARIES} ${OpenCV_LIBS} show)
+  add_subdirectory(new_click_tool/MVP)
 
     ###feature based registration
     add_executable(featurebasedregistration feature_based_registration.cc fbr_global.cc)

@@ -1,81 +1,190 @@
-#define GL_SILENCE_DEPRECATION
+// #define GL_SILENCE_DEPRECATION
 
-//#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+// #include <glad/glad.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h>
+#include <filesystem>
 #include <iostream>
 
 #include "App.h"
 
-int main(int argc, char** argv) {
-    if (!glfwInit()) return 1;
+void usage(char **argv)
+{
+	std::cout << std::endl;
+	std::cout << "Usage:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "-help \t \t \t \t \t Option list" << std::endl;
+	std::cout << "No Arguments \t \t \t Open empty window" << std::endl;
+	std::cout << "-im <imagePath> \t \t \t Open one image, default directory" << std::endl;
+	std::cout << "-scan <scanPath> \t \t \t Open one image based on 3D-scan, default directory" << std::endl;
+	std::cout << "-scan <scanPath> -im <imagePath> \t \t \t Open two images, default directory" << std::endl;
+	std::cout << "-im <imagePath> ... -out <outDir> \t \t \t Set output Directory";
+	std::cout << std::endl;
+	std::cout << "Default output directory = directory of first loaded image/scan";
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "imFormat:" << std::endl;
+	std::cout << "-im \t \t \t 2D-image Format" << std::endl;
+	std::cout << "-scan \t \t \t 3D-scan Format, internally converted with scan_to_panorama" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Example: \t -im /pictures/myPicture.png -scan /scans/scan001.3D -out /users/desktop/click_tool \n"
+		  << std::endl;
+	std::cout << std::endl;
+}
 
-    const char* glsl_version;
-    #if defined(__APPLE__)
-        glsl_version = "#version 150";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #else
-        glsl_version = "#version 130";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    #endif
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "ImGui Koordinaten Tool", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return 1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); 
-/*
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        return -1;
-    }*/
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Initiales Bild bestimmen (entweder Kommandozeile oder Leer)
-    std::string startImage = "";
-    if (argc > 1) {
-        startImage = argv[1]; // Nimmt den Befehl z.B. ./tool mein_Bild.png
-    }
+int main(int argc, char **argv)
+{
+	if (!glfwInit())
+		return 1;
 
-    // App instanziieren und starten
-    App app;
-    app.Init(startImage);
+	const char *glsl_version;
+#if defined(__APPLE__)
+	glsl_version = "#version 150";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
+	glsl_version = "#version 130";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
 
-    while (!glfwWindowShouldClose(window) && !app.ShouldClose()) {
-        glfwPollEvents();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+    // Instantiate app
+    	App app;
 
-        // 
-        app.Update();
+	GLFWwindow *window = glfwCreateWindow(1280, 720, "New_click_tool", NULL, NULL);
+	if (!window) {
+		glfwTerminate();
+		return 1;
+	}
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
+	/*
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+	return -1;
+	}*/
 
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        glfwSwapBuffers(window);
-    }
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
+	// find initial image (commandline or emptywindow)
+	std::string startImage = "";
+	std::string startImage2 = "";
+	std::string outputDir = "";
+	std::string startScan = "";
+	std::string startScan2 = "";
+	std::string scanDir = "";
+	std::string scanDir2 = "";
+	if (argc > 1) { // if no picture is loaded start app without initial images
+		for (int i = 1; i < argc; i++) {
+			std::string argString = argv[i];
 
-    return 0;
+			if (argString == "-im") { // 2D-image Format
+				if (i + 1 < argc) {
+					if (startImage.empty() && startScan.empty())
+						startImage = argv[++i];
+					else if (startImage2.empty() && startScan2.empty())
+						startImage2 = argv[++i];
+					else { // More than two images to open
+						std::cout << "Too many arguments" << std::endl;
+						usage(argv);
+						return 1;
+					}
+				} else {
+					std::cout << "No image-path found" << std::endl;
+					usage(argv);
+					return 1;
+				}
+
+			}
+
+			else if (argString == "-scan") { // 3D-scan: Convert with slam6d/fbr/scan_to_panorama
+				// TODO umwandeln mit prüfun wie oben, bild speichern input = output dir oder wenn
+				// output dir gegeben da rein, startImage 1/2 = neu generiertes bild UMWANDELN NICHT
+				// HIER WEGEN OUPUT DIR! vlt am ende dieser funktion dann if (scanflag 1 / 2 ...)
+				if (i + 1 < argc) {
+					if (startImage.empty()) {
+						startScan = argv[++i];
+					} else if (startImage2.empty()) {
+						startScan2 = argv[++i];
+					} else { // More than two images to open
+						std::cout << "Too many arguments" << std::endl;
+						usage(argv);
+						return 1;
+					}
+				} else {
+					std::cout << "No scan-path found" << std::endl;
+					usage(argv);
+					return 1;
+				}
+
+			} else if (argString == "-out") { // output directory path for converted scans and coordinates
+				if (i + 1 < argc){
+					outputDir = argv[++i];
+                    app.setOutDir(outputDir);}
+				else {
+					std::cout << "No directory path found" << std::endl;
+					usage(argv);
+					return 1;
+				}
+			} else {
+				std::cout << "Invalid argument." << std::endl;
+				usage(argv);
+				return 1;
+			}
+		}
+		// convert scans to 2D-image
+		if (!startScan.empty()) {
+			startImage = app.Create_Panorama(startScan);
+            if(startImage.empty()){
+                usage(argv);
+                return 1;
+            }
+
+		} else if (!startScan2.empty()) {
+            startImage2 = app.Create_Panorama(startScan2);
+            if(startImage2.empty()){
+                usage(argv);
+                return 1;
+            }
+		}
+	}
+
+	// itart app
+	app.Init(startImage);
+
+	while (!glfwWindowShouldClose(window) && !app.ShouldClose()) {
+		glfwPollEvents();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		//
+		app.Update();
+
+		ImGui::Render();
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		glfwSwapBuffers(window);
+	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+	return 0;
 }
