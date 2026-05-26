@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <iostream>
 
-#include "App.h"
+#include "slam6d/fbr/new_click_tool_app.h"
 
 void usage(char **argv)
 {
@@ -85,6 +85,8 @@ int main(int argc, char **argv)
 	std::string startScan2 = "";
 	std::string scanDir = "";
 	std::string scanDir2 = "";
+    bool twoImageMode = false;
+
 	if (argc > 1) { // if no picture is loaded start app without initial images
 		for (int i = 1; i < argc; i++) {
 			std::string argString = argv[i];
@@ -93,8 +95,9 @@ int main(int argc, char **argv)
 				if (i + 1 < argc) {
 					if (startImage.empty() && startScan.empty())
 						startImage = argv[++i];
-					else if (startImage2.empty() && startScan2.empty())
-						startImage2 = argv[++i];
+					else if (startImage2.empty() && startScan2.empty()){
+                        twoImageMode = true;
+                        startImage2 = argv[++i];}
 					else { // More than two images to open
 						std::cout << "Too many arguments" << std::endl;
 						usage(argv);
@@ -110,9 +113,10 @@ int main(int argc, char **argv)
 
 			else if (argString == "-scan") { // 3D-scan: Convert with slam6d/fbr/scan_to_panorama
 				if (i + 1 < argc) {
-					if (startImage.empty()) {
+					if (startImage.empty() && startScan.empty()) {
 						startScan = argv[++i];
-					} else if (startImage2.empty()) {
+					} else if (startImage2.empty() && startScan2.empty()) {
+                        twoImageMode = true;
 						startScan2 = argv[++i];
 					} else { // More than two images to open
 						std::cout << "Too many arguments" << std::endl;
@@ -145,23 +149,29 @@ int main(int argc, char **argv)
 		}
 		// convert scans to 2D-image
 		if (!startScan.empty()) {
+            
 			startImage = app.Create_Panorama(startScan);
             if(startImage.empty()){
                 usage(argv);
                 return 1;
             }
 
-		} else if (!startScan2.empty()) {
+		
+        if (!startScan2.empty()) {
             startImage2 = app.Create_Panorama(startScan2);
             if(startImage2.empty()){
                 usage(argv);
                 return 1;
             }
 		}
-	}
+	}}
 
-	// itart app
-	app.Init(startImage);
+	// start app
+    if (twoImageMode) {
+        app.InitTwoImages(startImage, startImage2);
+    } else {
+        app.Init(startImage);
+    }
 
 	while (!glfwWindowShouldClose(window) && !app.ShouldClose()) {
 		glfwPollEvents();

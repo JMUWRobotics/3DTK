@@ -45,7 +45,7 @@ if (WITH_OPENCV)
   add_library(scan_to_panorama_lib STATIC scan_to_panorama.cc) 
   target_link_libraries(scan_to_panorama_lib fbr ${FBR_LIBS} ) 
     target_link_libraries(fbr ${FBR_LIBS} scan ${ANN_LIBRARIES} ${OpenCV_LIBS} show)
-  add_subdirectory(new_click_tool/MVP)
+
 
     ###feature based registration
     add_executable(featurebasedregistration feature_based_registration.cc fbr_global.cc)
@@ -97,6 +97,8 @@ if (WITH_OPENCV)
     message("OpenCV Version > 2.2 required for FBR")
   endif()
 endif()
+
+  add_subdirectory(new_click_tool/MVP)
 
 
 ####TEST

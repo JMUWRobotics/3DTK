@@ -13,6 +13,11 @@ struct ClickPoint {
 	float x, y;
 };
 
+struct Correspondence {
+    ClickPoint first;
+    ClickPoint second;
+};
+
 class App
 {
       public:
@@ -22,16 +27,23 @@ class App
     std::string Create_Panorama(std::string& startScan);
     void setOutDir(std::string outputDir);
 	void Init(const std::string &initialImagePath);
+    void InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath);
 	void Update();
 	bool ShouldClose() const { return m_shouldClose; }
 
       private:
 	void LoadWorkspace(const std::string &imagePath);
+    void LoadTwoImageWorkspace(const std::string& firstImagePath,
+                           const std::string& secondImagePath);
+
 	void SavePointsToFile();
 	void LoadPointsFromFile();
 	bool LoadTexture(const std::string &filename);
+    bool LoadTextureFromMemory(const unsigned char* data, int width, int height); //two image
+
 
 	// Status-Variablen
+    bool m_twoImageMode = false;
 	bool m_shouldClose = false;
 	bool m_selectionMode = false;
 	bool m_showPoints = true;
@@ -51,6 +63,20 @@ class App
 
 	// Gespeicherte Punkte
 	std::vector<ClickPoint> m_points;
+
+        //variables for two image mode:
+    int m_firstOffsetX = 0;
+    int m_firstOffsetY = 0;
+    int m_firstWidth = 0;
+    int m_firstHeight = 0;
+    int m_secondOffsetX = 0;
+    int m_secondOffsetY = 0;
+    int m_secondWidth = 0;
+    int m_secondHeight = 0;
+    std::vector<Correspondence> m_correspondences;
+    ClickPoint m_pendingFirstPoint;
+    bool m_waitingForSecondPoint = false;
+    std::string m_errorMessage;
 
 	// Puffer für die UI-Texteingabe
 	char m_imageInputBuffer[256] = "";

@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
+
 #ImGUI
 # from fbr-CMakesList changed to OpenGL3 and glfw
-
-#set(IMGUI_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/3rdparty/imgui/" 
-#"${PROJECT_SOURCE_DIR}/3rdparty/imgui/backends")
-
 file(GLOB IMGUI_SRCS_CLICK 
 "${PROJECT_SOURCE_DIR}/3rdparty/imgui/*.cpp" 
 "${PROJECT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3.cpp"
@@ -27,8 +24,9 @@ target_include_directories(glad PUBLIC
 )
 
 add_executable(new_click_tool
-    main.cpp
-    App.cpp
+    new_click_tool_main.cpp
+    new_click_tool_app.cpp
+    new_click_tool_app_two.cpp
 )
 
 target_include_directories(new_click_tool PRIVATE

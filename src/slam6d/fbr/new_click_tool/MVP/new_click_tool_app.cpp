@@ -1,4 +1,4 @@
-#include "App.h"
+#include "slam6d/fbr/new_click_tool_app.h"
 #include "imgui.h"
 #include "slam6d/fbr/panorama.h"
 #include <algorithm> // Für std::min
@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -34,7 +36,7 @@ std::string App::Create_Panorama(std::string &startScan)
 	// std::to_string(scanNr + 1), scanOutDir};
 	//  command line for scan_to_panorama with normalized range
 	std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr) + " -e " +
-			      std::to_string(scanNr) + " -f uos -A -a -F PNG -O " + scanOutDir;
+			      std::to_string(scanNr) + " -f uos -A -a -F PNG -O " + scanOutDir + "\0";
 	// convert command line to string array
 	std::stringstream commandStream(command);
 	std::vector<std::string> args;
@@ -46,11 +48,23 @@ std::string App::Create_Panorama(std::string &startScan)
 	// vector for scan_to_panorama-input
 	std::vector<char *> args_char;
 	for (std::string &a : args) {
-		args_char.push_back(a.data());
+		args_char.push_back(const_cast<char*>(a.c_str()));
+        
 	}
+    args_char.push_back(nullptr);
 
-	// Use scan_to_panorama
-	run(args_char.size(), args_char.data());
+
+	// Use scan_to_panorama in new process to avoid effects of global variables
+
+pid_t pid = fork();
+
+if (pid == 0)
+{
+	run(args.size(), args_char.data());
+    _exit(0);
+}
+
+waitpid(pid, nullptr, 0);
 
 	// check if conversion worked
 	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
@@ -58,7 +72,7 @@ std::string App::Create_Panorama(std::string &startScan)
 		std::cout << "Failed generating panorama from " << scanName;
 		return "";
 	} else {
-		std::cout << "Panorama created in " << scanOutDir << std::endl;
+		std::cout << "Panorama created in " << scanOutDir << std::endl << std::endl;
 		return genImName;
 	}
 }
@@ -67,14 +81,6 @@ void App::setOutDir(std::string outputDir) { m_outputDir = outputDir; }
 
 void App::Init(const std::string &initialImagePath)
 {
-	//if (m_outputDir.empty()) {
-	//	std::filesystem::path p(initialImagePath);
-	//	m_outputDir = p.parent_path().string();
-	//}
-	// if (!fs::exists(m_outputDir + "/Koordinaten")) {
-	//	fs::create_directory(m_outputDir + "/Koordinaten");
-	// }
-
 	if (!initialImagePath.empty()) {
 		LoadWorkspace(initialImagePath);
 	}
