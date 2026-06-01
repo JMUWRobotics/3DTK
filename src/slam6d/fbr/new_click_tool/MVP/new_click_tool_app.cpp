@@ -166,75 +166,70 @@ if (!fs::exists(m_outputDir + "/Koordinaten")) {
     std::cout<< "Coordinates saved to " << m_currentTxtPath<< std::endl;
 }
 
-void App::Update() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+void App::Update()
+{
+	const ImGuiViewport *viewport = ImGui::GetMainViewport();
 
-    // 1. Vollbild-Fenster für das Bild
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-    ImGui::Begin("Workspace", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
-    
-    if (m_imageLoaded) {
-        ImGuiIO& io = ImGui::GetIO();
-        
-        // --- Auto-Fit Logik ---
-        if (m_needsFit) {
-            // Berechne, wie stark wir auf X und Y zoomen müssten, damit es passt
-            float zoomX = viewport->WorkSize.x / (float)m_imgWidth;
-            float zoomY = viewport->WorkSize.y / (float)m_imgHeight;
-            
-            // den kleineren Zoom nehmen, damit nichts abgeschnitten wird
-            m_zoom = std::min(zoomX, zoomY);
-            
-            // Mache es ein bisschen kleiner, damit es nicht exakt am Rand klebt
-            m_zoom *= 0.95f; 
+	// 1. Vollbild-Fenster für das Bild
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+	ImGui::Begin("Workspace", nullptr,
+		     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground |
+			 ImGuiWindowFlags_NoBringToFrontOnFocus);
+	if (m_imageLoaded) {
+		ImGuiIO &io = ImGui::GetIO();
+		// --- Auto-Fit Logik ---
+		if (m_needsFit) {
+			// Berechne, wie stark wir auf X und Y zoomen müssten, damit es passt
+			float zoomX = viewport->WorkSize.x / (float)m_imgWidth;
+			float zoomY = viewport->WorkSize.y / (float)m_imgHeight;
+			// den kleineren Zoom nehmen, damit nichts abgeschnitten wird
+			m_zoom = std::min(zoomX, zoomY);
+			// Mache es ein bisschen kleiner, damit es nicht exakt am Rand klebt
+			m_zoom *= 0.95f;
 
-            // Zentriere das Bild
-            m_panX = (viewport->WorkSize.x - (m_imgWidth * m_zoom)) * 0.5f;
-            m_panY = (viewport->WorkSize.y - (m_imgHeight * m_zoom)) * 0.5f;
-            
-            m_needsFit = false;
-        }
-        // ---------------------------
+			// Zentriere das Bild
+			m_panX = (viewport->WorkSize.x - (m_imgWidth * m_zoom)) * 0.5f;
+			m_panY = (viewport->WorkSize.y - (m_imgHeight * m_zoom)) * 0.5f;
+			m_needsFit = false;
+		}
+		// ---------------------------
 
-        // Verschieben
-        if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-            m_panX += io.MouseDelta.x;
-            m_panY += io.MouseDelta.y;
-        }
+		// Verschieben
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+			m_panX += io.MouseDelta.x;
+			m_panY += io.MouseDelta.y;
+		}
 
- /*       // Zoom (Mausrad)
-        if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
-            // Zoom in die Mitte des Bildschirms justieren
-            float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
-            m_zoom *= zoomFactor;
-            
-            // Angepasste Limits für extrem große Bilder
-            if (m_zoom < 0.01f) m_zoom = 0.01f; 
-            if (m_zoom > 20.0f) m_zoom = 20.0f;
-        }*/
-        
-             // Zoom (Mausrad) ALTERNATIVE: Zoom to mouse position
-        if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
-            // current mouse / pixel-position
-            ImVec2 mousePosition = ImGui::GetMousePos();
-            float curX = (mousePosition.x -(viewport -> WorkPos.x + m_panX))/m_zoom;
-            float curY = (mousePosition.y -(viewport->WorkPos.y + m_panY)) / m_zoom;
-            float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
-            m_zoom *= zoomFactor;
-            
-            // Angepasste Limits für extrem große Bilder
-            if (m_zoom < 0.01f) m_zoom = 0.01f; 
-            if (m_zoom > 20.0f) m_zoom = 20.0f;
-            
-            // fix pan-position: 
-            m_panX = mousePosition.x - viewport-> WorkPos.x - curX*m_zoom;
-            m_panY = mousePosition.y - viewport->WorkPos.y - curY* m_zoom;
-        }
-        
+		/* // Zoom (Mausrad)
+		if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
+		// Zoom in die Mitte des Bildschirms justieren
+		float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
+		m_zoom *= zoomFactor;
+		// Angepasste Limits für extrem große Bilder
+		if (m_zoom < 0.01f) m_zoom = 0.01f;
+		if (m_zoom > 20.0f) m_zoom = 20.0f;
+		}*/
+		// Zoom (Mausrad) ALTERNATIVE: Zoom to mouse position
+		if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
+			// current mouse / pixel-position
+			ImVec2 mousePosition = ImGui::GetMousePos();
+			float curX = (mousePosition.x - (viewport->WorkPos.x + m_panX)) / m_zoom;
+			float curY = (mousePosition.y - (viewport->WorkPos.y + m_panY)) / m_zoom;
+			float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
+			m_zoom *= zoomFactor;
+			// Angepasste Limits für extrem große Bilder
+			if (m_zoom < 0.01f)
+				m_zoom = 0.01f;
+			if (m_zoom > 20.0f)
+				m_zoom = 20.0f;
+			// fix pan-position:
+			m_panX = mousePosition.x - viewport->WorkPos.x - curX * m_zoom;
+			m_panY = mousePosition.y - viewport->WorkPos.y - curY * m_zoom;
+		}
 
-        ImVec2 p_min = ImVec2(viewport->WorkPos.x + m_panX, viewport->WorkPos.y + m_panY);
-        ImVec2 p_max = ImVec2(p_min.x + m_imgWidth * m_zoom, p_min.y + m_imgHeight * m_zoom);
+		ImVec2 p_min = ImVec2(viewport->WorkPos.x + m_panX, viewport->WorkPos.y + m_panY);
+		ImVec2 p_max = ImVec2(p_min.x + m_imgWidth * m_zoom, p_min.y + m_imgHeight * m_zoom);
 
         ImGui::GetWindowDrawList()->AddImage((void*)(intptr_t)m_texture, p_min, p_max);
 
@@ -328,47 +323,87 @@ void App::Update() {
     }
     ImGui::End();
 
-    // Schwebendes UI-Fenster
-    ImGui::Begin("Steuerung & Setup", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    
-    ImGui::Text("Bild laden:");
-    ImGui::InputText("##imagepath", m_imageInputBuffer, sizeof(m_imageInputBuffer));
-    ImGui::SameLine();
-    if (ImGui::Button("Laden")) {
-        LoadWorkspace(m_imageInputBuffer);
-    }
+	// Schwebendes UI-Fenster
+	ImGui::Begin("Control & Setup", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::Separator();
-    
-    ImGui::Checkbox("Auswahl-Modus", &m_selectionMode);
-    ImGui::SameLine();
-    ImGui::Checkbox("Punkte anzeigen", &m_showPoints);
-    
-    // Button um manuell das Bild wieder zentriert und passend zu machen
-    if (ImGui::Button("Ansicht zentrieren & anpassen", ImVec2(-1, 0))) {
-        m_needsFit = true;
-    }
+    //Load-section:
 
-    ImGui::Separator();
-    ImGui::Text("Steuerung:");
-    ImGui::Text("- Rechter Mausklick (halten) = Verschieben");
-    ImGui::Text("- Mausrad = Zoomen");
+     //Disable load-section when images successfully created
+    ImGui::BeginDisabled(m_imageLoaded);
+	ImGui::InputTextWithHint("##imagepath", m_twoImageMode ? "path to first image" : "path to image", m_imageInputBuffer, sizeof(m_imageInputBuffer));
+    ImGui::SameLine();
+    ImGui::Checkbox("Scan", &m_firstImageIsScan);
     
-    ImGui::Separator();
+    //one or thwo images mode
+    	ImGui::Checkbox("two-image mode", &m_twoImageMode);
+    if(m_twoImageMode){
+        ImGui::InputTextWithHint("##imagepath2", "path to second image", m_imageInputBuffer2, sizeof(m_imageInputBuffer2));
+        ImGui::SameLine();
+    	ImGui::Checkbox("Scan##2", &m_secondImageIsScan);
+    }
+    bool error = false;
+    //disable load-button if too few arguments given 
+        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 || m_twoImageMode && strlen(m_imageInputBuffer2) == 0);
+	if (ImGui::Button(m_twoImageMode ? "Load images" : "Load image", ImVec2(-1, 30))) {
+        // if scan: convert
+        if(m_firstImageIsScan){
+            std::string imInputBufferString = Create_Panorama(m_imageInputBuffer);
+            if(imInputBufferString == ""){
+                m_errorMessage =  "Failed generating panorama from first scan-path";
+                error = true;
+	        }
+            strncpy(m_imageInputBuffer, imInputBufferString.c_str(), sizeof(m_imageInputBuffer));
+
+            
+        }
+        if(m_secondImageIsScan){
+             std::string imInputBuffer2String = Create_Panorama(m_imageInputBuffer2);
+            if(imInputBuffer2String == ""){
+                m_errorMessage =  "Failed generating panorama from second scan-path";
+                error = true;
+	        }
+            strncpy(m_imageInputBuffer2, imInputBuffer2String.c_str(), sizeof(m_imageInputBuffer2));
+
+
+        }
+        if(!error){
+        if(m_twoImageMode) LoadTwoImageWorkspace(m_imageInputBuffer, m_imageInputBuffer2);
+        else LoadWorkspace(m_imageInputBuffer);
+	}}
+    ImGui::EndDisabled();
+
+    ImGui::EndDisabled();
+
+    if(!m_errorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), m_errorMessage.c_str());
+
+	ImGui::Separator();
+	ImGui::Checkbox("Selection-mode", &m_selectionMode);
+	ImGui::SameLine();
+	ImGui::Checkbox("Show points", &m_showPoints);
+	// Button um manuell das Bild wieder zentriert und passend zu machen
+	if (ImGui::Button("Center view", ImVec2(-1, 0))) {
+		m_needsFit = true;
+	}
+
+	ImGui::Separator();
+	ImGui::Text("Control:");
+	ImGui::Text("- Right mouseclick (hold) = slide picture");
+	ImGui::Text("- Mousewheel = zoom");
+	    ImGui::Separator();
     if (m_twoImageMode) {
-        ImGui::Text("Korrespondenzen: %d", (int)m_correspondences.size());
+        ImGui::Text("Correspondences: %d", (int)m_correspondences.size());
 
         if (m_selectionMode) {
             if (m_waitingForSecondPoint) {
                 ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
-                                "Jetzt Punkt im zweiten Bild waehlen.");
+                                "Choose point in second image.");
             } else {
                 ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
-                                "Punkt im ersten Bild waehlen.");
+                                "Choose point in first image.");
             }
         }
     } else {
-        ImGui::Text("Punkte: %d", (int)m_points.size());
+        ImGui::Text("points: %d", (int)m_points.size());
     }    
     if (!m_currentTxtPath.empty()) {
         ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Ort: %s", m_currentTxtPath.c_str());
@@ -378,8 +413,8 @@ void App::Update() {
     ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "%s", m_errorMessage.c_str());
     }
 
-    if (ImGui::Button("Rückgängig")) {
-        if (m_twoImageMode) {
+	if (ImGui::Button("Undo")) {
+      if (m_twoImageMode) {
             if (m_waitingForSecondPoint) {
                 m_waitingForSecondPoint = false;
                 m_errorMessage.clear();
@@ -395,7 +430,7 @@ void App::Update() {
         }
     }
     ImGui::SameLine();
-    if (ImGui::Button("Alle löschen")) {
+    if (ImGui::Button("delete all")) {
          if (m_twoImageMode) {
             m_correspondences.clear();
             m_waitingForSecondPoint = false;
@@ -407,10 +442,10 @@ void App::Update() {
         }
     }
 
-    ImGui::Separator();
-    if (ImGui::Button("Speichern & Beenden", ImVec2(-1, 30))) { 
-        SavePointsToFile();
-        m_shouldClose = true;
-    }
+	ImGui::Separator();
+	if (ImGui::Button("save & exit", ImVec2(-1, 30))) {
+		SavePointsToFile();
+		m_shouldClose = true;
+	}
 	ImGui::End();
 }

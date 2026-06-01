@@ -1,0 +1,16 @@
+\babel@toc {ngerman}{}\relax 
+\contentsline {section}{\numberline {1}Beschreibung}{2}{section.1}%
+\contentsline {section}{\numberline {2}Frontend / Oberfläche}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Übersicht}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Datei-/Ordnerstruktur}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Genutzte Abhängigkeiten}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Einrichten der Entwicklungsumgebung}{3}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Build}{3}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Backend}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Übersicht}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Datei-/Ordnerstruktur}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Genutzte Abhängigkeiten}{4}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Einrichten der Entwicklungsumgebung}{4}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Build}{4}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Bauen und Starten des gesamten Projekts}{5}{section.4}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
