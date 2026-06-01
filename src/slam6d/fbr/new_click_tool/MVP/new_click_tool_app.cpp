@@ -24,19 +24,19 @@ App::~App()
 		glDeleteTextures(1, &m_texture);
 }
 
-std::string App::Create_Panorama(std::string &startScan)
+std::string App::Create_Panorama(const std::string &startScan)
 {
-
+    try{
 	std::filesystem::path p(startScan);
 	std::string scanDir = p.parent_path().string();
 	std::string scanName = p.stem().string();
 	std::string scanOutDir = m_outputDir.empty() ? p.parent_path().string() : m_outputDir;
 	int scanNr = std::stoi(p.stem().string().substr(4));
-	// std::vector<std::string> args ={"scan_to_panorama", p.parent_path().string(), std::to_string(scanNr),
-	// std::to_string(scanNr + 1), scanOutDir};
-	//  command line for scan_to_panorama with normalized range
+
+    //  command line for scan_to_panorama with normalized range
 	std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr) + " -e " +
 			      std::to_string(scanNr) + " -f uos -A -a -F PNG -O " + scanOutDir + "\0";
+
 	// convert command line to string array
 	std::stringstream commandStream(command);
 	std::vector<std::string> args;
@@ -45,6 +45,7 @@ std::string App::Create_Panorama(std::string &startScan)
 	while (commandStream >> argTemp) {
 		args.push_back(argTemp);
 	}
+
 	// vector for scan_to_panorama-input
 	std::vector<char *> args_char;
 	for (std::string &a : args) {
@@ -56,25 +57,28 @@ std::string App::Create_Panorama(std::string &startScan)
 
 	// Use scan_to_panorama in new process to avoid effects of global variables
 
-pid_t pid = fork();
+    pid_t pid = fork();
 
-if (pid == 0)
-{
-	run(args.size(), args_char.data());
-    _exit(0);
-}
+    if (pid == 0)
+    {
+	    run(args.size(), args_char.data());
+        _exit(0);
+    }
 
-waitpid(pid, nullptr, 0);
+    waitpid(pid, nullptr, 0);
 
 	// check if conversion worked
 	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
 	if (!std::filesystem::exists(genImName)) {
-		std::cout << "Failed generating panorama from " << scanName;
+		std::cout << "Failed generating panorama from " << scanName<< std::endl;
 		return "";
 	} else {
 		std::cout << "Panorama created in " << scanOutDir << std::endl << std::endl;
 		return genImName;
-	}
+	}} catch(const std::exception& e){
+        std::cout<< "Failed generating panorama from " << startScan << std:: endl;
+        return "";
+    }
 }
 
 void App::setOutDir(std::string outputDir) { m_outputDir = outputDir; }
@@ -159,6 +163,7 @@ if (!fs::exists(m_outputDir + "/Koordinaten")) {
 	for (const auto &p : m_points) {
 		file << p.x << "," << p.y << "\n";
 	}
+    std::cout<< "Coordinates saved to " << m_currentTxtPath<< std::endl;
 }
 
 void App::Update()
@@ -253,50 +258,93 @@ void App::Update()
 	ImGui::End();
 
 	// Schwebendes UI-Fenster
-	ImGui::Begin("Steuerung & Setup", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-	ImGui::Text("Bild laden:");
-	ImGui::InputText("##imagepath", m_imageInputBuffer, sizeof(m_imageInputBuffer));
-	ImGui::SameLine();
-	if (ImGui::Button("Laden")) {
-		LoadWorkspace(m_imageInputBuffer);
-	}
+	ImGui::Begin("Control & Setup", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    //Load-section:
+
+     //Disable load-section when images successfully created
+    ImGui::BeginDisabled(m_imageLoaded);
+	ImGui::InputTextWithHint("##imagepath", m_twoImageMode ? "path to first image" : "path to image", m_imageInputBuffer, sizeof(m_imageInputBuffer));
+    ImGui::SameLine();
+    ImGui::Checkbox("Scan", &m_firstImageIsScan);
+    
+    //one or thwo images mode
+    	ImGui::Checkbox("two-image mode", &m_twoImageMode);
+    if(m_twoImageMode){
+        ImGui::InputTextWithHint("##imagepath2", "path to second image", m_imageInputBuffer2, sizeof(m_imageInputBuffer2));
+        ImGui::SameLine();
+    	ImGui::Checkbox("Scan##2", &m_secondImageIsScan);
+    }
+    bool error = false;
+    //disable load-button if too few arguments given 
+        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 || m_twoImageMode && strlen(m_imageInputBuffer2) == 0);
+	if (ImGui::Button(m_twoImageMode ? "Load images" : "Load image", ImVec2(-1, 30))) {
+        // if scan: convert
+        if(m_firstImageIsScan){
+            std::string imInputBufferString = Create_Panorama(m_imageInputBuffer);
+            if(imInputBufferString == ""){
+                m_errorMessage =  "Failed generating panorama from first scan-path";
+                error = true;
+	        }
+            strncpy(m_imageInputBuffer, imInputBufferString.c_str(), sizeof(m_imageInputBuffer));
+
+            
+        }
+        if(m_secondImageIsScan){
+             std::string imInputBuffer2String = Create_Panorama(m_imageInputBuffer2);
+            if(imInputBuffer2String == ""){
+                m_errorMessage =  "Failed generating panorama from second scan-path";
+                error = true;
+	        }
+            strncpy(m_imageInputBuffer2, imInputBuffer2String.c_str(), sizeof(m_imageInputBuffer2));
+
+
+        }
+        if(!error){
+        if(m_twoImageMode) LoadTwoImageWorkspace(m_imageInputBuffer, m_imageInputBuffer2);
+        else LoadWorkspace(m_imageInputBuffer);
+	}}
+    ImGui::EndDisabled();
+
+    ImGui::EndDisabled();
+
+    if(!m_errorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), m_errorMessage.c_str());
 
 	ImGui::Separator();
-	ImGui::Checkbox("Auswahl-Modus", &m_selectionMode);
+	ImGui::Checkbox("Selection-mode", &m_selectionMode);
 	ImGui::SameLine();
-	ImGui::Checkbox("Punkte anzeigen", &m_showPoints);
+	ImGui::Checkbox("Show points", &m_showPoints);
 	// Button um manuell das Bild wieder zentriert und passend zu machen
-	if (ImGui::Button("Ansicht zentrieren & anpassen", ImVec2(-1, 0))) {
+	if (ImGui::Button("Center view", ImVec2(-1, 0))) {
 		m_needsFit = true;
 	}
 
 	ImGui::Separator();
-	ImGui::Text("Steuerung:");
-	ImGui::Text("- Rechter Mausklick (halten) = Verschieben");
-	ImGui::Text("- Mausrad = Zoomen");
+	ImGui::Text("Control:");
+	ImGui::Text("- Right mouseclick (hold) = slide picture");
+	ImGui::Text("- Mousewheel = zoom");
 	ImGui::Separator();
-	ImGui::Text("Punkte: %d", (int)m_points.size());
+	ImGui::Text("Points: %d", (int)m_points.size());
 	if (!m_currentTxtPath.empty()) {
 		ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Ort: %s", m_currentTxtPath.c_str());
 	}
 
-	if (ImGui::Button("Rückgängig")) {
+	if (ImGui::Button("Undo")) {
 		if (!m_points.empty()) {
 			m_points.pop_back();
 			SavePointsToFile();
 		}
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Alle löschen")) {
+	if (ImGui::Button("delete all")) {
 		m_points.clear();
 		SavePointsToFile();
 	}
 
 	ImGui::Separator();
-	if (ImGui::Button("Speichern & Beenden", ImVec2(-1, 30))) {
+	if (ImGui::Button("save & exit", ImVec2(-1, 30))) {
 		SavePointsToFile();
 		m_shouldClose = true;
 	}
-
 	ImGui::End();
 }

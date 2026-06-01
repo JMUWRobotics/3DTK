@@ -24,7 +24,7 @@ class App
 	App();
 	~App();
 
-    std::string Create_Panorama(std::string& startScan);
+    std::string Create_Panorama(const std::string& startScan);
     void setOutDir(std::string outputDir);
 	void Init(const std::string &initialImagePath);
     void InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath);
@@ -44,6 +44,8 @@ class App
 
 	// Status-Variablen
     bool m_twoImageMode = false;
+	bool m_firstImageIsScan = false;
+	bool m_secondImageIsScan = false;
 	bool m_shouldClose = false;
 	bool m_selectionMode = false;
 	bool m_showPoints = true;
@@ -80,6 +82,8 @@ class App
 
 	// Puffer für die UI-Texteingabe
 	char m_imageInputBuffer[256] = "";
+	char m_imageInputBuffer2[256] = "";
+
 
 	// OutputDir
 	std::string m_outputDir = "";

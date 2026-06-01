@@ -18,9 +18,9 @@ SavePointsToFile and Update
 */
 
 void App::InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath) {
-    if (!fs::exists("Koordinaten")) {
-        fs::create_directory("Koordinaten");
-    }
+   // if (!fs::exists("Koordinaten")) {
+   //     fs::create_directory("Koordinaten");
+   // }
     LoadTwoImageWorkspace(firstImagePath, secondImagePath);
 }
 
@@ -52,10 +52,35 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
         return;
     }
 
+        //Create Path to Coordinates.Directory if not yet determined
+        fs::path p(firstImagePath);
+
+        m_outputDir = m_outputDir.empty() ? p.parent_path().string() : m_outputDir;
+
+		m_currentTxtPath = m_outputDir + "/Koordinaten/" + p.stem().string() + "_koordinaten.txt";
+
+
     //this establishes where each image is positionated
     const int gap = 20;
 
-    bool horizontal = (firstWidth + secondWidth) >= (firstHeight + secondHeight);
+        //screen size
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    float width = viewport -> WorkSize.x;
+    float height = viewport -> WorkSize.y;
+    float screenRelation = width/height;
+
+    float horImageRelation = (float)(firstWidth + gap + secondWidth) / std::max(firstHeight, secondHeight);
+    //float vertImageRelationMax = Math.max(firstWidth, secondWidth) / Math.max(firstHeight, secondHeight);
+    //float vertImageRelationMin = Math.min(firstWidth, secondWidth) / Math.min(firstHeight, secondHeight);
+    float vertImageRelation = (float)std::max(firstWidth, secondWidth) / (firstHeight + gap +  secondHeight);
+
+//    float meanVertRelation = (vertImageRelationMax + vertImageRelationMin)/2;
+
+    //bool horizontal = screenRelation - horIMageRelation < screenRelation - meanVertRelation;
+    bool horizontal = std::abs(screenRelation - horImageRelation) < std::abs(screenRelation - vertImageRelation);
+
+
+ //   bool horizontal = (firstWidth + secondWidth) <= (firstHeight + secondHeight);
 
     int combinedWidth = 0;
     int combinedHeight = 0;
@@ -144,7 +169,7 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
         fs::path firstPath(firstImagePath);
         fs::path secondPath(secondImagePath);
 
-        m_currentTxtPath = "Koordinaten/" +
+        m_currentTxtPath = m_outputDir + "/Koordinaten/" +
             firstPath.stem().string() + "_" +
             secondPath.stem().string() +
             "_correspondencies.txt";
