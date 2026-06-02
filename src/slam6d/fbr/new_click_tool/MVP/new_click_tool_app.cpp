@@ -71,12 +71,15 @@ std::string App::Create_Panorama(const std::string &startScan)
 	// check if conversion worked
 	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
 	if (!std::filesystem::exists(genImName)) {
+
         m_convertErrorMessage = "Failed generating panorama from " + startScan;
 		return "";
 	} else {
+
 		std::cout << "Panorama created in " << scanOutDir << std::endl << std::endl;
 		return genImName;
 	}} catch(const std::exception& e){
+
         m_convertErrorMessage = "Failed generating panorama from " + startScan;
         return "";
     }

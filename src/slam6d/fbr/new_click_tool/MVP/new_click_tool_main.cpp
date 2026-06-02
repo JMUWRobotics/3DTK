@@ -93,13 +93,13 @@ int main(int argc, char **argv)
 
 			if (argString == "-im") { // 2D-image Format
 				if (i + 1 < argc) {
-					if (startImage.empty() && startScan.empty())
+					if (startImage.empty() && startScan.empty()){
 						startImage = argv[++i];
                         if(!std::filesystem::exists(startImage)){
                             std::cout << "\033[31m Cannot find image " <<std::filesystem::path(startImage).filename().string() << "\033[0m" << std::endl;
                             usage(argv);
                         return 1;
-                        }
+                        }}
 					else if (startImage2.empty() && startScan2.empty()){
                         twoImageMode = true;
                         startImage2 = argv[++i];
@@ -131,6 +131,7 @@ int main(int argc, char **argv)
                         return 1;
                     }
 					} else if (startImage2.empty() && startScan2.empty()) {
+
                         twoImageMode = true;
 						startScan2 = argv[++i];
                         if(!std::filesystem::exists(startScan2)){
