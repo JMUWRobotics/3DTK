@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     // Instantiate app
     	App app;
 
-	GLFWwindow *window = glfwCreateWindow(1280, 720, "New_click_tool", NULL, NULL);
+	GLFWwindow *window = glfwCreateWindow(1280, 720, "New click tool", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return 1;
@@ -95,16 +95,26 @@ int main(int argc, char **argv)
 				if (i + 1 < argc) {
 					if (startImage.empty() && startScan.empty())
 						startImage = argv[++i];
+                        if(!std::filesystem::exists(startImage)){
+                            std::cout << "\033[31m Cannot find image " <<std::filesystem::path(startImage).filename().string() << "\033[0m" << std::endl;
+                            usage(argv);
+                        return 1;
+                        }
 					else if (startImage2.empty() && startScan2.empty()){
                         twoImageMode = true;
-                        startImage2 = argv[++i];}
+                        startImage2 = argv[++i];
+                        if(!std::filesystem::exists(startImage2)){
+                            std::cout << "\033[31m Cannot find image " <<std::filesystem::path(startImage2).filename().string() << "\033[0m" << std::endl;
+                            usage(argv);
+                        return 1;
+                    }}
 					else { // More than two images to open
-						std::cout << "Too many arguments" << std::endl;
+						std::cout << "\033[31m Too many arguments" << "\033[0m" << std::endl;
 						usage(argv);
 						return 1;
 					}
 				} else {
-					std::cout << "No image-path found" << std::endl;
+					std::cout << "\033[31m No image-path found" << "\033[0m" << std::endl;
 					usage(argv);
 					return 1;
 				}
@@ -115,16 +125,26 @@ int main(int argc, char **argv)
 				if (i + 1 < argc) {
 					if (startImage.empty() && startScan.empty()) {
 						startScan = argv[++i];
+                        if(!std::filesystem::exists(startScan)){
+                            std::cout << "\033[31m Cannot find scan " <<std::filesystem::path(startScan).filename().string() << "\033[0m" << std::endl;
+                            usage(argv);
+                        return 1;
+                    }
 					} else if (startImage2.empty() && startScan2.empty()) {
                         twoImageMode = true;
 						startScan2 = argv[++i];
+                        if(!std::filesystem::exists(startScan2)){
+                            std::cout << "\033[31m Cannot find scan " <<std::filesystem::path(startScan2).filename().string() << "\033[0m" << std::endl;
+                            usage(argv);
+                        return 1;
+                    }
 					} else { // More than two images to open
-						std::cout << "Too many arguments" << std::endl;
+						std::cout << "\033[31m Too many arguments" << "\033[0m" << std::endl;
 						usage(argv);
 						return 1;
 					}
 				} else {
-					std::cout << "No scan-path found" << std::endl;
+					std::cout << "\033[31m No scan-path found" << "\033[0m" << std::endl;
 					usage(argv);
 					return 1;
 				}
@@ -132,9 +152,14 @@ int main(int argc, char **argv)
 			} else if (argString == "-out") { // output directory path for converted scans and coordinates
 				if (i + 1 < argc){
 					outputDir = argv[++i];
+                    if(!std::filesystem::exists(outputDir)){
+                        std::cout << "\033[31m Output directory does not exist" << "\033[0m"<< std::endl;
+                        usage(argv);
+                        return 1;
+                    }
                     app.setOutDir(outputDir);}
 				else {
-					std::cout << "No directory path found" << std::endl;
+					std::cout << "\033[31m No directory path found" << "\033[0m" << std::endl;
 					usage(argv);
 					return 1;
 				}
@@ -142,7 +167,7 @@ int main(int argc, char **argv)
                 usage(argv);
                 return 1;
             } else{
-				std::cout << "Invalid argument." << std::endl;
+				std::cout << "\033[31m Invalid argument." << "\033[0m" << std::endl;
 				usage(argv);
 				return 1;
 			}
@@ -152,19 +177,21 @@ int main(int argc, char **argv)
             
 			startImage = app.Create_Panorama(startScan);
             if(startImage.empty()){
+                std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);
                 return 1;
-            }
+            }}
 
 		
         if (!startScan2.empty()) {
             startImage2 = app.Create_Panorama(startScan2);
             if(startImage2.empty()){
+                std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);
                 return 1;
             }
 		}
-	}}
+	}
 
 	// start app
     if (twoImageMode) {

@@ -26,6 +26,7 @@ App::~App()
 
 std::string App::Create_Panorama(const std::string &startScan)
 {
+    m_convertErrorMessage = "";
     try{
 	std::filesystem::path p(startScan);
 	std::string scanDir = p.parent_path().string();
@@ -70,13 +71,13 @@ std::string App::Create_Panorama(const std::string &startScan)
 	// check if conversion worked
 	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
 	if (!std::filesystem::exists(genImName)) {
-		std::cout << "Failed generating panorama from " << scanName<< std::endl;
+        m_convertErrorMessage = "Failed generating panorama from " + startScan;
 		return "";
 	} else {
 		std::cout << "Panorama created in " << scanOutDir << std::endl << std::endl;
 		return genImName;
 	}} catch(const std::exception& e){
-        std::cout<< "Failed generating panorama from " << startScan << std:: endl;
+        m_convertErrorMessage = "Failed generating panorama from " + startScan;
         return "";
     }
 }
@@ -93,7 +94,7 @@ void App::Init(const std::string &initialImagePath)
 void App::LoadWorkspace(const std::string &imagePath)
 {
 	m_currentImagePath = imagePath;
-	strncpy(m_imageInputBuffer, imagePath.c_str(), sizeof(m_imageInputBuffer));
+	strncpy(m_imageInputBuffer, imagePath.c_str(), sizeof(m_imageInputBuffer)-1);
 
 	m_imageLoaded = LoadTexture(imagePath);
 	m_points.clear();
@@ -109,6 +110,32 @@ void App::LoadWorkspace(const std::string &imagePath)
 		// das Bild im ersten Frame zentrieren und vollständig darstellen
 		m_needsFit = true;
 	}
+}
+
+void App::ResetWorkspace(){
+    m_imageLoaded = false;
+    m_twoImageMode = false;
+    m_firstImageIsScan = false;
+    m_secondImageIsScan = false;
+    m_zoom = 1.0f;
+    m_panX = 0.0f;
+    m_panY = 0.0f;
+    m_points.clear();
+    m_correspondences.clear();
+    m_errorMessage.clear();
+    m_inputErrorMessage.clear();
+    m_inputErrorMessage2.clear();
+    m_waitingForSecondPoint = false;
+
+    m_imageInputBuffer[0] = '\0';
+    m_imageInputBuffer2[0] = '\0';
+    m_currentImagePath.clear();
+    m_currentTxtPath.clear();
+
+    if(m_texture != 0){
+        glDeleteTextures(1, &m_texture);
+        m_texture = 0;}
+
 }
 
 bool App::LoadTexture(const std::string &filename)
@@ -131,39 +158,59 @@ bool App::LoadTexture(const std::string &filename)
 	return true;
 }
 
-void App::LoadPointsFromFile()
-{
-	if (!fs::exists(m_currentTxtPath))
-		return;
+void App::LoadPointsFromFile() {
+    if (!fs::exists(m_currentTxtPath)) return; 
 
-	std::ifstream file(m_currentTxtPath);
-	std::string line;
-	while (std::getline(file, line)) {
-		std::stringstream ss(line);
-		std::string val;
-		ClickPoint p;
-		if (std::getline(ss, val, ','))
-			p.x = std::stof(val);
-		if (std::getline(ss, val, ','))
-			p.y = std::stof(val);
-		m_points.push_back(p);
-	}
+    std::ifstream file(m_currentTxtPath);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string val;
+        if (m_twoImageMode) {
+            Correspondence c;
+
+            if (!std::getline(ss, val, ',')) continue;
+            c.first.x = std::stof(val);
+
+            if (!std::getline(ss, val, ',')) continue;
+            c.first.y = std::stof(val);
+
+            if (!std::getline(ss, val, ',')) continue;
+            c.second.x = std::stof(val);
+
+            if (!std::getline(ss, val, ',')) continue;
+            c.second.y = std::stof(val);
+
+            m_correspondences.push_back(c);
+        } else {
+            ClickPoint p;
+
+            if (!std::getline(ss, val, ',')) continue;
+            p.x = std::stof(val);
+
+            if (!std::getline(ss, val, ',')) continue;
+            p.y = std::stof(val);
+
+            m_points.push_back(p);
+        }
+    }
 }
 
-void App::SavePointsToFile()
-{
-	if (m_currentTxtPath.empty())
-		return;
+void App::SavePointsToFile() {
+    if (m_currentTxtPath.empty()) return;
+    //deletes all previous information and saves the new
+    std::ofstream file(m_currentTxtPath, std::ios::trunc);
 
-if (!fs::exists(m_outputDir + "/Koordinaten")) {
-		fs::create_directory(m_outputDir + "/Koordinaten");
-	 }
-
-	std::ofstream file(m_currentTxtPath, std::ios::trunc);
-	for (const auto &p : m_points) {
-		file << p.x << "," << p.y << "\n";
-	}
-    std::cout<< "Coordinates saved to " << m_currentTxtPath<< std::endl;
+    if (m_twoImageMode) {
+        for (const auto& c : m_correspondences) {
+            file << c.first.x << "," << c.first.y << ","
+                 << c.second.x << "," << c.second.y << "\n";
+        }
+    } else {
+        for (const auto& p : m_points) {
+            file << p.x << "," << p.y << "\n";
+        }
+    }
 }
 
 void App::Update()
@@ -291,7 +338,7 @@ void App::Update()
                         m_waitingForSecondPoint = true;
                         m_errorMessage.clear();
                     } else {
-                        m_errorMessage = "First select point in first image.";
+                        m_errorMessage = "Select point in first image.";
                     }
                 } else {
                     if (insideSecond) {
@@ -319,53 +366,136 @@ void App::Update()
             }
         }
     } else {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "Kein Bild geladen oder Bildpfad ungueltig.");
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "No image loaded");
     }
     ImGui::End();
 
 	// Schwebendes UI-Fenster
 	ImGui::Begin("Control & Setup", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    //Load-section:
 
-     //Disable load-section when images successfully created
+//set output dir
+        //Disable set output and load-section when images successfully created
     ImGui::BeginDisabled(m_imageLoaded);
+
+if(ImGui::Button("Set out-dir")){
+        ImGui::OpenPopup("Set output directory");}
+        if(ImGui::BeginPopupModal("Set output directory", nullptr, ImGuiWindowFlags_AlwaysAutoResize)){
+        ImGui::Text("output directory:");
+        ImGui::InputText("##SaveDirectory", m_outDirBuffer, sizeof(m_outDirBuffer));
+        if(ImGui::Button("Save")){
+            if(fs::exists(m_outDirBuffer)){
+                if(fs::is_directory(m_outDirBuffer)){
+            m_outputDirErrorMessage = "";
+            m_outputDir = m_outDirBuffer;
+            ImGui::CloseCurrentPopup();}
+            else{ if(fs::exists(m_outDirBuffer))
+                m_outputDirErrorMessage = "Not a directory";
+            }
+        }
+            else{
+                m_outputDirErrorMessage = "Path does not exist";
+            }}
+        ImGui::SameLine();
+        if(ImGui::Button("Cancel")){
+        ImGui::CloseCurrentPopup();  
+        }
+        ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "%s", m_outputDirErrorMessage.c_str());
+
+        ImGui::EndPopup();
+    }
+        //help-function
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - 20);
+   if(ImGui::Button("?")){
+        ImGui::OpenPopup("Help");
+    }
+    if(ImGui::BeginPopupModal("Help", nullptr, ImGuiWindowFlags_AlwaysAutoResize)){
+	    ImGui::Text("Control:");
+	    ImGui::Text("- Right mouseclick (hold) = slide picture");
+	    ImGui::Text("- Mousewheel = zoom");
+        ImGui::Separator();
+
+/////////////////////////////// TODO: Anweisungen/Hilfestellungen einfügen
+
+
+
+        ImGui::Separator();
+
+    ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x - m_closeButtonSize)/2);
+    if(ImGui::Button("Close")){
+        ImGui::CloseCurrentPopup();
+    }
+        m_closeButtonSize = ImGui::GetItemRectSize().x;
+
+        ImGui::EndPopup();
+    }
+
+
+
+
+
+        //Load-section:
+
+
 	ImGui::InputTextWithHint("##imagepath", m_twoImageMode ? "path to first image" : "path to image", m_imageInputBuffer, sizeof(m_imageInputBuffer));
     ImGui::SameLine();
     ImGui::Checkbox("Scan", &m_firstImageIsScan);
     
-    //one or thwo images mode
-    	ImGui::Checkbox("two-image mode", &m_twoImageMode);
+    if(!m_inputErrorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage.c_str());
+
+        //one or two images mode
+    ImGui::Checkbox("two-image mode", &m_twoImageMode);
     if(m_twoImageMode){
         ImGui::InputTextWithHint("##imagepath2", "path to second image", m_imageInputBuffer2, sizeof(m_imageInputBuffer2));
         ImGui::SameLine();
     	ImGui::Checkbox("Scan##2", &m_secondImageIsScan);
+    if(!m_inputErrorMessage2.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage2.c_str());
+
     }
     bool error = false;
     //disable load-button if too few arguments given 
-        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 || m_twoImageMode && strlen(m_imageInputBuffer2) == 0);
+        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 ||( m_twoImageMode && strlen(m_imageInputBuffer2) == 0));
 	if (ImGui::Button(m_twoImageMode ? "Load images" : "Load image", ImVec2(-1, 30))) {
         // if scan: convert
+        m_inputErrorMessage = "";
         if(m_firstImageIsScan){
-            std::string imInputBufferString = Create_Panorama(m_imageInputBuffer);
+            std::string imInputBufferString;
+            if(!fs::exists(m_imageInputBuffer)){
+                error = true;
+                m_inputErrorMessage = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer).filename().string();}
+            else{ imInputBufferString = Create_Panorama(m_imageInputBuffer);
             if(imInputBufferString == ""){
-                m_errorMessage =  "Failed generating panorama from first scan-path";
+                m_inputErrorMessage =  m_convertErrorMessage;
                 error = true;
 	        }
-            strncpy(m_imageInputBuffer, imInputBufferString.c_str(), sizeof(m_imageInputBuffer));
-
-            
+            strncpy(m_imageInputBuffer, imInputBufferString.c_str(), sizeof(m_imageInputBuffer)-1);
         }
-        if(m_secondImageIsScan){
-             std::string imInputBuffer2String = Create_Panorama(m_imageInputBuffer2);
+        } else {    //first image is image: test if exists
+                if(!fs::exists(m_imageInputBuffer)){
+                error = true;
+                m_inputErrorMessage = "Cannot find image " + std::filesystem::path(m_imageInputBuffer).filename().string();}
+        }
+        if(m_twoImageMode){
+            m_inputErrorMessage2 = "";
+            if(m_secondImageIsScan){
+            std::string imInputBuffer2String;
+            if(!fs::exists(m_imageInputBuffer2)){
+                error = true;
+                m_inputErrorMessage2 = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer2).filename().string();}
+            else{imInputBuffer2String = Create_Panorama(m_imageInputBuffer2);
             if(imInputBuffer2String == ""){
-                m_errorMessage =  "Failed generating panorama from second scan-path";
+                m_inputErrorMessage2 =  m_convertErrorMessage;
+                error = true;}
+	        
+            strncpy(m_imageInputBuffer2, imInputBuffer2String.c_str(), sizeof(m_imageInputBuffer2)-1);
+            } }else {    //second image is image: test if exists
+                if(!fs::exists(m_imageInputBuffer2)){
                 error = true;
-	        }
-            strncpy(m_imageInputBuffer2, imInputBuffer2String.c_str(), sizeof(m_imageInputBuffer2));
+                m_inputErrorMessage2 = "Cannot find image " + std::filesystem::path(m_imageInputBuffer2).filename().string();}
+        }}
 
-
-        }
+        
         if(!error){
         if(m_twoImageMode) LoadTwoImageWorkspace(m_imageInputBuffer, m_imageInputBuffer2);
         else LoadWorkspace(m_imageInputBuffer);
@@ -374,7 +504,33 @@ void App::Update()
 
     ImGui::EndDisabled();
 
-    if(!m_errorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), m_errorMessage.c_str());
+    //Reset Workspace
+    ImGui::BeginDisabled(!m_imageLoaded);
+
+    if(ImGui::Button("Reset workspace", ImVec2(-1, 0))){
+        ImGui::OpenPopup("Save points?");}
+        if(ImGui::BeginPopupModal("Save points?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)){
+        ImGui::Text("Save points before reset?");
+        if(ImGui::Button("Save")){
+        SavePointsToFile();    
+        ResetWorkspace();
+        ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Don't save")){
+        ResetWorkspace();
+        ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Cancel")){
+        ImGui::CloseCurrentPopup();  
+        }
+        ImGui::EndPopup();
+        }
+    
+
+    ImGui::EndDisabled();
+
 
 	ImGui::Separator();
 	ImGui::Checkbox("Selection-mode", &m_selectionMode);
@@ -385,10 +541,7 @@ void App::Update()
 		m_needsFit = true;
 	}
 
-	ImGui::Separator();
-	ImGui::Text("Control:");
-	ImGui::Text("- Right mouseclick (hold) = slide picture");
-	ImGui::Text("- Mousewheel = zoom");
+
 	    ImGui::Separator();
     if (m_twoImageMode) {
         ImGui::Text("Correspondences: %d", (int)m_correspondences.size());
@@ -406,14 +559,20 @@ void App::Update()
         ImGui::Text("points: %d", (int)m_points.size());
     }    
     if (!m_currentTxtPath.empty()) {
-        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Ort: %s", m_currentTxtPath.c_str());
+        ImGui::PushTextWrapPos(400.0f);
+        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Location: %s", m_currentTxtPath.c_str());
+        ImGui::PopTextWrapPos();
     }
 
     if (!m_errorMessage.empty()) {
     ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "%s", m_errorMessage.c_str());
     }
-
-	if (ImGui::Button("Undo")) {
+    if(m_imageLoaded){
+    if(ImGui::Button("Copy Path")){
+        ImGui::SetClipboardText(m_currentTxtPath.c_str());
+    }}
+    
+    if (ImGui::Button("Undo")) {
       if (m_twoImageMode) {
             if (m_waitingForSecondPoint) {
                 m_waitingForSecondPoint = false;

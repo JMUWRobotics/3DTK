@@ -35,6 +35,8 @@ class App
 	void LoadWorkspace(const std::string &imagePath);
     void LoadTwoImageWorkspace(const std::string& firstImagePath,
                            const std::string& secondImagePath);
+	void ResetWorkspace();
+
 
 	void SavePointsToFile();
 	void LoadPointsFromFile();
@@ -50,6 +52,7 @@ class App
 	bool m_selectionMode = false;
 	bool m_showPoints = true;
 	bool m_needsFit = false; // Sagt der App, dass sie im nächsten Frame zoomen muss
+	float m_closeButtonSize = 0;
 	// Bild-Daten
 	std::string m_currentImagePath;
 	std::string m_currentTxtPath;
@@ -78,7 +81,6 @@ class App
     std::vector<Correspondence> m_correspondences;
     ClickPoint m_pendingFirstPoint;
     bool m_waitingForSecondPoint = false;
-    std::string m_errorMessage;
 
 	// Puffer für die UI-Texteingabe
 	char m_imageInputBuffer[256] = "";
@@ -87,4 +89,14 @@ class App
 
 	// OutputDir
 	std::string m_outputDir = "";
+    char m_outDirBuffer[256] = "";
+
+	public:
+		//Error Messages
+    std::string m_errorMessage;
+	std::string m_inputErrorMessage;
+	std::string m_inputErrorMessage2;
+	std::string m_convertErrorMessage;
+	std::string m_outputDirErrorMessage = "";
+
 };

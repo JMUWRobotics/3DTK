@@ -28,7 +28,7 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
                                 const std::string& secondImagePath) {
     m_twoImageMode = true;
     m_currentImagePath = firstImagePath + " | " + secondImagePath;
-    strncpy(m_imageInputBuffer, m_currentImagePath.c_str(), sizeof(m_imageInputBuffer));
+    strncpy(m_imageInputBuffer, m_currentImagePath.c_str(), sizeof(m_imageInputBuffer)-1);
     m_errorMessage.clear();
     m_waitingForSecondPoint = false;                            
     int firstWidth = 0;
@@ -68,15 +68,10 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
     float width = viewport -> WorkSize.x;
     float height = viewport -> WorkSize.y;
     float screenRelation = width/height;
-
+        //imafe size
     float horImageRelation = (float)(firstWidth + gap + secondWidth) / std::max(firstHeight, secondHeight);
-    //float vertImageRelationMax = Math.max(firstWidth, secondWidth) / Math.max(firstHeight, secondHeight);
-    //float vertImageRelationMin = Math.min(firstWidth, secondWidth) / Math.min(firstHeight, secondHeight);
     float vertImageRelation = (float)std::max(firstWidth, secondWidth) / (firstHeight + gap +  secondHeight);
-
-//    float meanVertRelation = (vertImageRelationMax + vertImageRelationMin)/2;
-
-    //bool horizontal = screenRelation - horIMageRelation < screenRelation - meanVertRelation;
+        //alignment horizontal/vertical
     bool horizontal = std::abs(screenRelation - horImageRelation) < std::abs(screenRelation - vertImageRelation);
 
 
