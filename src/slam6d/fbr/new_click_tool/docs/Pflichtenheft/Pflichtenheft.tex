@@ -22,7 +22,7 @@
 	footskip=5mm
 }
 
-\subject{Gruppe \textit{Nummer}}
+
 \title{Pflichtenheft für das Thema \glqq\textit{Klick-Tool}\grqq}
 \subtitle{Betreuer: \textit{Prof. Dr. Andreas Nüchter}}
 \author{\textit{Tom Lerzer, Fabia Frank, Luis Ángel Álvarez Gil}}
@@ -43,12 +43,12 @@
     \item Internes Erstellen von png-Dateien bei Eingabe von 3DTK-spezifischen 3D-Dateiformaten
     \item Implementieren eines GUI zur erleichterten Ausführung der implementierten Funktionalitäten
     \item Platzieren von maximal zwei der geladenen Bilder nebeneinander
-    \item Zoom-Funktion für X-fachen Zoom jedes geladenen Bildes
-    \item Anwählen einzelner Koordinaten in einem Bild mit Subpixelgenauigkeit von mindestens 0,5 Pixel
-    \item Anwählen korrespondierender Koordinaten in zwei Bildern mit Subpixelgenauigkeit von mindestens 0,5 Pixel
+    \item Zoom-Funktion für 20-fachen Zoom jedes geladenen Bildes
+    \item Anwählen einzelner Koordinaten in einem Bild mit Subpixelgenauigkeit von mindestens 0,1 Pixel
+    \item Anwählen korrespondierender Koordinaten in zwei Bildern mit Subpixelgenauigkeit von mindestens 0,1 Pixel
     \item Visualisierung gewählter Koordinaten
     \item Visualisierung der Korrespondenz gewählter Koordinaten
-    \item Ausgabe gewählter 2D-Koordinaten in Form $(x_1, y_1), ..., (x_n, y_n)$ für einfache bzw. $(x_{1.1}, y_{1.1}, y_{1.2}, y_{1.2}),$ $ ..., (x_{n.1}, y_{n.1}, x{n.2}, y_{n.2})$in .txt-Dateiformat
+    \item Ausgabe gewählter 2D-Koordinaten in Form $x_1, y_1, \backslash n, ..., x_n, y_n, \backslash n$ für einfache bzw. $x_{1.1}, y_{1.1}, y_{1.2}, y_{1.2}, \backslash n ,$ $ ..., x_{n.1}, y_{n.1}, x{n.2}, y_{n.2},  \backslash n$ in txt-Dateiformat
     \item Integration der implementierten Funktionalitäten in 3DTK-Toolkit 
     \item Implementieren von Kommandozeilenparametern sowie deren Beschreibungen für das Aufrufen der implementierten Funktionalitäten
     \item Erstellen eines Entwicklerhandbuchs für die implementierten Funktionalitäten
@@ -61,25 +61,15 @@
 \item Internes Erstellen von png-Dateien bei Eingabe von 3DTK-spezifischen 3D-Dateiformaten
 \item Implementieren eines GUI zur erleichterten Ausführung der implementierten Funktionalitäten
 \item Platzieren von maximal zwei der geladenen Bilder nebeneinander
-\item Zoom-Funktion für X-fachen Zoom jedes geladenen Bildes
-\item Anwählen einzelner Koordinaten in einem Bild mit Subpixelgenauigkeit von mindestens 0,5 Pixel
-\item Anwählen korrespondierender Koordinaten in zwei Bildern mit Subpixelgenauigkeit von mindestens 0,5 Pixel
+\item Zoom-Funktion für 20-fachen Zoom jedes geladenen Bildes
+\item Anwählen einzelner Koordinaten in einem Bild mit Subpixelgenauigkeit von mindestens 0,1 Pixel
+\item Anwählen korrespondierender Koordinaten in zwei Bildern mit Subpixelgenauigkeit von mindestens 0,1 Pixel
     
 \end{itemize}
 \newpage
 
 \subsubsection{Zuständigkeiten}
-\begin{itemize}
-\item Erstellen der grafischen Nutzeroberfläche für Platzierung der Bilder sowie Visualisierung gewählter Koordinaten:
-\item Funktionalität zum Laden der Bilddateien und Umwandeln von 3DTK-spezifischen 3D-Formaten: 
-\item Implementieren der Zoom-Funktion: 
-\item Funktionalität zum Anwählen und Ausgeben von Koordinaten bzw. korrespondierenden Koordinaten: 
-\item Integration der implementierten Funktionalitäten in 3DTK: 
-\item Implementieren der Kommandozeilenparameter incl. Beschreibung:
-\item Erstellen Entwicklerhandbuch: 
-\item Erstellen Benutzerhandbuch: 
-
-\end{itemize}
+Aufgrund des gewählten agilen Entwicklungsansatzes mit pair-programming werden keine festen Zuständigkeiten festgelegt. 
 
 \subsection{Kann-Kriterien}
 
@@ -88,13 +78,14 @@
     \item Ausblenden einzelner Korrespondenzlinien zwischen Punkten
     \item Anzeige Koordinaten der gewählten Punkte
     \item Undo-Funktion für ausgewählte Punkte
-    \item Frei positionierbare Lupenansicht
+    \item Verbesserte Pixeldarstellung bei Zoom
 \end{itemize}
 
 \subsection{Abgrenzungskriterien}
 
 \begin{itemize}
     \item Anwahl korrespondierender Punkte wird ausschließlich manuell durchgeführt
+    \item Die Funktionalität für die Umwandlung von 3D-Formaten ist bereits vorhanden und muss in das Projekt integriert werden.
 \end{itemize}
 
 
@@ -117,18 +108,17 @@ Das Projekt soll durch Studierende und Lehrende der Universität Würzburg im Ra
 
 \subsection{Software}
 
-\begin{itemize}
-	\item Programmiersprache: C++
-	\item Bildverarbeitung: OpenCV \textbf{Version XXX, Link}
-	\item Nutzeroberfläche: Dear ImGUI \textbf{Version XXX, Link}
-	\item 3D-Framework: 3DTK
-	\item Entwicklungsumgebung: Visual Studio Code
-	\item Compiler: g++
-	\item Build-System: CMake, mindestens Version 3.4
-	\item Versionsverwaltung: git, Version 2.51
-	\item Fensterverwaltung: GLFW, Version 3.4
-	\item Grafik-API: OpenGL
-\end{itemize}
+\begin{itemize} 
+\item Programmiersprache: C++ Version 17 \url{https://isocpp.org/} 
+\item Laden von Bilddateien: stb\_image.h Version 2.30 \url{https://github.com/nothings/stb/blob/master/stb_image.h} 
+\item Benutzungsoberfläche: Dear ImGUI Version 1.90 \url{https://github.com/ocornut/imgui} 
+\item 3D-Framework: 3DTK \url{https://github.com/JMUWRobotics/3DTK} 
+\item Editor: Visual Studio Code Version 1.119 \url{https://code.visualstudio.com/} 
+\item Compiler: g++ Version 15.2 \url{https://gcc.gnu.org/} 
+\item Build-System: CMake Version 3.15 \url{https://cmake.org/} 
+\item Versionsverwaltung: git Version 2.51 \url{https://git-scm.com/} 
+\item Fensterverwaltung: GLFW Version 3.4 \url{https://www.glfw.org/} 
+\item Grafik-API: OpenGL Version 4.6 \url{https://www.opengl.org/} \end{itemize}
 
 \subsection{Hardware}
 
@@ -137,18 +127,21 @@ Die Hardware muss alle Anforderungen der im vorherigen Punkt genannten Software 
 \section{Funktionalität}
 
 \begin{itemize}
-	\item Nutzer starten das Programm via Terminal. Beim Start des Programms werden ein oder zwei Parameter in den unter \textit{Daten} angegebenen Formaten eingegeben
-	\item Auf dem angezeigten Bild bzw. den angezeigten Bildern kann vor der weiteren Bearbeitung bis zu \textbf{X-Mal} hineingezoomt werden
-	\item Nutzer wählen beliebig viele einzelne oder korrespondierende Punkte aus
-	\item Programm zeigt die angewählten Punkte und deren Korrespondenzen im GUI an
-	\item Durch Anwählen des Buttons \textbf{Ausgabe} initiieren Nutzer die Ausgabe der gewählten Punkte in .txt-Format
+	\item Nutzer starten das Programm via Terminal. Beim Start des Programms werden keine, ein oder zwei Parameter in den unter \hyperref[daten]{Daten} angegebenen Formaten eingegeben. Beim Start ohne Parameter öffnet sich das GUI ohne geladene Bilder. Diese können nachträglich in der Load-Section geladen werden. 
+	\item Optional kann ein Speicherort für die Ausgabe der Koordinaten und der konvertierten 3D-Bilder angegeben werden
+	\item Auf dem angezeigten Bild bzw. den angezeigten Bildern kann vor der weiteren Bearbeitung bis zu 20-Mal hineingezoomt werden
+	\item Die Nutzer wählen beliebig viele einzelne oder korrespondierende Punkte aus
+	\item Das Programm zeigt die angewählten Punkte und deren Korrespondenzen im GUI an
+	\item Durch Anwählen des Buttons ''Speichern \& Beenden'' initiieren Nutzer die Speicherung der gewählten Punkte in txt-Format am festgelegten oder default-Speicherort 
 \end{itemize}
 
 
-\section{Daten}\begin{itemize}
+\section{Daten}
+\label{daten}
+\begin{itemize}
 	\item \textbf{Eingabe:} Dateien im png oder jpg-Format sowie 3DTK-spezifische Formate, die durch Anwendung der \textit{scan\_to\_panorama}-Funktion in anzeigbare png-Dateien umgewandelt werden
-	\item \textbf{Ausgabe:} .txt-Datei mit Koordinaten in Form $(x_1, y_1), ..., (x_n, y_n)$ für einfache bzw. $(x_{1.1}, y_{1.1},$ $  y_{1.2}, y_{1.2}),..., (x_{n.1}, y_{n.1}, x{n.2}, y_{n.2})$ für korrespondierende Punkte
-	\item \textbf{3DTK-spezifische Formate:}	rexp, uos, uos\_map, uos\_rgb, uos\_frames, uos\_map\_frames, old, rts, 	rts\_map, ifp, riegl\_txt, riegl\_rgb, riegl\_bin, zahn, ply, las
+	\item \textbf{Ausgabe:} txt-Datei mit Koordinaten in Form $x_1, y_1, \backslash n, ..., x_n, y_n, \backslash n$ für einfache bzw. $x_{1.1}, y_{1.1}, y_{1.2}, y_{1.2}, \backslash n ,$ $ ..., x_{n.1}, y_{n.1}, x{n.2}, y_{n.2},  \backslash n$ für korrespondierende Punkte
+	\item \textbf{3DTK-spezifische Formate:} uos, uos\_map, uos\_rgb, uos\_frames, uos\_map\_frames
 	
 \end{itemize}
 
