@@ -55,7 +55,7 @@ The tool can be started via the binary in the 3DTK/bin/ folder or via command li
     ./new_click_tool -im <path to image>                               open with one image loaded 
     ./new_click_tool -scan <path to scan>                              open with one scan loaded 
     ./new_click_tool -im <path to image 1> -im <path to image 2>       open with two images loaded 
-    ./new_click_tool -im <path to image> -out <path to directory>      open with one image loaded and manually defined folder to save converted                                                                             panoramas and coordinates
+    ./new_click_tool -im <path to image> -out <path to directory>      open with one image loaded and manually defined folder to save converted panoramas and coordinates
 
   
 
