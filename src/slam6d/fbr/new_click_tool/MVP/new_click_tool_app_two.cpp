@@ -18,9 +18,6 @@ SavePointsToFile and Update
 */
 
 void App::InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath) {
-   // if (!fs::exists("Koordinaten")) {
-   //     fs::create_directory("Koordinaten");
-   // }
     LoadTwoImageWorkspace(firstImagePath, secondImagePath);
 }
 
@@ -73,9 +70,6 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
     float vertImageRelation = (float)std::max(firstWidth, secondWidth) / (firstHeight + gap +  secondHeight);
         //alignment horizontal/vertical
     bool horizontal = std::abs(screenRelation - horImageRelation) < std::abs(screenRelation - vertImageRelation);
-
-
- //   bool horizontal = (firstWidth + secondWidth) <= (firstHeight + secondHeight);
 
     int combinedWidth = 0;
     int combinedHeight = 0;

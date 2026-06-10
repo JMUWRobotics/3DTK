@@ -19,6 +19,3 @@
 *.cxxflags
 *.files
 *.includes
-*.deb
-*.buildinfo
-*.changes

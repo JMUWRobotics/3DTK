@@ -23,8 +23,8 @@
 }
 
 
-\subject{Gruppe \textit{Nummer}}
-\title{Pflichtenheft für das Thema \glqq\textit{Klick-Tool}\grqq}
+
+\title{Entwicklerhandbuch für das Thema \glqq\textit{Klick-Tool}\grqq}
 \subtitle{Betreuer: \textit{Prof. Dr. Andreas Nüchter}}
 \author{\textit{Tom Lerzer, Fabia Frank, Luis Ángel Álvarez Gil}}
 \date{\textit{SS2026}}
@@ -170,7 +170,9 @@ Da die Funktionalitäten des Backends vollständig innerhalb der Frontend-Strukt
 		
 		\texttt{./new\_click\_tool -im <Bildpfad>} & \textit{Mit einem geladenen Bild}\\
 		
-		\texttt{./new\_click\_tool -scan <Scanpfad>} & \textit{Mit einem geladenen Scan}\\
+		\texttt{./new\_click\_tool -scan <Scanpfad>} & \textit{Mit einem geladenen Scan in default format (uos)}\\
+
+		\texttt{./new\_click\_tool -scan <Scanpfad> -f <Dateiformat>} & \textit{Mit einem geladenen Scan mit einem 3DTK-spezifischen Format}\\
 		
 		\texttt{./new\_click\_tool -im <Bildpfad> -im <Bildpfad>} & \textit{Mit zwei geladenen Bildern}\\
 		

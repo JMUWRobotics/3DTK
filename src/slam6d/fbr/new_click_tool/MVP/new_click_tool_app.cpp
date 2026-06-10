@@ -9,6 +9,9 @@
 #include <vector>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <GLFW/glfw3.h>
+#include <thread>
+#include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -24,7 +27,7 @@ App::~App()
 		glDeleteTextures(1, &m_texture);
 }
 
-std::string App::Create_Panorama(const std::string &startScan)
+std::string App::Create_Panorama(const std::string &startScan, const std::string &scanformat)
 {
     m_convertErrorMessage = "";
     try{
@@ -36,9 +39,9 @@ std::string App::Create_Panorama(const std::string &startScan)
 
     //  command line for scan_to_panorama with normalized range
 	std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr) + " -e " +
-			      std::to_string(scanNr) + " -f uos -A -a -F PNG -O " + scanOutDir + "\0";
-
-	// convert command line to string array
+			      std::to_string(scanNr) + " -f " + scanformat + " -A -a -F PNG -O " + scanOutDir + "\0";
+std::cout << command << std::endl;
+    // convert command line to string array
 	std::stringstream commandStream(command);
 	std::vector<std::string> args;
 	std::string argTemp;
@@ -63,10 +66,16 @@ std::string App::Create_Panorama(const std::string &startScan)
     if (pid == 0)
     {
 	    run(args.size(), args_char.data());
+        std::cout << "ende scan to panorama "  << std::endl;
+
         _exit(0);
     }
-
-    waitpid(pid, nullptr, 0);
+    // avoids window-freeze messages while converting a large scan
+    int status;
+    while(waitpid(pid, &status, WNOHANG) == 0){
+        glfwPollEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
 	// check if conversion worked
 	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
@@ -89,6 +98,7 @@ void App::setOutDir(std::string outputDir) { m_outputDir = outputDir; }
 
 void App::Init(const std::string &initialImagePath)
 {
+   
 	if (!initialImagePath.empty()) {
 		LoadWorkspace(initialImagePath);
 	}
@@ -251,16 +261,7 @@ void App::Update()
 			m_panY += io.MouseDelta.y;
 		}
 
-		/* // Zoom (Mausrad)
-		if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
-		// Zoom in die Mitte des Bildschirms justieren
-		float zoomFactor = 1.0f + (io.MouseWheel * 0.1f);
-		m_zoom *= zoomFactor;
-		// Angepasste Limits für extrem große Bilder
-		if (m_zoom < 0.01f) m_zoom = 0.01f;
-		if (m_zoom > 20.0f) m_zoom = 20.0f;
-		}*/
-		// Zoom (Mausrad) ALTERNATIVE: Zoom to mouse position
+		// Zoom to mouse position
 		if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
 			// current mouse / pixel-position
 			ImVec2 mousePosition = ImGui::GetMousePos();
@@ -434,16 +435,24 @@ if(ImGui::Button("Set out-dir")){
         ImGui::EndPopup();
     }
 
-
-
-
-
-        //Load-section:
+       //Load-section:
 
 
 	ImGui::InputTextWithHint("##imagepath", m_twoImageMode ? "path to first image" : "path to image", m_imageInputBuffer, sizeof(m_imageInputBuffer));
     ImGui::SameLine();
     ImGui::Checkbox("Scan", &m_firstImageIsScan);
+    if(m_firstImageIsScan){
+        ImGui::SameLine();
+    if (ImGui::BeginCombo("Format", m_current_item)){
+        for(int i = 0; i < IM_ARRAYSIZE(m_formatitems); i++){
+            bool is_selected = m_current_item == m_formatitems[i];
+            if(ImGui::Selectable(m_formatitems[i], is_selected)) m_current_item = m_formatitems[i];
+            if(is_selected) ImGui::SetItemDefaultFocus();
+
+        }
+        ImGui::EndCombo();
+
+    }}
     
     if(!m_inputErrorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage.c_str());
 
@@ -453,21 +462,34 @@ if(ImGui::Button("Set out-dir")){
         ImGui::InputTextWithHint("##imagepath2", "path to second image", m_imageInputBuffer2, sizeof(m_imageInputBuffer2));
         ImGui::SameLine();
     	ImGui::Checkbox("Scan##2", &m_secondImageIsScan);
+    if(m_secondImageIsScan){
+        ImGui::SameLine();
+    if (ImGui::BeginCombo("Format##2", m_current_item2)){
+        for(int i = 0; i < IM_ARRAYSIZE(m_formatitems); i++){
+            bool is_selected = m_current_item2 == m_formatitems[i];
+            if(ImGui::Selectable(m_formatitems[i], is_selected)) m_current_item2 = m_formatitems[i];
+            if(is_selected) ImGui::SetItemDefaultFocus();
+
+        }
+        ImGui::EndCombo();
+
+    }}
     if(!m_inputErrorMessage2.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage2.c_str());
 
     }
     bool error = false;
     //disable load-button if too few arguments given 
-        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 ||( m_twoImageMode && strlen(m_imageInputBuffer2) == 0));
-	if (ImGui::Button(m_twoImageMode ? "Load images" : "Load image", ImVec2(-1, 30))) {
+        ImGui::BeginDisabled(strlen(m_imageInputBuffer) == 0 ||( m_twoImageMode && strlen(m_imageInputBuffer2) == 0) || m_conversion_ongoing);
+        if (ImGui::Button(m_twoImageMode ? "Load images" : "Load image", ImVec2(-1, 30))) {
         // if scan: convert
         m_inputErrorMessage = "";
+        
         if(m_firstImageIsScan){
             std::string imInputBufferString;
             if(!fs::exists(m_imageInputBuffer)){
                 error = true;
                 m_inputErrorMessage = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer).filename().string();}
-            else{ imInputBufferString = Create_Panorama(m_imageInputBuffer);
+            else{ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item);
             if(imInputBufferString == ""){
                 m_inputErrorMessage =  m_convertErrorMessage;
                 error = true;
@@ -486,7 +508,7 @@ if(ImGui::Button("Set out-dir")){
             if(!fs::exists(m_imageInputBuffer2)){
                 error = true;
                 m_inputErrorMessage2 = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer2).filename().string();}
-            else{imInputBuffer2String = Create_Panorama(m_imageInputBuffer2);
+            else{imInputBuffer2String = Create_Panorama(m_imageInputBuffer2, m_current_item2);
             if(imInputBuffer2String == ""){
                 m_inputErrorMessage2 =  m_convertErrorMessage;
                 error = true;}
@@ -502,7 +524,9 @@ if(ImGui::Button("Set out-dir")){
         if(!error){
         if(m_twoImageMode) LoadTwoImageWorkspace(m_imageInputBuffer, m_imageInputBuffer2);
         else LoadWorkspace(m_imageInputBuffer);
-	}}
+    	}
+        if(!m_imageLoaded) m_errorMessage = "Failed loading workspace"; 
+}
     ImGui::EndDisabled();
 
     ImGui::EndDisabled();

@@ -10,6 +10,7 @@
 
 #include "slam6d/fbr/new_click_tool_app.h"
 
+//usage function to print in the console window
 void usage(char **argv)
 {
 	std::cout << std::endl;
@@ -19,10 +20,12 @@ void usage(char **argv)
     std::cout << std::endl;
 	std::cout << " No Arguments \t \t \t \t \t \t Open empty window" << std::endl;
 	std::cout << "-im <imagePath> \t \t \t \t \t Open one image, default directory" << std::endl;
-	std::cout << "-scan <scanPath> \t \t \t \t \t Open one image based on 3D-scan, default directory" << std::endl;
+	std::cout << "-scan <scanPath> \t \t \t \t \t Open one image based on 3D-scan, default format, default directory" << std::endl;
+	std::cout << "-scan <scanPath> -f <scan format>\t \t \t Open one image based on 3D-scan, other format than uos, default directory" << std::endl;
 	std::cout << "-scan <scanPath> -im <imagePath> \t \t \t Open two images, default directory" << std::endl;
 	std::cout << "-im <imagePath> ... -out <outDir> \t \t \t Set output Directory" << std::endl;
 	std::cout << std::endl;
+	std::cout << "Default scan format = uos" << std::endl;
 	std::cout << "Default output directory = directory of first loaded image/scan" << std::endl;
     std::cout << "Converted scans: output directory or directory of scan" << std::endl;
 	std::cout << std::endl;
@@ -31,7 +34,10 @@ void usage(char **argv)
 	std::cout << "-im \t \t \t 2D-image Format" << std::endl;
 	std::cout << "-scan \t \t \t 3D-scan Format, internally converted with scan_to_panorama" << std::endl;
 	std::cout << std::endl;
-	std::cout << "Example: \t \t -im /pictures/myPicture.png -scan /scans/scan001.3D -out /users/desktop/click_tool \n"
+	std::cout << std::endl;
+	std::cout << "Possible scan formats:\t" << "uos, uosc, uos_map, uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, riegl_txt,\n \t \t \triegl_rgb, riegl_bin, zahn, ply, wrl, xyz, xyzc, zuf, iais, front, x3d, rxp, ais" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Example: \t \t -im /pictures/myPicture.png -scan /scans/scan001.3D -f uosr -out /users/desktop/click_tool \n"
 		  << std::endl;
 	std::cout << std::endl;
 }
@@ -85,6 +91,8 @@ int main(int argc, char **argv)
 	std::string startScan2 = "";
 	std::string scanDir = "";
 	std::string scanDir2 = "";
+	std::string scan_format = app.m_formatitems[0]; //Default scanformat = uos
+	std::string scan_format2 = app.m_formatitems[0];
     bool twoImageMode = false;
 
 	if (argc > 1) { // if no picture is loaded start app without initial images
@@ -150,6 +158,41 @@ int main(int argc, char **argv)
 					return 1;
 				}
 
+			}else if (argString == "-f"){ //Choose scan format if different from ous-Format
+				if (i + 1 < argc) {
+					std::string format = argv[++i];
+
+					// check if format is valid
+				bool format_valid = false;
+
+				for(int i = 0; i < IM_ARRAYSIZE(app.m_formatitems); i++){
+									    std::cout << i << ": [" << app.m_formatitems[i] << "]" << std::endl;
+
+					if(format == app.m_formatitems[i]) {format_valid = true;
+					break;}
+				}
+					if(!format_valid){
+					std::cout << "\033[31m Format " + format + " is not a valid format" << "\033[0m" << std::endl;
+					usage(argv);
+					return 1;
+				}
+				if (startImage.empty() && startScan2.empty()) scan_format = format;
+				else if (startImage2.empty() && !startScan2.empty()) scan_format2 = format;
+				else{
+					std::cout << "\033[31m Too many arguments" << "\033[0m" << std::endl;
+						usage(argv);
+						return 1;
+				}
+				std::cout << format + scan_format + scan_format2;
+				
+
+
+			}else {
+					std::cout << "\033[31m Insert valid format" << "\033[0m" << std::endl;
+					usage(argv);
+					return 1;
+				}
+
 			} else if (argString == "-out") { // output directory path for converted scans and coordinates
 				if (i + 1 < argc){
 					outputDir = argv[++i];
@@ -176,7 +219,7 @@ int main(int argc, char **argv)
 		// convert scans to 2D-image
 		if (!startScan.empty()) {
             
-			startImage = app.Create_Panorama(startScan);
+			startImage = app.Create_Panorama(startScan, scan_format);
             if(startImage.empty()){
                 std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);
@@ -185,7 +228,7 @@ int main(int argc, char **argv)
 
 		
         if (!startScan2.empty()) {
-            startImage2 = app.Create_Panorama(startScan2);
+            startImage2 = app.Create_Panorama(startScan2, scan_format2);
             if(startImage2.empty()){
                 std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);

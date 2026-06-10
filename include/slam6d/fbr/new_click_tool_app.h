@@ -24,7 +24,7 @@ class App
 	App();
 	~App();
 
-    std::string Create_Panorama(const std::string& startScan);
+    std::string Create_Panorama(const std::string& startScan, const std::string &scanformat);
     void setOutDir(std::string outputDir);
 	void Init(const std::string &initialImagePath);
     void InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath);
@@ -46,8 +46,6 @@ class App
 
 	// Status-Variablen
     bool m_twoImageMode = false;
-	bool m_firstImageIsScan = false;
-	bool m_secondImageIsScan = false;
 	bool m_shouldClose = false;
 	bool m_selectionMode = false;
 	bool m_showPoints = true;
@@ -60,6 +58,7 @@ class App
 	int m_imgWidth = 0;
 	int m_imgHeight = 0;
 	bool m_imageLoaded = false;
+	bool m_conversion_ongoing = false;
 
 	// View-Daten
 	float m_zoom = 1.0f;
@@ -91,12 +90,23 @@ class App
 	std::string m_outputDir = "";
     char m_outDirBuffer[256] = "";
 
+
 	public:
-		//Error Messages
+	//Scan to panorama
+	bool m_firstImageIsScan = false;
+	bool m_secondImageIsScan = false;
+	const char* m_formatitems[25] = {"uos", "uosr", "uosc", "uos_map", 
+                                      "uos_rgb", "uos_frames", "uos_map_frames", "old",
+                                      "rts", "rts_map", "ifp", "riegl_txt", "riegl_rgb", 
+                                      "riegl_bin", "zahn", "ply", "wrl", "xyz", "xyzc", 
+                                      "zuf", "iais", "front", "x3d", "rxp", "ais"};
+	const char* m_current_item = m_formatitems[0]; //Default format: uos
+	const char* m_current_item2 = m_formatitems[0];
+
+	//Error Messages
     std::string m_errorMessage;
 	std::string m_inputErrorMessage;
 	std::string m_inputErrorMessage2;
 	std::string m_convertErrorMessage;
 	std::string m_outputDirErrorMessage = "";
-
 };
