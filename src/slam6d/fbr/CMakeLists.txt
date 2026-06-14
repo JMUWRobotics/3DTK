@@ -19,6 +19,9 @@ if (WITH_OPENCV)
   set(FBR_PANORAMA_SRC panorama.cc projection.cc)
   add_library(fbr_panorama ${FBR_PANORAMA_SRC} fbr_global.cc)
   target_link_libraries(fbr_panorama ${FBR_LIBS})
+  
+
+  
 
   if(OpenCV_VERSION VERSION_GREATER 2.1.0)
 
@@ -42,11 +45,27 @@ if (WITH_OPENCV)
     add_library(fbr scan_cv.cc panorama.cc projection.cc feature.cc feature_matcher.cc registration.cc fbr_global.cc feature_drawer.cc geoRefrencing.cc fbr_global.cc)
      
 
-  add_library(scan_to_panorama_lib STATIC scan_to_panorama.cc) 
-  target_link_libraries(scan_to_panorama_lib fbr ${FBR_LIBS} ) 
+    add_library(scan_to_panorama_lib STATIC scan_to_panorama.cc) 
+    target_link_libraries(scan_to_panorama_lib fbr ${FBR_LIBS} ) 
     target_link_libraries(fbr ${FBR_LIBS} scan ${ANN_LIBRARIES} ${OpenCV_LIBS} show)
 
+file(GLOB IMGUI_SRCS_CLICK 
+"${PROJECT_SOURCE_DIR}/3rdparty/imgui/*.cpp" 
+"${PROJECT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_opengl3.cpp"
+"${PROJECT_SOURCE_DIR}/3rdparty/imgui/backends/imgui_impl_glfw.cpp")
 
+add_library(imgui STATIC
+    ${IMGUI_SRCS_CLICK}
+)
+      
+    target_include_directories(imgui PUBLIC
+    ${IMGUI_INCLUDE_DIRS})
+    
+    add_library(glad STATIC
+    ${PROJECT_SOURCE_DIR}/3rdparty/glad/src/glad.c)
+    target_include_directories(glad PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/glad/include)
+    
+    
     ###feature based registration
     add_executable(featurebasedregistration feature_based_registration.cc fbr_global.cc)
     #target_link_libraries(featurebasedregistration fbr_cv_io fbr_panorama fbr_feature fbr_feature_matcher fbr_registration ${FBR_LIBS})
@@ -82,6 +101,24 @@ if (WITH_OPENCV)
     if (WIN32)
 	    target_link_libraries(click_tool XGetopt)
     endif()
+    
+    ###new click tool
+
+
+add_executable(new_click_tool
+    new_click_tool_main.cc
+    new_click_tool_app.cc
+    new_click_tool_app_two.cc
+)
+
+target_include_directories(new_click_tool PRIVATE ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/3rdparty/stb
+    ${PROJECT_SOURCE_DIR}/3rdparty/imgui
+    ${PROJECT_SOURCE_DIR}/3rdparty/glad/include
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(new_click_tool PRIVATE glfw imgui glad scan_to_panorama_lib ${OpenCV_LIBS} fbr scan show OpenMP::OpenMP_CXX ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
     ###panorama reader
     add_executable(panorama_to_scan panorama_to_scan.cc fbr_global.cc)
@@ -97,8 +134,6 @@ if (WITH_OPENCV)
     message("OpenCV Version > 2.2 required for FBR")
   endif()
 endif()
-
-  add_subdirectory(new_click_tool/MVP)
 
 
 ####TEST

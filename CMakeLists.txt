@@ -72,8 +72,14 @@ if(WIN32)
   set(Boost_DEBUG 1)
   find_package( Boost COMPONENTS serialization graph regex filesystem system thread chrono date_time program_options system REQUIRED)
 else()
- # find_package( Boost COMPONENTS serialization graph regex filesystem system thread date_time program_options system REQUIRED)
+
+find_package(Boost REQUIRED)
+
+if(Boost_VERSION VERSION_LESS "1.89.0") 
+  find_package( Boost COMPONENTS serialization graph regex filesystem system thread date_time program_options system REQUIRED)
+ else()
  find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)
+ endif()
 endif()
 
 link_directories(${BOOST_LIBRARY_DIRS})
@@ -473,8 +479,12 @@ if(WITH_CALIB)
   add_subdirectory(src/calibration)
 endif()
 
-#find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
+
+if(Boost_VERSION VERSION_LESS "1.89.0") 
+find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
+else()
 find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)
+endif()
 enable_testing()
 add_subdirectory(testing)
 
