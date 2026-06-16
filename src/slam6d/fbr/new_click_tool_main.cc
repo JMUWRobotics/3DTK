@@ -16,28 +16,42 @@ void usage(char **argv)
 	std::cout << std::endl;
 	std::cout << "Usage:" << std::endl;
 	std::cout << std::endl;
-	std::cout << "-help \t \t \t \t \t \t \t Option list" << std::endl;
+	std::cout << "-help \t\t\t\t\t\t\t\t\t Option list" << std::endl;
     std::cout << std::endl;
-	std::cout << " No Arguments \t \t \t \t \t \t Open empty window" << std::endl;
-	std::cout << "-im <imagePath> \t \t \t \t \t Open one image, default directory" << std::endl;
-	std::cout << "-scan <scanPath> \t \t \t \t \t Open one image based on 3D-scan, default format, default directory" << std::endl;
-	std::cout << "-scan <scanPath> -f <scan format>\t \t \t Open one image based on 3D-scan, other format than uos, default directory" << std::endl;
-	std::cout << "-scan <scanPath> -im <imagePath> \t \t \t Open two images, default directory" << std::endl;
-	std::cout << "-im <imagePath> ... -out <outDir> \t \t \t Set output Directory" << std::endl;
+	std::cout << "<No Arguments> \t\t\t\t\t\t\t\t Open empty window" << std::endl;
+	std::cout << "<input format> <path> \t\t\t\t\t\t\t Open one image, default settings" << std::endl;
+	std::cout << "<input format> <path> <input format> <path> \t\t\t\t Open two images, default settings" << std::endl;
+	std::cout << "<input format> <path> <out dir> \t\t\t\t\t Open one image, default settings, manually selected output directory" << std::endl;
+
 	std::cout << std::endl;
-	std::cout << "Default scan format = uos" << std::endl;
-	std::cout << "Default output directory = directory of first loaded image/scan" << std::endl;
-    std::cout << "Converted scans: output directory or directory of scan" << std::endl;
-	std::cout << std::endl;
-	std::cout << std::endl;
-	std::cout << "imFormat:" << std::endl;
-	std::cout << "-im \t \t \t 2D-image Format" << std::endl;
-	std::cout << "-scan \t \t \t 3D-scan Format, internally converted with scan_to_panorama" << std::endl;
+	std::cout << "-im <image path> \t\t\t\t\t\t\t No further settings if loading 2D-image" << std::endl; 
+	std::cout << "-scan <scan path> -f <scan format>\t\t\t\t\t Open one image based on 3D-scan, manually selected format, default directory and conversion mode" << std::endl; 
+	std::cout << "-im <image path> -scan <scan path> -f <scan format> <conversion mode> \t Open image and 3D-scan image, manually selected format and conversion mode, default directory " << std::endl; 
 	std::cout << std::endl;
 	std::cout << std::endl;
-	std::cout << "Possible scan formats:\t" << "uos, uosc, uos_map, uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, riegl_txt,\n \t \t \triegl_rgb, riegl_bin, zahn, ply, wrl, xyz, xyzc, zuf, iais, front, x3d, rxp, ais" << std::endl;
+
+	std::cout << "input format:" << std::endl;
+	std::cout << "-im \t\t\t\t\t\t 2D-image Format" << std::endl;
+	std::cout << "-scan \t\t\t\t\t\t 3D-scan Format, internally converted with scan_to_panorama" << std::endl;
 	std::cout << std::endl;
-	std::cout << "Example: \t \t -im /pictures/myPicture.png -scan /scans/scan001.3D -f uosr -out /users/desktop/click_tool \n"
+	std::cout << std::endl;
+	std::cout << "conversion mode:" << std::endl;
+	std::cout << "-A \t\t\t\t\t\t Range" << std::endl;
+	std::cout << "-R \t\t\t\t\t\t Reflectance" << std::endl;
+	std::cout << "-a \t\t\t\t\t\t Normalized Range" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "Possible scan formats:" << "\t\t\t\t uos, uosc, uos_map, uos_rgb, uos_frames, uos_map_frames, old, rts, rts_map, ifp, riegl_txt,\n \t\t\t\t\t\t riegl_rgb, riegl_bin, zahn, ply, wrl, xyz, xyzc, zuf, iais, front, x3d, rxp, ais" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "Default scan format\t\t\t\t uos" << std::endl;
+	std::cout << "Default conversion mode\t\t\t\t Normalized Range" << std::endl;
+	std::cout << "Default output directory\t\t\t directory of first loaded image/scan" << std::endl;
+    std::cout << "Converted scans\t\t\t\t\t output directory or directory of scan" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "Example:\t\t\t\t\t -im /pictures/myPicture.png -scan /scans/scan001.3D -f -R uosr -out /users/desktop/click_tool \n"
 		  << std::endl;
 	std::cout << std::endl;
 }
@@ -166,8 +180,6 @@ int main(int argc, char **argv)
 				bool format_valid = false;
 
 				for(int i = 0; i < IM_ARRAYSIZE(app.m_formatitems); i++){
-									    std::cout << i << ": [" << app.m_formatitems[i] << "]" << std::endl;
-
 					if(format == app.m_formatitems[i]) {format_valid = true;
 					break;}
 				}
@@ -183,7 +195,6 @@ int main(int argc, char **argv)
 						usage(argv);
 						return 1;
 				}
-				std::cout << format + scan_format + scan_format2;
 				
 
 
@@ -193,7 +204,20 @@ int main(int argc, char **argv)
 					return 1;
 				}
 
-			} else if (argString == "-out") { // output directory path for converted scans and coordinates
+			} else if(argString == "-R" ||argString == "-A"|| argString == "-a"){
+				if (startImage.empty() && startScan2.empty()) app.m_Conversion = argString;
+				else if (startImage2.empty() && !startScan2.empty()) app.m_Conversion2 = argString;
+				else{
+					std::cout << "\033[31m Too many arguments" << "\033[0m" << std::endl;
+						usage(argv);
+						return 1;
+				}
+			}
+			
+			
+			
+			
+			else if (argString == "-out") { // output directory path for converted scans and coordinates
 				if (i + 1 < argc){
 					outputDir = argv[++i];
                     if(!std::filesystem::exists(outputDir)){
@@ -219,7 +243,7 @@ int main(int argc, char **argv)
 		// convert scans to 2D-image
 		if (!startScan.empty()) {
             
-			startImage = app.Create_Panorama(startScan, scan_format);
+			startImage = app.Create_Panorama(startScan, scan_format, app.m_Conversion);
             if(startImage.empty()){
                 std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);
@@ -228,7 +252,7 @@ int main(int argc, char **argv)
 
 		
         if (!startScan2.empty()) {
-            startImage2 = app.Create_Panorama(startScan2, scan_format2);
+            startImage2 = app.Create_Panorama(startScan2, scan_format2, app.m_Conversion2);
             if(startImage2.empty()){
                 std::cout << "\033[31m" << app.m_convertErrorMessage << "\033[0m" << std::endl;
                 usage(argv);

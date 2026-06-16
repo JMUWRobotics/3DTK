@@ -27,7 +27,7 @@ App::~App()
 		glDeleteTextures(1, &m_texture);
 }
 
-std::string App::Create_Panorama(const std::string &startScan, const std::string &scanformat)
+std::string App::Create_Panorama(const std::string &startScan, const std::string &scanformat, const std::string &conversion)
 {
     m_convertErrorMessage = "";
     try{
@@ -39,8 +39,7 @@ std::string App::Create_Panorama(const std::string &startScan, const std::string
 
     //  command line for scan_to_panorama with normalized range
 	std::string command = "scan_to_panorama " + scanDir + " -s " + std::to_string(scanNr) + " -e " +
-			      std::to_string(scanNr) + " -f " + scanformat + " -A -a -F PNG -O " + scanOutDir + "\0";
-std::cout << command << std::endl;
+			      std::to_string(scanNr) + " -f " + scanformat + " " + conversion + " -F PNG -O " + scanOutDir + "\0";
     // convert command line to string array
 	std::stringstream commandStream(command);
 	std::vector<std::string> args;
@@ -66,8 +65,6 @@ std::cout << command << std::endl;
     if (pid == 0)
     {
 	    run(args.size(), args_char.data());
-        std::cout << "ende scan to panorama "  << std::endl;
-
         _exit(0);
     }
     // avoids window-freeze messages while converting a large scan
@@ -78,16 +75,25 @@ std::cout << command << std::endl;
     }
 
 	// check if conversion worked
-	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_NormalizedRange.png";
+    std::string conversionString;
+    
+    if(conversion == "-A") conversionString = "Range";
+    else if(conversion == "-a") conversionString = "NormalizedRange";
+    else conversionString = "Reflectance";
+
+
+	std::string genImName = scanOutDir + "/" + scanName + "_EQUIRECTANGULAR_3600x1000_" + conversionString + ".png";
+
 	if (!std::filesystem::exists(genImName)) {
+
 
         m_convertErrorMessage = "Failed generating panorama from " + startScan;
 		return "";
 	} else {
-
 		std::cout << "Panorama created in " << scanOutDir << std::endl << std::endl;
 		return genImName;
-	}} catch(const std::exception& e){
+
+    }} catch(const std::exception& e){
 
         m_convertErrorMessage = "Failed generating panorama from " + startScan;
         return "";
@@ -108,6 +114,8 @@ void App::LoadWorkspace(const std::string &imagePath)
 {
 	m_currentImagePath = imagePath;
 	strncpy(m_imageInputBuffer, imagePath.c_str(), sizeof(m_imageInputBuffer)-1);
+    m_imageInputBuffer[sizeof(m_imageInputBuffer) - 1] = '\0';
+
 
 	m_imageLoaded = LoadTexture(imagePath);
 	m_points.clear();
@@ -443,6 +451,7 @@ if(ImGui::Button("Set out-dir")){
     ImGui::Checkbox("Scan", &m_firstImageIsScan);
     if(m_firstImageIsScan){
         ImGui::SameLine();
+        ImGui::SetNextItemWidth(125);
     if (ImGui::BeginCombo("Format", m_current_item)){
         for(int i = 0; i < IM_ARRAYSIZE(m_formatitems); i++){
             bool is_selected = m_current_item == m_formatitems[i];
@@ -452,7 +461,20 @@ if(ImGui::Button("Set out-dir")){
         }
         ImGui::EndCombo();
 
-    }}
+    }
+
+      ImGui::RadioButton("Range", &conversion_mode, 0); 
+    ImGui::SameLine(); ImGui::RadioButton("Normalized", &conversion_mode, 1); 
+    ImGui::SameLine(); ImGui::RadioButton("Reflectance", &conversion_mode, 2);
+
+    switch(conversion_mode){
+        case 0: m_Conversion = "-A";
+        break;
+        case 1: m_Conversion = "-a";
+        break;
+        case 2: m_Conversion = "-R";
+    }
+}
     
     if(!m_inputErrorMessage.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage.c_str());
 
@@ -464,6 +486,7 @@ if(ImGui::Button("Set out-dir")){
     	ImGui::Checkbox("Scan##2", &m_secondImageIsScan);
     if(m_secondImageIsScan){
         ImGui::SameLine();
+        ImGui::SetNextItemWidth(125);
     if (ImGui::BeginCombo("Format##2", m_current_item2)){
         for(int i = 0; i < IM_ARRAYSIZE(m_formatitems); i++){
             bool is_selected = m_current_item2 == m_formatitems[i];
@@ -473,7 +496,19 @@ if(ImGui::Button("Set out-dir")){
         }
         ImGui::EndCombo();
 
-    }}
+    }
+    ImGui::RadioButton("Range##2", &conversion_mode2, 0); 
+    ImGui::SameLine(); ImGui::RadioButton("Normalized##2", &conversion_mode2, 1); 
+    ImGui::SameLine(); ImGui::RadioButton("Reflectance##2", &conversion_mode2, 2);
+
+    switch(conversion_mode2){
+        case 0: m_Conversion2 = "-A";
+        break;
+        case 1: m_Conversion2 = "-a";
+        break;
+        case 2: m_Conversion2 = "-R";
+    }
+}
     if(!m_inputErrorMessage2.empty())ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", m_inputErrorMessage2.c_str());
 
     }
@@ -489,12 +524,16 @@ if(ImGui::Button("Set out-dir")){
             if(!fs::exists(m_imageInputBuffer)){
                 error = true;
                 m_inputErrorMessage = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer).filename().string();}
-            else{ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item);
+            else{ 
+imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item, m_Conversion);
+
             if(imInputBufferString == ""){
                 m_inputErrorMessage =  m_convertErrorMessage;
                 error = true;
 	        }
             strncpy(m_imageInputBuffer, imInputBufferString.c_str(), sizeof(m_imageInputBuffer)-1);
+            m_imageInputBuffer[sizeof(m_imageInputBuffer) - 1] = '\0';
+
         }
         } else {    //first image is image: test if exists
                 if(!fs::exists(m_imageInputBuffer)){
@@ -508,12 +547,14 @@ if(ImGui::Button("Set out-dir")){
             if(!fs::exists(m_imageInputBuffer2)){
                 error = true;
                 m_inputErrorMessage2 = "Cannot find scan " + std::filesystem::path(m_imageInputBuffer2).filename().string();}
-            else{imInputBuffer2String = Create_Panorama(m_imageInputBuffer2, m_current_item2);
-            if(imInputBuffer2String == ""){
+            else{
+                imInputBuffer2String = Create_Panorama(m_imageInputBuffer2, m_current_item2, m_Conversion2);
+                if(imInputBuffer2String == ""){
                 m_inputErrorMessage2 =  m_convertErrorMessage;
                 error = true;}
-	        
             strncpy(m_imageInputBuffer2, imInputBuffer2String.c_str(), sizeof(m_imageInputBuffer2)-1);
+            m_imageInputBuffer2[sizeof(m_imageInputBuffer2) - 1] = '\0';
+
             } }else {    //second image is image: test if exists
                 if(!fs::exists(m_imageInputBuffer2)){
                 error = true;

@@ -24,7 +24,7 @@ class App
 	App();
 	~App();
 
-    std::string Create_Panorama(const std::string& startScan, const std::string &scanformat);
+    std::string Create_Panorama(const std::string& startScan, const std::string& scanformat, const std::string& conversion);
     void setOutDir(std::string outputDir);
 	void Init(const std::string &initialImagePath);
     void InitTwoImages(const std::string& firstImagePath, const std::string& secondImagePath);
@@ -102,6 +102,11 @@ class App
                                       "zuf", "iais", "front", "x3d", "rxp", "ais"};
 	const char* m_current_item = m_formatitems[0]; //Default format: uos
 	const char* m_current_item2 = m_formatitems[0];
+    int conversion_mode = 0;  //Conversion mode for radio button. Default: Normalized Range
+	int conversion_mode2 = 0;
+
+	std::string m_Conversion = "-a"; 	//Kind of conversion. Default: Normalized Range
+	std::string m_Conversion2= "-a";
 
 	//Error Messages
     std::string m_errorMessage;
