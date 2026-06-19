@@ -86,7 +86,7 @@ add_library(imgui STATIC
 
 
     ###scan to panorama
-    add_executable(scan_to_panorama scan_to_panorama.cc fbr_global.cc)
+    add_executable(scan_to_panorama scan_to_panorama.cc scan_to_panorama_main.cc fbr_global.cc)
 
     target_link_libraries(scan_to_panorama fbr ${FBR_LIBS} ${NEWMAT_LIBRARIES} show ${SHOW_LIBS} ${OPENGL_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
