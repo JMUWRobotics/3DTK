@@ -218,6 +218,10 @@ void App::LoadPointsFromFile() {
 }
 
 void App::SavePointsToFile() {
+         if (!fs::exists(fs::path(m_outputDir) / "Koordinaten")) {
+        fs::create_directory(fs::path(m_outputDir) / "Koordinaten");
+    }
+
     if (m_currentTxtPath.empty()) return;
     //deletes all previous information and saves the new
     std::ofstream file(m_currentTxtPath, std::ios::trunc);
