@@ -23,8 +23,10 @@ namespace fs = std::filesystem;
 App::App() {}
 App::~App()
 {
-	if (m_texture)
-		glDeleteTextures(1, &m_texture);
+    if (m_texture)
+        glDeleteTextures(1, &m_texture);
+    if (m_highResTexture)
+        glDeleteTextures(1, &m_highResTexture);
 }
 
 std::string App::Create_Panorama(const std::string &startScan, const std::string &scanformat, const std::string &conversion)
@@ -157,6 +159,13 @@ void App::ResetWorkspace(){
         glDeleteTextures(1, &m_texture);
         m_texture = 0;}
 
+    if (m_highResTexture != 0) {
+        glDeleteTextures(1, &m_highResTexture);
+        m_highResTexture = 0;
+    }
+    m_originalMat.release();
+    m_useHighRes = false;
+
 }
 
 bool App::LoadTexture(const std::string &filename)
@@ -168,6 +177,9 @@ bool App::LoadTexture(const std::string &filename)
 	unsigned char *data = stbi_load(filename.c_str(), &m_imgWidth, &m_imgHeight, &channels, 4);
 	if (!data)
 		return false;
+
+    m_originalMat = cv::Mat(m_imgHeight, m_imgWidth, CV_8UC4, data).clone();
+    m_lastActionTime = std::chrono::steady_clock::now(); // Timer starten
 
 	glGenTextures(1, &m_texture);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -250,7 +262,9 @@ void App::Update()
 			 ImGuiWindowFlags_NoBringToFrontOnFocus);
 	if (m_imageLoaded) {
 		ImGuiIO &io = ImGui::GetIO();
-		// --- Auto-Fit Logik ---
+        bool viewChanged = false;
+		
+        // --- Auto-Fit Logik ---
 		if (m_needsFit) {
 			// Berechne, wie stark wir auf X und Y zoomen müssten, damit es passt
 			float zoomX = viewport->WorkSize.x / (float)m_imgWidth;
@@ -264,15 +278,16 @@ void App::Update()
 			m_panX = (viewport->WorkSize.x - (m_imgWidth * m_zoom)) * 0.5f;
 			m_panY = (viewport->WorkSize.y - (m_imgHeight * m_zoom)) * 0.5f;
 			m_needsFit = false;
+            viewChanged = true;
 		}
 		// ---------------------------
 
 		// Verschieben
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-			m_panX += io.MouseDelta.x;
-			m_panY += io.MouseDelta.y;
-		}
-
+            m_panX += io.MouseDelta.x;
+            m_panY += io.MouseDelta.y;
+            viewChanged = true; 
+        }
 		// Zoom to mouse position
 		if (ImGui::IsWindowHovered() && io.MouseWheel != 0.0f) {
 			// current mouse / pixel-position
@@ -288,13 +303,37 @@ void App::Update()
 				m_zoom = 20.0f;
 			// fix pan-position:
 			m_panX = mousePosition.x - viewport->WorkPos.x - curX * m_zoom;
-			m_panY = mousePosition.y - viewport->WorkPos.y - curY * m_zoom;
+            m_panY = mousePosition.y - viewport->WorkPos.y - curY * m_zoom;
+            viewChanged = true;
 		}
+
+        if (viewChanged) {
+            m_lastActionTime = std::chrono::steady_clock::now();
+            m_useHighRes = false; 
+        }
 
 		ImVec2 p_min = ImVec2(viewport->WorkPos.x + m_panX, viewport->WorkPos.y + m_panY);
 		ImVec2 p_max = ImVec2(p_min.x + m_imgWidth * m_zoom, p_min.y + m_imgHeight * m_zoom);
 
-        ImGui::GetWindowDrawList()->AddImage((void*)(intptr_t)m_texture, p_min, p_max);
+        if (!m_useHighRes && m_imageLoaded && m_zoom > 0.01f) {
+
+            //std::cout << "If Statement erreicht" << std::endl;
+            auto now = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_lastActionTime).count();
+            if (duration > 200) {
+                //std::cout << "OpenCV Zoom berechnet" << duration << std::endl;
+                ImVec2 screen_min = viewport->WorkPos;
+                ImVec2 screen_max = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x, viewport->WorkPos.y + viewport->WorkSize.y);
+                GenerateHighResView(p_min, p_max, screen_min, screen_max);
+                m_useHighRes = true;
+            }
+        }
+
+        if (m_useHighRes && m_highResTexture != 0) {
+            ImGui::GetWindowDrawList()->AddImage((void*)(intptr_t)m_highResTexture, m_highResDrawMin, m_highResDrawMax);
+        } else {
+            ImGui::GetWindowDrawList()->AddImage((void*)(intptr_t)m_texture, p_min, p_max);
+        }
 
         if (m_showPoints) {
              ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -679,4 +718,57 @@ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item, m_Conv
 		m_shouldClose = true;
 	}
 	ImGui::End();
+}
+
+void App::GenerateHighResView(ImVec2 p_min, ImVec2 p_max, ImVec2 screen_min, ImVec2 screen_max) {
+    if (m_originalMat.empty()) return;
+
+    // 1. Sichtbaren Bereich auf dem Bildschirm berechnen
+    float draw_min_x = std::max(p_min.x, screen_min.x);
+    float draw_min_y = std::max(p_min.y, screen_min.y);
+    float draw_max_x = std::min(p_max.x, screen_max.x);
+    float draw_max_y = std::min(p_max.y, screen_max.y);
+
+    if (draw_min_x >= draw_max_x || draw_min_y >= draw_max_y) return; // Bild ist komplett außerhalb
+
+    // 2. Mappe auf das Originalbild
+    int img_x1 = std::max(0, (int)std::floor((draw_min_x - p_min.x) / m_zoom));
+    int img_y1 = std::max(0, (int)std::floor((draw_min_y - p_min.y) / m_zoom));
+    int img_x2 = std::min(m_imgWidth, (int)std::ceil((draw_max_x - p_min.x) / m_zoom));
+    int img_y2 = std::min(m_imgHeight, (int)std::ceil((draw_max_y - p_min.y) / m_zoom));
+
+    int roi_w = img_x2 - img_x1;
+    int roi_h = img_y2 - img_y1;
+
+    if (roi_w <= 0 || roi_h <= 0) return;
+
+    // 3. ECHTE Zeichen-Koordinaten berechnen!
+    m_highResDrawMin = ImVec2(p_min.x + img_x1 * m_zoom, p_min.y + img_y1 * m_zoom);
+    m_highResDrawMax = ImVec2(p_min.x + img_x2 * m_zoom, p_min.y + img_y2 * m_zoom);
+
+    // 4. Bildbereich ausschneiden
+    cv::Rect roi(img_x1, img_y1, roi_w, roi_h);
+    cv::Mat cropped = m_originalMat(roi);
+
+    // 5. Zielauflösung auf Basis der *echten* Zeichen-Koordinaten bestimmen
+    int target_w = std::round(m_highResDrawMax.x - m_highResDrawMin.x);
+    int target_h = std::round(m_highResDrawMax.y - m_highResDrawMin.y);
+
+    if (target_w <= 0 || target_h <= 0) return;
+
+    // 6. Skalierung
+    cv::Mat resized;
+    //  INTER_AREA für Rauszoomen, da Lanczos Artefakte verursacht
+    int interpolation = (m_zoom > 1.0f) ? cv::INTER_LANCZOS4 : cv::INTER_AREA;
+    cv::resize(cropped, resized, cv::Size(target_w, target_h), 0, 0, interpolation);
+
+    if (m_highResTexture == 0) {
+        glGenTextures(1, &m_highResTexture);
+    }
+    glBindTexture(GL_TEXTURE_2D, m_highResTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_w, target_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, resized.ptr());
 }
