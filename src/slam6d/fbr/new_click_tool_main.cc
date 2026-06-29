@@ -79,8 +79,14 @@ int main(int argc, char **argv)
 
     // Instantiate app
     	App app;
+	
+	GLFWmonitor* primary = glfwGetPrimaryMonitor();
+	//const GLFWvidmode* mode = glfwGetVideoMode(primary);
+	int xpos, ypos, width, height;
+glfwGetMonitorWorkarea(primary, &xpos, &ypos, &width, &height);
 
-	GLFWwindow *window = glfwCreateWindow(1280, 720, "New click tool", NULL, NULL);
+
+	GLFWwindow *window = glfwCreateWindow(width,height, "New click tool", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return 1;
@@ -108,8 +114,10 @@ int main(int argc, char **argv)
 	std::string scan_format = app.m_formatitems[0]; //Default scanformat = uos
 	std::string scan_format2 = app.m_formatitems[0];
     bool twoImageMode = false;
+	bool loadFromTerminal = false;
 
 	if (argc > 1) { // if no picture is loaded start app without initial images
+		loadFromTerminal = true;
 		for (int i = 1; i < argc; i++) {
 			std::string argString = argv[i];
 
@@ -261,12 +269,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// start app
-    if (twoImageMode) {
-        app.InitTwoImages(startImage, startImage2);
-    } else {
-        app.Init(startImage);
-    }
+
 
 	while (!glfwWindowShouldClose(window) && !app.ShouldClose()) {
 		glfwPollEvents();
@@ -276,6 +279,18 @@ int main(int argc, char **argv)
 
 		//
 		app.Update();
+
+		if(loadFromTerminal){
+		// start app
+    	if (twoImageMode) {
+        	app.InitTwoImages(startImage, startImage2);
+    	} else {
+        	app.Init(startImage);
+    	}
+
+		loadFromTerminal = false;
+		}
+
 
 		ImGui::Render();
 		int display_w, display_h;
