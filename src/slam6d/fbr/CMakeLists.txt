@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.10)
 
 if (WITH_OPENCV)
   find_package(OpenCV REQUIRED)
