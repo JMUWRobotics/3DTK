@@ -146,6 +146,9 @@ void App::LoadTwoImageWorkspace(const std::string& firstImagePath, //Luis
     copyImage(firstData, firstWidth, firstHeight, combined, combinedWidth, firstOffsetX, firstOffsetY);
     copyImage(secondData, secondWidth, secondHeight, combined, combinedWidth, secondOffsetX, secondOffsetY);
 
+    m_originalMat = cv::Mat(combinedHeight, combinedWidth, CV_8UC4, combined.data()).clone();
+    m_lastActionTime = std::chrono::steady_clock::now(); // Timer starten
+
     m_imageLoaded = LoadTextureFromMemory(combined.data(), combinedWidth, combinedHeight);
 
     stbi_image_free(firstData);

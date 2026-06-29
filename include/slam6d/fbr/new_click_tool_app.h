@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-// #include <glad/glad.h>
+#include <chrono> 
+#include <opencv2/opencv.hpp> 
+#include "imgui.h"
 
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
@@ -55,6 +57,7 @@ class App
 	std::string m_currentImagePath;
 	std::string m_currentTxtPath;
 	GLuint m_texture = 0;
+    GLuint m_highResTexture = 0;
 	int m_imgWidth = 0;
 	int m_imgHeight = 0;
 	bool m_imageLoaded = false;
@@ -64,6 +67,15 @@ class App
 	float m_zoom = 1.0f;
 	float m_panX = 0.0f;
 	float m_panY = 0.0f;
+    
+    // OpenCV und Timer Variablen
+    cv::Mat m_originalMat; 
+    bool m_useHighRes = false; 
+    std::chrono::steady_clock::time_point m_lastActionTime; 
+    ImVec2 m_highResDrawMin; 
+    ImVec2 m_highResDrawMax;
+    
+    void GenerateHighResView(ImVec2 p_min, ImVec2 p_max, ImVec2 screen_min, ImVec2 screen_max);
 
 	// Gespeicherte Punkte
 	std::vector<ClickPoint> m_points;
@@ -114,4 +126,5 @@ class App
 	std::string m_inputErrorMessage2;
 	std::string m_convertErrorMessage;
 	std::string m_outputDirErrorMessage = "";
+
 };
