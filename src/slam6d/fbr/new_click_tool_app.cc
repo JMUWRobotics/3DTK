@@ -427,16 +427,54 @@ if(ImGui::Button("Set out-dir")){
         ImGui::OpenPopup("Help");
     }
     if(ImGui::BeginPopupModal("Help", nullptr, ImGuiWindowFlags_AlwaysAutoResize)){
-	    ImGui::Text("Control:");
-	    ImGui::Text("- Right mouseclick (hold) = slide picture");
-	    ImGui::Text("- Mousewheel = zoom");
         ImGui::Separator();
-
-/////////////////////////////// TODO: Anweisungen/Hilfestellungen einfügen
-
-
-
+        ImGui::Text("MAIN WINDOW:");
         ImGui::Separator();
+        ImGui::Text("Zoom in/out with mouse wheel");
+	    ImGui::Text("Pan image by holding the right mouse button and dragging the image in pan direction");
+        ImGui::Separator();
+        ImGui::Text("Select points with left mouse click");
+        ImGui::Separator();
+        ImGui::Text("Select points in two image mode:");
+        ImGui::Text(" Select point in first (upper/left) image, then select point in the second image");
+        ImGui::Text(" ");
+        ImGui::Separator();
+        ImGui::Text("SETTINGS");
+        ImGui::Separator();
+	    ImGui::Text("Set out-dir:");
+        ImGui::Text(" Enables Text field to insert path for the preferred output directory");
+	    ImGui::Text(" Coordinates and converted images will be saved in this directory");
+	    ImGui::Text(" If not set: Default directory is the origin of the first image/scan");
+        ImGui::Separator();
+        ImGui::Text("Load image:");
+	    ImGui::Text(" Insert image path");
+        ImGui::Text(" If data is in scan-format: Enable Checkbox \"scan\" and choose the format of the scan and the conversion mode");
+        ImGui::Text(" Default scan-format: uos");
+        ImGui::Text(" Default conversion mode: Normalized Range");
+	    ImGui::Text("Load two images:");
+        ImGui::Text(" Enable Checkbox \"two-image mode\"");
+        ImGui::Text(" A new load section for the second image appears");
+        ImGui::Text("After entering image information, Button \"Load image\" loads images and converts scans to png format if input was a scan");
+        ImGui::Separator();
+        ImGui::Text("Button \"Reset workspace\"");
+        ImGui::Text(" Removes loaded images. CAUTION: Make sure to save changes before reset");
+        ImGui::Separator();
+        ImGui::Text("Select points to export coordinates:");
+        ImGui::Text(" Enable Checkbox \"Selection mode\"");
+        ImGui::Text("Hide selected points and lines:");
+        ImGui::Text(" Disable Checkbox \"Show points\"");
+        ImGui::Text("Button \"Center view\"");
+        ImGui::Text(" Realigns workspace after zoom/pan");
+        ImGui::Separator();
+        ImGui::Text("Button \"Undo\":");
+        ImGui::Text(" Removes last selected point or correspondence. CAUTION: Point can not be restored!");
+        ImGui::Text("Button \"Delete all\":");
+        ImGui::Text(" Deletes all selected points or correspondences. CAUTION: Points can not be restored!");
+        ImGui::Separator();
+        ImGui::Text("Button \"Save and exit\":");
+        ImGui::Text(" Creates directory \"Koordinaten\" either in selected output directory or in default directory and saves text file there");
+        ImGui::Text(" Automatically closes main window");
+
 
     ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x - m_closeButtonSize)/2);
     if(ImGui::Button("Close")){
@@ -605,7 +643,7 @@ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item, m_Conv
 
 
 	ImGui::Separator();
-	ImGui::Checkbox("Selection-mode", &m_selectionMode);
+	ImGui::Checkbox("Selection mode", &m_selectionMode);
 	ImGui::SameLine();
 	ImGui::Checkbox("Show points", &m_showPoints);
 	// Button um manuell das Bild wieder zentriert und passend zu machen
@@ -661,7 +699,7 @@ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item, m_Conv
         }
     }
     ImGui::SameLine();
-    if (ImGui::Button("delete all")) {
+    if (ImGui::Button("Delete all")) {
          if (m_twoImageMode) {
             m_correspondences.clear();
             m_waitingForSecondPoint = false;
@@ -674,7 +712,7 @@ imInputBufferString = Create_Panorama(m_imageInputBuffer, m_current_item, m_Conv
     }
 
 	ImGui::Separator();
-	if (ImGui::Button("save & exit", ImVec2(-1, 30))) {
+	if (ImGui::Button("Save & exit", ImVec2(-1, 30))) {
 		SavePointsToFile();
 		m_shouldClose = true;
 	}
