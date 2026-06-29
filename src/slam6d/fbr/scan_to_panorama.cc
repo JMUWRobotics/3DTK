@@ -284,8 +284,10 @@ void printInfo(information info){
   cout<<"-------------------------------"<<endl<<endl;
 }
 
-int main(int argc, char** argv)
-{
+
+
+int run(int argc, char** argv){
+
   parssArgs(argc, argv, info);
 
   printInfo(info);
@@ -426,4 +428,7 @@ int main(int argc, char** argv)
 	  imwrite(out, pImage.getColorImage(), panoramaFormatParams);
 	}
     }
+    return 0;
 }
+
+

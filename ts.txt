@@ -1,0 +1,41 @@
+[33mcommit 3ecff7e1495a68ba79d72d4899d4b6181f16d230[m[33m ([m[1;31morigin/click_tool[m[33m)[m
+Author: Fabia Frank <278649264+FabiaF1@users.noreply.github.com>
+Date:   Tue Jun 16 09:07:32 2026 +0200
+
+    Update CMakeLists.txt
+
+[1mdiff --git a/CMakeLists.txt b/CMakeLists.txt[m
+[1mindex 1fbfd910..dc04a27b 100644[m
+[1m--- a/CMakeLists.txt[m
+[1m+++ b/CMakeLists.txt[m
+[36m@@ -77,8 +77,10 @@[m [mfind_package(Boost REQUIRED)[m
+ [m
+ if(Boost_VERSION VERSION_LESS "1.89.0") [m
+   find_package( Boost COMPONENTS serialization graph regex filesystem system thread date_time program_options system REQUIRED)[m
+[32m+[m
+  else()[m
+[31m- find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)[m
+[32m+[m[32m  find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)[m
+[32m+[m
+  endif()[m
+ endif()[m
+ [m
+[36m@@ -479,16 +481,16 @@[m [mif(WITH_CALIB)[m
+   add_subdirectory(src/calibration)[m
+ endif()[m
+ [m
+[31m-[m
+ if(Boost_VERSION VERSION_LESS "1.89.0") [m
+ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)[m
+ else()[m
+[31m-find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)[m
+[32m+[m[32mfind_package(Boost COMPONENTS filesystem unit_test_framework REQUIRED)[m
+ endif()[m
+ enable_testing()[m
+ add_subdirectory(testing)[m
+ [m
+ [m
+[32m+[m
+ # SystemC integration[m
+ [m
+ # Configurable constants for SystemC fixed-point value[m

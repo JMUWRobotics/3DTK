@@ -72,7 +72,16 @@ if(WIN32)
   set(Boost_DEBUG 1)
   find_package( Boost COMPONENTS serialization graph regex filesystem system thread chrono date_time program_options system REQUIRED)
 else()
+
+find_package(Boost REQUIRED)
+
+if(Boost_VERSION VERSION_LESS "1.89.0") 
   find_package( Boost COMPONENTS serialization graph regex filesystem system thread date_time program_options system REQUIRED)
+
+ else()
+  find_package( Boost COMPONENTS serialization graph regex filesystem thread date_time program_options REQUIRED)
+
+ endif()
 endif()
 
 link_directories(${BOOST_LIBRARY_DIRS})
@@ -137,7 +146,7 @@ option(WITH_ROS "Compile with ROS support" OFF)
 option(WITH_PYTHON "Compile Python bindings" OFF)
 option(WITH_QT "Compile tools relying on QT (qtshow)" ON)
 option(WITH_WXWIDGETS "Compile with wxwidgets support" OFF)
-option(WITH_IMGUI "Compile the imshow program" OFF)
+option(WITH_IMGUI "Compile the imshow program" ON)
 option(WITH_OPENCV_NONFREE "Whether to use non-free (patent encumbered) OpenCV functionalities" OFF)
 option(WITH_COMPACT_OCTREE "Whether to use the compact octree display ON/OFF" OFF)
 option(WITH_GLEE "Whether to use OpenGL extensions, requires glee. ON/OFF" OFF)
@@ -472,9 +481,14 @@ if(WITH_CALIB)
   add_subdirectory(src/calibration)
 endif()
 
+if(Boost_VERSION VERSION_LESS "1.89.0") 
 find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
+else()
+find_package(Boost COMPONENTS filesystem unit_test_framework REQUIRED)
+endif()
 enable_testing()
 add_subdirectory(testing)
+
 
 
 # SystemC integration
