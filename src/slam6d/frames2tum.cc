@@ -108,7 +108,7 @@ int main(int argc, char **argv)
   ifstream frame_in;
   ifstream pose_in;
   FILE* pose_out;
-  snprintf(poseFileName,255,"trajecory.txt",dir,sequence);
+  snprintf(poseFileName,255,"%strajectory.txt",dir);
   pose_out = fopen(poseFileName, "a");
   double tMatrix[17];
   double pose[7];
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
     }
 
     // Convert left-handed to right-handed
-    fprintf(pose_out, "%lf %lf %lf %lf %lf %lf %lf %lf\n", pose[6], t[2]/100.0, -t[0]/100.0, t[1]/100.0, -quat[0], -quat[3], quat[1], -quat[2]);
+    fprintf(pose_out, "%lf %lf %lf %lf %lf %lf %lf %lf\n", pose[6], t[2]/100.0, -t[0]/100.0, t[1]/100.0, -quat[3], quat[1], -quat[2], quat[0]);
   }
   fclose(pose_out);
   cout << " done writing trajectory.txt" << endl;
