@@ -15,32 +15,6 @@
 
 namespace po = boost::program_options;
 
-// remove dynamic points
-static void update_for_icp(Scan *scan, const DataXYZ &orig_xyz, const std::set<size_t> &dynamic_indices)
-{
-	const size_t n = orig_xyz.size();
-	size_t static_count = 0;
-	for (size_t i = 0; i < n; ++i) {
-		if (dynamic_indices.find(i) == dynamic_indices.end()) {
-			++static_count;
-		}
-	}
-	scan->clear("xyz reduced");
-	DataPointer dp = scan->create("xyz reduced", sizeof(double) * 3 * static_count);
-	double *dptr = reinterpret_cast<double *>(dp.get_raw_pointer());
-
-	size_t k = 0;
-	for (size_t i = 0; i < n; ++i) {
-		if (dynamic_indices.find(i) == dynamic_indices.end()) {
-			const double *p = orig_xyz[i];
-			dptr[3 * k] = p[0];
-			dptr[3 * k + 1] = p[1];
-			dptr[3 * k + 2] = p[2];
-			++k;
-		}
-	}
-}
-
 static void free_points(std::unordered_map<size_t, DataXYZ> &points_by_slice)
 {
 	for (std::pair<const size_t, DataXYZ> &entry : points_by_slice) {
@@ -78,6 +52,7 @@ int main(int argc, char *argv[])
 	double red = -1.0;
 	int octree = 0;
 	double epsilonICP = 0.0000001;
+	bool trustpose = false;
 	std::vector<std::string> forwarded_arg_col;
 	std::vector<char *> forwarded_argv;
 	{
@@ -98,14 +73,21 @@ int main(int argc, char *argv[])
 			"use randomized octree based point reduction (pts per voxel=<NR>)")
 			("epsICP,5",
 			po::value<double>(&epsilonICP)->default_value(epsilonICP),
-			"stop ICP iteration if difference is smaller than NR");
+			"stop ICP iteration if difference is smaller than NR")
+			("trustpose,p", po::bool_switch(&trustpose)->default_value(false),
+			"Trust the pose file, do not extrapolate the last transformation.");
 
 		po::parsed_options parsed = po::command_line_parser(argc, argv).options(icp_options).allow_unregistered().run();
 
 		po::variables_map vm;
 		po::store(parsed, vm);
 		po::notify(vm);
-
+		for (int a = 1; a < argc; ++a) {
+			if (std::string(argv[a]) == "--help" || std::string(argv[a]) == "-h") {
+				std::cout << icp_options << std::endl;
+				break;
+			}
+		}
 		forwarded_arg_col = po::collect_unrecognized(parsed.options, po::include_positional);
 		forwarded_argv.reserve(forwarded_arg_col.size() + 1);
 		forwarded_argv.push_back(argv[0]);
@@ -219,14 +201,7 @@ int main(int argc, char *argv[])
 		       raw_orig_data_size);
 		orig_points_by_slice[i] =
 		    DataPointer(xyz_orig_data, raw_orig_data_size);
-		/*
-		// now that the original coordinates are saved, transform
-		scan->transformAll(scan->get_transMatOrg());
-		trajectory[i] =
-		    std::make_tuple(scan->get_rPos(), scan->get_rPosTheta(),
-				    scan->get_transMatOrg());
-		DataXYZ xyz(scan->get("xyz"));
-		*/
+
 		DataReflectance refl(scan->get("reflectance"));
 		if (refl.size() != 0) {
 			if (xyz_orig.size() != refl.size()) {
@@ -246,7 +221,6 @@ int main(int argc, char *argv[])
 			}
 			rgb_by_slice[i] = rgb;
 		}
-		//points_by_slice[i] = xyz;
 		std::cerr << "number of points in scan " << i << ": "
 			  << xyz_orig.size() << std::endl;
 	}
@@ -276,7 +250,7 @@ int main(int argc, char *argv[])
 		// registration
 		{
 			icp6Dminimizer *icpMin = new icp6D_SVD(false);
-			icp6D *my_icp = new icp6D(icpMin, mdm, mni, false, false, 1, true, -1, epsilonICP);
+			icp6D *my_icp = new icp6D(icpMin, mdm, mni, false, false, 1, !trustpose, -1, epsilonICP);
 			std::cerr << "ICP..." << std::endl;
 			my_icp->doICP(Scan::allScans, CLOSEST_POINT);
 			delete my_icp; 
@@ -690,11 +664,6 @@ int main(int argc, char *argv[])
 				std::get<1>(trajectory[ii])[2] * 180 / M_PI);
 			fclose(pose);
 		}
-		/*
-		for(size_t scan_id=0; scan_id<Scan::allScans.size(); ++scan_id) {
-			size_t ii = scan_id + start;
-			update_for_icp(Scan::allScans[scan_id], orig_points_by_slice[ii], dyn_idx[ii]);
-		}*/
 	}
 	std::cerr << "write partitioning" << std::endl;
 #ifndef _MSC_VER
@@ -788,7 +757,7 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 		for (size_t j = 0; j < element.second.size(); ++j) {
-			int ret;
+			int ret = 0;
 			double refl = 0;
 			if (refl_it != reflectances_by_slice.end()) {
 				refl = refl_it->second[j];
