@@ -154,15 +154,22 @@ int main(int argc, char **argv)
 
     cout << "Reading frame " << truthFileName << "..." << endl;
 
-    for (int j = 0; j < 12; ++j)
-    {
+    bool validPose = true;
 
-      pose_in >> inMatrix[j];
-      inMatrix[12]=0.0;
-      inMatrix[13]=0.0;
-      inMatrix[14]=0.0;
-      inMatrix[15]=1.0;
+    for (int j = 0; j < 12; ++j){
+      if (!(pose_in >> inMatrix[j])){
+        validPose = false;
+        break;
+      }
     }
+    if (!validPose){
+      break;
+    }
+
+    inMatrix[12] = 0.0;
+    inMatrix[13] = 0.0;
+    inMatrix[14] = 0.0;
+    inMatrix[15] = 1.0;
 
 
      tMatrix[ 0] = inMatrix[0];
