@@ -33,7 +33,8 @@
  */
 fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedSource,
                       const std::vector<std::array<fixed_val, 3>>& matchedTarget,
-                      fixed_small_val *alignxf,
+                      fixed_small_val *alignxf_R,
+                      fixed_val *alignxf_t,
                       const std::array<fixed_val, 3> centerSource,
                       const std::array<fixed_val, 3> centerTarget){
   int n = matchedSource.size();
@@ -94,7 +95,7 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
   fixed_small_val cy = sc_fixed_heron_sqrt<fixed_small_val>(1.0 - sy*sy);
   fixed_small_val sz = x[2];
   fixed_small_val cz = sc_fixed_heron_sqrt<fixed_small_val>(1.0 - sz*sz);
-
+/*
   alignxf[0]  = cy*cz;
   alignxf[1]  = sx*sy*cz + cx*sz;
   alignxf[2]  = -cx*sy*cz + sx*sz;
@@ -110,7 +111,20 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
   alignxf[12] = centerSource[0] - alignxf[0]*centerTarget[0] - alignxf[4]*centerTarget[1] - alignxf[8]*centerTarget[2];
   alignxf[13] = centerSource[1] - alignxf[1]*centerTarget[0] - alignxf[5]*centerTarget[1] - alignxf[9]*centerTarget[2];
   alignxf[14] = centerSource[2] - alignxf[2]*centerTarget[0] - alignxf[6]*centerTarget[1] - alignxf[10]*centerTarget[2];
-  alignxf[15] = 1;
+  alignxf[15] = 1;*/
+
+  alignxf_R[0]  = cy*cz;
+  alignxf_R[1]  = sx*sy*cz + cx*sz;
+  alignxf_R[2]  = -cx*sy*cz + sx*sz;
+  alignxf_R[3]  = cy*sz;
+  alignxf_R[4]  = -sx*sy*sz + cx*cz;
+  alignxf_R[5]  = cx*sy*sz + sx*cz;
+  alignxf_R[6]  = sy;
+  alignxf_R[7]  = -sx*cy;
+  alignxf_R[8] = cx*cy;
+  alignxf_t[0] = centerSource[0] - alignxf_R[0]*centerTarget[0] - alignxf_R[3]*centerTarget[1] - alignxf_R[6]*centerTarget[2];
+  alignxf_t[1] = centerSource[1] - alignxf_R[1]*centerTarget[0] - alignxf_R[4]*centerTarget[1] - alignxf_R[7]*centerTarget[2];
+  alignxf_t[2] = centerSource[2] - alignxf_R[2]*centerTarget[0] - alignxf_R[5]*centerTarget[1] - alignxf_R[8]*centerTarget[2];
 
   return error; // aktueller Fehler
 }

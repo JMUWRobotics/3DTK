@@ -69,22 +69,28 @@ sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, fixed_val max_dist_match, in
  *
  * @param source Scan, an dem der andere Scan ausgerichtet werden soll
  * @param target Scan, der ausgerichtet werden soll
- * @param transMat Transformationsmatrix für die Ausrichtung
- * @param dalignxf virtuell angewendete delta-Transformation
+ * @param transMat_R Anteil Rotationsmatrix an Transformationsmatrix für die Ausrichtung
+ * @param transMat_t Anteil Translationsvektor an Transformationsmatrix für die Ausrichtung
+ * @param dalignxf_R Anteil Rotationsmatrix an virtuell angewendeter delta-Transformation
+ * @param dalignxf_t Anteil Translationsvektor an virtuell angewendeter delta-Transformation
  * @param frame Stream, auf den die Transformationen in die .frames-Datei des target-Scans geschrieben werden
  */
-int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std::array<fixed_val, 3>>& target, std::array<fixed_small_val, 16>& transMat, std::array<fixed_small_val, 16>& dalignxf, std::ofstream& frame) {
-  fixed_small_val id[16];
-  M4identity(id);
+int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std::array<fixed_val, 3>>& target, std::array<fixed_small_val, 9>& transMat_R, std::array<fixed_val, 3>& transMat_t, std::array<fixed_small_val, 9>& dalignxf_R, std::array<fixed_val, 3>& dalignxf_t, std::ofstream& frame) {
+  fixed_small_val id_R[9];
+  M3identity(id_R);
+  fixed_val id_t[3] = {0, 0, 0};
 
-  transform(target, id, transMat, dalignxf, frame, 0);
+  transform(target, id_R, id_t, transMat_R,transMat_t, dalignxf_R, dalignxf_t, frame, 0);
 
   // wenn ICP nicht angewendet werden soll, nur die Identitätsmatrix schreiben und return 0
   if (max_num_iterations == 0) {
     return 0;
   }
 
-  fixed_small_val alignxf[16];
+//  fixed_small_val alignxf[16];
+  fixed_small_val alignxf_R[9];
+  fixed_val alignxf_t[3];
+
   fixed_small_val ret = 0.0, prev_ret = 0.0, prev_prev_ret = 0.0;
   int iter = 0;
 
@@ -158,13 +164,13 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
     centerTarget[2] /= trgSize;
 
     // Rotation und Translation berechnen
-    ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf, centerSource, centerTarget);
+    ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf_R, alignxf_t, centerSource, centerTarget);
 
     if (iter == 0) {
-      transform(target, alignxf, transMat, dalignxf, frame, 0);
+      transform(target, alignxf_R, alignxf_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, 0);
     }
     else {
-      transform(target, alignxf, transMat, dalignxf, frame, -1);
+      transform(target, alignxf_R, alignxf_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, -1);
     }
 
     std::cout << "iteration: " << iter << " |" << " point-to-point error: " << ret << " using " << count << " points" << std::endl;
@@ -172,7 +178,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
     // Abbruchbedingung
     if ( ((sc_abs(ret - prev_ret) < epsilonICP) && (sc_abs(ret - prev_prev_ret) < epsilonICP)) || (iter == max_num_iterations -1) ) {
       // write end pose -> Transformation mit Identitätsmatrix, vgl. icp6D.cc Z.289
-      transform(target, id, transMat, dalignxf, frame, 0);
+      transform(target, id_R, id_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, 0);
       break;
     }
   }

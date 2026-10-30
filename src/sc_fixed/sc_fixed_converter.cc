@@ -15,6 +15,24 @@
 
 #include "sc_fixed/sc_fixed_converter.h"
 
+// splits transformation matrix in rotation matrix and translation vector and transforms into fixed point values
+
+void splitMat(const double input[16], std::array<fixed_small_val, 9>& R, std::array<fixed_val, 3>& t){
+  R[0] = fixed_small_val(input[0]);
+  R[1] = fixed_small_val(input[1]);
+  R[2] = fixed_small_val(input[2]);
+  R[3] = fixed_small_val(input[4]);
+  R[4] = fixed_small_val(input[5]);
+  R[5] = fixed_small_val(input[6]);
+  R[6] = fixed_small_val(input[8]);
+  R[7] = fixed_small_val(input[9]);
+  R[8] = fixed_small_val(input[10]);
+  t[0] = fixed_val(input[12]);
+  t[1] = fixed_val(input[13]);
+  t[2] = fixed_val(input[14]);
+}
+
+
 // converts TripleArray<double> (aka DataXYZ) into vactor array holding fixed_vals (fixed_val points)
 std::vector<std::array<fixed_val, 3>> array2fixedArray(const DataXYZ &input) {
   std::vector<std::array<fixed_val, 3>> result;
@@ -51,10 +69,25 @@ void printPoints(const std::vector<std::array<fixed_val, 3>>& points) {
 }
 
 // writes a transformation matrix to a .frame-file
-void writeFrame(std::ofstream& frame, std::array<fixed_small_val, 16>& matrix, int viewFactor) {
+/*void writeFrame(std::ofstream& frame, std::array<fixed_small_val, 16>& matrix, int viewFactor) {
   for(unsigned int i = 0; i < matrix.size(); i++) {
       frame << static_cast<double>(matrix[i]);
       frame << " ";
     }
     frame << viewFactor << "\n";
-}
+}*/
+
+void writeFrame(std::ofstream& frame, std::array<fixed_small_val, 9>& R, std::array<fixed_val, 3>& t, int viewFactor) {
+  
+  for(unsigned int i = 0; i < 3; i++) {
+    for(unsigned j = 0;j < 3; ++j){
+      frame << static_cast<double>(R[i * 3 + j])<< " ";
+    }
+      frame << "0 ";
+    }
+    for(unsigned int i = 0; i < 3; ++i){
+      frame << static_cast<double>(t[i]) << " ";
+    }
+    frame << "1 ";
+    frame << viewFactor << "\n";
+  }

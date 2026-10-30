@@ -61,11 +61,11 @@ T sc_fixed_heron_sqrt(T s) {
 bool sc_choldc(fixed_val A[3][3], fixed_val diag[3]);
 void sc_cholsl(fixed_val A[3][3], fixed_val diag[3], fixed_val B[3], fixed_small_val x[3]);
 
-void transform(std::vector<std::array<fixed_val, 3>>& scan, fixed_small_val alignxf[16], std::array<fixed_small_val, 16>& transMat, std::array<fixed_small_val, 16>& dalignxf, std::ofstream& frame, int islum);
-void transformPoints(const fixed_small_val alignxf[16], std::vector<std::array<fixed_val, 3>>& scan);
-void transformMatrix(const fixed_small_val alignxf[16], std::array<fixed_small_val, 16>& transMat, std::array<fixed_small_val, 16>& dalignxf);
-void transform3(const fixed_small_val alignxf[16], std::array<fixed_val, 3>& point);
-void MMult(const fixed_small_val M1[16], const std::array<fixed_small_val, 16>& M2, std::array<fixed_small_val, 16>& Mout);
+void transform(std::vector<std::array<fixed_val, 3>>& scan, fixed_small_val alignxf_R[9], fixed_val alignxf_t[3], std::array<fixed_small_val, 9>& transMat_R, std::array<fixed_val, 3>& transMat_t , std::array<fixed_small_val, 9>& dalignxf_R, std::array<fixed_val, 3>& dalignxf_t, std::ofstream& frame, int islum);
+void transformPoints(const fixed_small_val alignxf_R[9], fixed_val alignxf_t[3], std::vector<std::array<fixed_val, 3>>& scan);
+void transformMatrix(const fixed_small_val alignxf_R[9], const fixed_val alignxf_t[3], std::array<fixed_small_val, 9>& transMat_R, std::array<fixed_val, 3>& transMat_t, std::array<fixed_small_val, 9>& dalignxf_R, std::array<fixed_val, 3>& dalignxf_t);
+void transform3(const fixed_small_val alignxf_R[9], fixed_val alignxf_t[3], std::array<fixed_val, 3>& point);
+void MMult(const fixed_small_val M1[9], const std::array<fixed_small_val, 9>& M2, std::array<fixed_small_val, 9>& Mout);
 fixed_small_val sc_abs(fixed_small_val);
 
 #endif // SC_FIXED_MATH_H

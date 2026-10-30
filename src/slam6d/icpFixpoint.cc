@@ -165,21 +165,48 @@ int sc_main(int argc, char **argv)
   std::cout << Scan::allScans.size() << " scans detected" << std::endl;
 
   // lege die transMat's und dalignxf's für alle Scans an
-  std::vector<std::array<fixed_small_val, 16>> transMats;
+  std::vector<std::array<fixed_small_val, 9>> transMats_R;
+  std::vector<std::array<fixed_val, 3>> transMats_t;
+
+  std::vector<std::array<fixed_small_val, 9>> dalignxfs_R;
+  std::vector<std::array<fixed_val, 3>> dalignxfs_t;
+
+  transMats_R.reserve(Scan::allScans.size());
+  transMats_t.reserve(Scan::allScans.size());
+
+  dalignxfs_R.reserve(Scan::allScans.size());
+  dalignxfs_t.reserve(Scan::allScans.size());
+
+  /*std::vector<std::array<fixed_small_val, 16>> transMats;
   std::vector<std::array<fixed_small_val, 16>> dalignxfs;
   transMats.reserve(Scan::allScans.size());
-  dalignxfs.reserve(Scan::allScans.size());
+  dalignxfs.reserve(Scan::allScans.size()); */
+
+    std::array<fixed_small_val, 9> R_temp;
+    std::array<fixed_val, 3> t_temp;
 
   // füge alle Matrizen jeweils ans Ende des aktuellen Vektors (push_back)
+  for(unsigned int i = 0; i < Scan::allScans.size(); i++){
+    splitMat(Scan::allScans[i]->get_transMat(), R_temp, t_temp);
+    transMats_R.push_back(R_temp);
+    transMats_t.push_back(t_temp);
+
+    splitMat(Scan::allScans[i]->getDAlign(), R_temp, t_temp);
+    dalignxfs_R.push_back(R_temp);
+    dalignxfs_t.push_back(t_temp);
+  }
+
+  /*
   for(unsigned int i = 0; i < Scan::allScans.size(); i++){
     transMats.push_back(array2fixedArray16(Scan::allScans[i]->get_transMat()));
     dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
   }
+  */
 
   // gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
   std::ofstream frame(dir + "/scan000.frames");
   for (unsigned int i = 0; i < (3*(Scan::allScans.size()-1)); i++) {
-    writeFrame(frame, transMats[0], 2);
+    writeFrame(frame, transMats_R[0], transMats_t[0], 2);
   }
   frame.close();
 
@@ -214,16 +241,16 @@ int sc_main(int argc, char **argv)
 
     // fülle Zeilen im Stream für vorherige Scans auf (mit ViewFactor 0)
     for (unsigned int j = 0; j < 3*(i - 1); j++) {
-      writeFrame(frame, transMats[i], 0);
+      writeFrame(frame, transMats_R[i], transMats_t[i], 0);
     }
 
     // matche, mit Veränderung der transMat und dalignxf des aktuellen Scans
-    int iter = icp.match(prevFixed, currentFixed, transMats[i], dalignxfs[i], frame);
+    int iter = icp.match(prevFixed, currentFixed, transMats_R[i], transMats_t[i], dalignxfs_R[i], dalignxfs_t[i], frame);
 
     // fülle Zeilen im Stream für nachfolgende Scans auf (mit ViewFactor 2)
     unsigned int nextScans = (Scan::allScans.size() - i);
     for (unsigned int j = 0; j < 3*(nextScans - 1); j++) {
-      writeFrame(frame, transMats[i], 2);
+      writeFrame(frame, transMats_R[i], transMats_t[i], 2);
     }
 
     // schließe den Output-Stream

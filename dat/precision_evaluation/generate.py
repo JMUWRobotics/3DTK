@@ -17,24 +17,37 @@ def volume_cube(new_file):
     for i in range(1200):
         new_file.write(str(random.uniform(-50, 50)) + "\t" + str(random.uniform(-50, 50)) + "\t" + str(random.uniform(50, 150)) + "\n")
 
-def sphere(new_file):
+def sphere(new_file): # https://mathworld.wolfram.com/SpherePointPicking.html
     # Radius
     r = 50
-    for i in range(600):
+    for i in range(1200):
         # Polar coordinates
-        theta = random.uniform(0, math.pi)
-        phi = random.uniform(0, 2*math.pi)
+        #theta = random.uniform(0, math.pi)
+        #phi = random.uniform(0, 2*math.pi)
+        u = random.uniform(0, 1)
+        v = random.uniform(0, 1)
+
+        phi = 2 * math.pi* u
+        theta = math.acos(2*v-1)
+
         # Polar coordinates to xyz values
         new_file.write(str(r * math.sin(theta) * math.cos(phi)) + "\t" + str(r * math.sin(theta) * math.sin(phi)) + "\t" + str(r * math.cos(theta)+125) + "\n")
 
-# HIER NOCH VERTEILUNG ANGLEICHEN
-def volume_sphere(new_file):
-    for i in range(600):
+def volume_sphere(new_file): # https://codepen.io/thebabydino/pen/abLRNqV
+    for i in range(1200):
         # Radius
-        r = random.uniform(0, 50)
+        r = random.uniform(0, 1)
+        r = math.pow(r, 1/3) * 50
         # Polar coordinates
-        theta = random.uniform(0, math.pi)
-        phi = random.uniform(0, 2*math.pi)
+        #theta = random.uniform(0, math.pi)
+        #phi = random.uniform(0, 2*math.pi)
+
+        u = random.uniform(0, 1)
+        v = random.uniform(0, 1)
+
+        phi = 2 * math.pi* u
+        theta = math.acos(2*v-1)
+
         # Polar coordinates to xyz values
         new_file.write(str(r * math.sin(theta) * math.cos(phi)) + "\t" + str(r * math.sin(theta) * math.sin(phi)) + "\t" + str(r * math.cos(theta)+125) + "\n")
 

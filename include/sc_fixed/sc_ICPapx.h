@@ -26,10 +26,11 @@ public:
   virtual ~sc_ICPapx() {};
 
   fixed_small_val Align(const std::vector<std::array<fixed_val, 3>>& matchedSource,
-             const std::vector<std::array<fixed_val, 3>>& matchedTarget,
-             fixed_small_val *alignxf,
-             const std::array<fixed_val, 3> centerSource,
-             const std::array<fixed_val, 3> centerTarget) override;
+                      const std::vector<std::array<fixed_val, 3>>& matchedTarget,
+                      fixed_small_val *alignxf_R,
+                      fixed_val *alignxf_t,
+                      const std::array<fixed_val, 3> centerSource,
+                      const std::array<fixed_val, 3> centerTarget) override;
 
   inline int getAlgorithmID() { return 6; };
 };
