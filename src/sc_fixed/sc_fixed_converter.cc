@@ -33,7 +33,7 @@ void splitMat(const double input[16], std::array<fixed_small_val, 9>& R, std::ar
 }
 
 
-// converts TripleArray<double> (aka DataXYZ) into vactor array holding fixed_vals (fixed_val points)
+// converts TripleArray<double> (aka DataXYZ) into vector array holding fixed_vals (fixed_val points)
 std::vector<std::array<fixed_val, 3>> array2fixedArray(const DataXYZ &input) {
   std::vector<std::array<fixed_val, 3>> result;
   result.reserve(input.size());
@@ -68,14 +68,6 @@ void printPoints(const std::vector<std::array<fixed_val, 3>>& points) {
   }
 }
 
-// writes a transformation matrix to a .frame-file
-/*void writeFrame(std::ofstream& frame, std::array<fixed_small_val, 16>& matrix, int viewFactor) {
-  for(unsigned int i = 0; i < matrix.size(); i++) {
-      frame << static_cast<double>(matrix[i]);
-      frame << " ";
-    }
-    frame << viewFactor << "\n";
-}*/
 
 void writeFrame(std::ofstream& frame, std::array<fixed_small_val, 9>& R, std::array<fixed_val, 3>& t, int viewFactor) {
   

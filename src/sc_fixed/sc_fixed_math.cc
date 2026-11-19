@@ -18,6 +18,7 @@
 
 
 
+
 // function to compute cholesky decomposition
 bool sc_choldc(fixed_val A[3][3], fixed_val diag[3]) {
 
@@ -30,6 +31,7 @@ bool sc_choldc(fixed_val A[3][3], fixed_val diag[3]) {
       for (int k = i-1; k >= 0; k--) {
         sum -= A[i][k] * A[j][k];
       }
+
       if (i == j) {
         if (sum < epsilon) {
           return false;
@@ -97,21 +99,6 @@ void transform3(const fixed_small_val alignxf_R[9], fixed_val alignxf_t[3], std:
 }
 
 
-/*
-// Internal function of transform which handles the matrices
-void transformMatrix(const fixed_small_val alignxf[16], std::array<fixed_small_val, 16>& transMat, std::array<fixed_small_val, 16>& dalignxf){
-  std::array<fixed_small_val, 16> tempxf;
-
-  // apply alignxf to transMat and update pose vectors, copy to transMat
-  MMult(alignxf, transMat, tempxf);
-  std::copy(tempxf.begin(), tempxf.end(), transMat.begin());
-
-  // apply alignxf to dalignxf, copy to dalignxf
-  MMult(alignxf, dalignxf, tempxf);
-  std::copy(tempxf.begin(), tempxf.end(), dalignxf.begin());
-}*/
-
-
 // Internal function of transform which handles the matrices
 void transformMatrix(const fixed_small_val alignxf_R[9], const fixed_val alignxf_t[3], std::array<fixed_small_val, 9>& transMat_R, std::array<fixed_val, 3>& transMat_t, std::array<fixed_small_val, 9>& dalignxf_R, std::array<fixed_val, 3>& dalignxf_t){
   std::array<fixed_small_val, 9> tempxf_R;
@@ -140,30 +127,8 @@ void transformMatrix(const fixed_small_val alignxf_R[9], const fixed_val alignxf
     std::copy(tempxf_t.begin(), tempxf_t.end(), dalignxf_t.begin());
 
 
-
 } 
 
-/*
-// Matrixmultiplikation von M1 und M2, Ergebnis wird in Mout gespeichert
-void MMult(const fixed_small_val M1[16], const std::array<fixed_small_val, 16>& M2, std::array<fixed_small_val, 16>& Mout){
-  Mout[ 0] = M1[ 0]*M2[ 0]+M1[ 4]*M2[ 1]+M1[ 8]*M2[ 2]+M1[12]*M2[ 3];
-  Mout[ 1] = M1[ 1]*M2[ 0]+M1[ 5]*M2[ 1]+M1[ 9]*M2[ 2]+M1[13]*M2[ 3];
-  Mout[ 2] = M1[ 2]*M2[ 0]+M1[ 6]*M2[ 1]+M1[10]*M2[ 2]+M1[14]*M2[ 3];
-  Mout[ 3] = M1[ 3]*M2[ 0]+M1[ 7]*M2[ 1]+M1[11]*M2[ 2]+M1[15]*M2[ 3];
-  Mout[ 4] = M1[ 0]*M2[ 4]+M1[ 4]*M2[ 5]+M1[ 8]*M2[ 6]+M1[12]*M2[ 7];
-  Mout[ 5] = M1[ 1]*M2[ 4]+M1[ 5]*M2[ 5]+M1[ 9]*M2[ 6]+M1[13]*M2[ 7];
-  Mout[ 6] = M1[ 2]*M2[ 4]+M1[ 6]*M2[ 5]+M1[10]*M2[ 6]+M1[14]*M2[ 7];
-  Mout[ 7] = M1[ 3]*M2[ 4]+M1[ 7]*M2[ 5]+M1[11]*M2[ 6]+M1[15]*M2[ 7];
-  Mout[ 8] = M1[ 0]*M2[ 8]+M1[ 4]*M2[ 9]+M1[ 8]*M2[10]+M1[12]*M2[11];
-  Mout[ 9] = M1[ 1]*M2[ 8]+M1[ 5]*M2[ 9]+M1[ 9]*M2[10]+M1[13]*M2[11];
-  Mout[10] = M1[ 2]*M2[ 8]+M1[ 6]*M2[ 9]+M1[10]*M2[10]+M1[14]*M2[11];
-  Mout[11] = M1[ 3]*M2[ 8]+M1[ 7]*M2[ 9]+M1[11]*M2[10]+M1[15]*M2[11];
-  Mout[12] = M1[ 0]*M2[12]+M1[ 4]*M2[13]+M1[ 8]*M2[14]+M1[12]*M2[15];
-  Mout[13] = M1[ 1]*M2[12]+M1[ 5]*M2[13]+M1[ 9]*M2[14]+M1[13]*M2[15];
-  Mout[14] = M1[ 2]*M2[12]+M1[ 6]*M2[13]+M1[10]*M2[14]+M1[14]*M2[15];
-  Mout[15] = M1[ 3]*M2[12]+M1[ 7]*M2[13]+M1[11]*M2[14]+M1[15]*M2[15];
-}
-*/
 
 // Matrixmultiplikation von M1 und M2, Ergebnis wird in Mout gespeichert
 void MMult(const fixed_small_val M1[9], const std::array<fixed_small_val, 9>& M2, std::array<fixed_small_val, 9>& Mout){

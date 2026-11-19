@@ -496,7 +496,7 @@ add_subdirectory(testing)
 # Configurable constants for SystemC fixed-point value
 set(FIXED_WORD_LENGTH 48 CACHE STRING "Word length for fixed-point type")
 set(FIXED_INT_WORD_LENGTH 36 CACHE STRING "Integer word length for fixed-point type")
-set(FIXED_HERON_ITERATIONS 3 CACHE STRING "Iterations ins heron algorithm for square root calculations for fixed point numbers")
+set(FIXED_HERON_ITERATIONS 10 CACHE STRING "Iterations ins heron algorithm for square root calculations for fixed point numbers")
 
 set(FIXED_SMALL_WORD_LENGTH 48 CACHE STRING "Word length for small fixed-point type")
 set(FIXED_SMALL_INT_WORD_LENGTH 10 CACHE STRING "Integer word length for smallfixed-point type")

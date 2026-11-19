@@ -20,6 +20,7 @@
 
 #include "sc_fixed/sc_fixed_math.h"
 #include "slam6d/globals.icc"
+#include "sc_fixed/sc_nns.h"
 using std::cerr;
 
 #include <string.h>
@@ -36,6 +37,7 @@ using std::cerr;
 sc_ICP::sc_ICP(sc_ICPminimizer* my_sc_ICPminimizer, fixed_val max_dist_match, int max_num_iterations, bool quiet, int epsilonICPexp) {
   this->my_sc_ICPminimizer = my_sc_ICPminimizer;
   this->epsilonICP = fixed_small_val(std::pow(10.0, -epsilonICPexp));
+  this->max_dist_match = max_dist_match;
 
   if (!quiet) {
     cout << endl <<  "ICP fixed-point algorithm will proceed with the following parameters: " << endl
@@ -97,6 +99,13 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
   // ICP main loop
   for (iter = 0; iter < max_num_iterations; iter++) {
 
+    //////////////////
+    std::vector<std::array<fixed_val, 3>> matchedTarget;
+    std::vector<std::array<fixed_val, 3>> matchedSource;
+      nearest_neighbor(max_dist_match, source, target, matchedTarget, matchedSource);
+    ///////////////////
+
+    /*
     // nns Brute Force: finde zu jedem Punkt aus target (data) den nächstgelegenen Punkt aus source (model)
     std::vector<std::array<fixed_val, 3>> matchedTarget;
     std::vector<std::array<fixed_val, 3>> matchedSource;
@@ -131,6 +140,8 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
       }
     }
 
+    */
+
     prev_prev_ret = prev_ret;
     prev_ret = ret;
 
@@ -155,6 +166,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
     fixed_val srcSize = static_cast<fixed_val>(matchedSource.size());
     fixed_val trgSize = static_cast<fixed_val>(matchedTarget.size());
 
+
     centerSource[0] /= srcSize;
     centerSource[1] /= srcSize;
     centerSource[2] /= srcSize;
@@ -163,6 +175,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
     centerTarget[1] /= trgSize;
     centerTarget[2] /= trgSize;
 
+    
     // Rotation und Translation berechnen
     ret = my_sc_ICPminimizer->Align(matchedSource, matchedTarget, alignxf_R, alignxf_t, centerSource, centerTarget);
 
@@ -170,7 +183,7 @@ int sc_ICP::match(std::vector<std::array<fixed_val, 3>>& source, std::vector<std
       transform(target, alignxf_R, alignxf_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, 0);
     }
     else {
-      transform(target, alignxf_R, alignxf_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, -1);
+      transform(target, alignxf_R, alignxf_t, transMat_R, transMat_t, dalignxf_R, dalignxf_t, frame, 0); ///////////für plot geändert (-1 -> 0)
     }
 
     std::cout << "iteration: " << iter << " |" << " point-to-point error: " << ret << " using " << count << " points" << std::endl;

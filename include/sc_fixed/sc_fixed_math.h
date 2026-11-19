@@ -26,7 +26,7 @@
 #endif
 
 #ifndef FIXED_HERON_ITERATIONS
-#define FIXED_HERON_ITERATIONS 3
+#define FIXED_HERON_ITERATIONS 10
 #endif
 
 using namespace sc_dt;
@@ -46,7 +46,7 @@ T sc_fixed_heron_sqrt(T s) {
     return 0;
   }
 
-  T x = s / 2 + 1;
+  T x = s / (2 + 1);
   T x_n;
 
   for(int i = FIXED_HERON_ITERATIONS; i > 0; i--) {

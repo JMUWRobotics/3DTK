@@ -20,6 +20,7 @@
 #include <iomanip>
 #include <cstring>
 
+
 /**
  * computes the rotation matrix consisting
  * of a rotation and translation that
@@ -31,6 +32,7 @@
  * @param alignxf: resulting transformation matrix
  * @return Error estimation of the matching (rms)
  */
+
 fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& matchedSource,
                       const std::vector<std::array<fixed_val, 3>>& matchedTarget,
                       fixed_small_val *alignxf_R,
@@ -52,6 +54,7 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
   fixed_val sum = 0.0;
   fixed_val p1[3], p2[3];
 
+
   for(size_t i = 0; i < matchedSource.size(); ++i){
     p1[0] = matchedSource[i][0];
     p1[1] = matchedSource[i][1];
@@ -60,10 +63,14 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
     p2[1] = matchedTarget[i][1];
     p2[2] = matchedTarget[i][2];
 
+
     fixed_val p12[3] = {p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]};
-    fixed_val p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], p2[2] - centerTarget[2]};
+    fixed_val p2c[3] = {p2[0] - centerTarget[0], p2[1] - centerTarget[1], 
+                        p2[2] - centerTarget[2]};
+
 
     sum += p12[0]*p12[0] + p12[1]*p12[1] + p12[2]*p12[2];
+
 
     B[0] += (p12[2]*p2c[1] - p12[1]*p2c[2]);
     B[1] += (p12[0]*p2c[2] - p12[2]*p2c[0]);
@@ -76,7 +83,8 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
     A[2][2] += ((p2c[0])*(p2c[0]) + (p2c[1])*(p2c[1]));
   }
 
-  fixed_small_val error = sc_fixed_heron_sqrt<fixed_small_val>(sum / n);
+
+  fixed_val error = sc_fixed_heron_sqrt<fixed_val>(sum / n);
 
   fixed_val diag[3];
 
@@ -85,8 +93,10 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
     return -1.0;
   }
 
+
   fixed_small_val x[3];
   sc_cholsl(A, diag, B, x);
+
 
   // Interpret results
   fixed_small_val sx = x[0];
@@ -95,28 +105,12 @@ fixed_small_val sc_ICPapx::Align(const std::vector<std::array<fixed_val, 3>>& ma
   fixed_small_val cy = sc_fixed_heron_sqrt<fixed_small_val>(1.0 - sy*sy);
   fixed_small_val sz = x[2];
   fixed_small_val cz = sc_fixed_heron_sqrt<fixed_small_val>(1.0 - sz*sz);
-/*
-  alignxf[0]  = cy*cz;
-  alignxf[1]  = sx*sy*cz + cx*sz;
-  alignxf[2]  = -cx*sy*cz + sx*sz;
-  alignxf[3]  = 0;
-  alignxf[4]  = -cy*sz;
-  alignxf[5]  = -sx*sy*sz + cx*cz;
-  alignxf[6]  = cx*sy*sz + sx*cz;
-  alignxf[7]  = 0;
-  alignxf[8]  = sy;
-  alignxf[9]  = -sx*cy;
-  alignxf[10] = cx*cy;
-  alignxf[11] = 0;
-  alignxf[12] = centerSource[0] - alignxf[0]*centerTarget[0] - alignxf[4]*centerTarget[1] - alignxf[8]*centerTarget[2];
-  alignxf[13] = centerSource[1] - alignxf[1]*centerTarget[0] - alignxf[5]*centerTarget[1] - alignxf[9]*centerTarget[2];
-  alignxf[14] = centerSource[2] - alignxf[2]*centerTarget[0] - alignxf[6]*centerTarget[1] - alignxf[10]*centerTarget[2];
-  alignxf[15] = 1;*/
+
 
   alignxf_R[0]  = cy*cz;
   alignxf_R[1]  = sx*sy*cz + cx*sz;
   alignxf_R[2]  = -cx*sy*cz + sx*sz;
-  alignxf_R[3]  = cy*sz;
+  alignxf_R[3]  = -cy*sz;
   alignxf_R[4]  = -sx*sy*sz + cx*cz;
   alignxf_R[5]  = cx*sy*sz + sx*cz;
   alignxf_R[6]  = sy;

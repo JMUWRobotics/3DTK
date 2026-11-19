@@ -53,6 +53,7 @@ protected:
    * the maximal distance (^2 !!!) for matching
    */
   fixed_val max_dist_match2;
+  fixed_val max_dist_match;
 
   /**
    * the maximal number of iterations

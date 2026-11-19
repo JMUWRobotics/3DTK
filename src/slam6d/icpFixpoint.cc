@@ -177,10 +177,6 @@ int sc_main(int argc, char **argv)
   dalignxfs_R.reserve(Scan::allScans.size());
   dalignxfs_t.reserve(Scan::allScans.size());
 
-  /*std::vector<std::array<fixed_small_val, 16>> transMats;
-  std::vector<std::array<fixed_small_val, 16>> dalignxfs;
-  transMats.reserve(Scan::allScans.size());
-  dalignxfs.reserve(Scan::allScans.size()); */
 
     std::array<fixed_small_val, 9> R_temp;
     std::array<fixed_val, 3> t_temp;
@@ -196,15 +192,9 @@ int sc_main(int argc, char **argv)
     dalignxfs_t.push_back(t_temp);
   }
 
-  /*
-  for(unsigned int i = 0; i < Scan::allScans.size(); i++){
-    transMats.push_back(array2fixedArray16(Scan::allScans[i]->get_transMat()));
-    dalignxfs.push_back(array2fixedArray16(Scan::allScans[i]->getDAlign()));
-  }
-  */
 
   // gib die Ergebnis-Transformationsmatrix für den 0. Scan in .frames-Datei aus
-  std::ofstream frame(dir + "/scan000.frames");
+  std::ofstream frame(dir + "/fix_scan000.frames");
   for (unsigned int i = 0; i < (3*(Scan::allScans.size()-1)); i++) {
     writeFrame(frame, transMats_R[0], transMats_t[0], 2);
   }
@@ -237,7 +227,7 @@ int sc_main(int argc, char **argv)
     std::cout <<std::endl << "RUNNING..." << std::endl;
 
     // erstelle den Output-Stream für die .frames-Datei des aktuellen Scans
-    std::ofstream frame(dir + "/scan" + format_number(i) + ".frames");
+    std::ofstream frame(dir + "/fix_scan" + format_number(i) + ".frames");
 
     // fülle Zeilen im Stream für vorherige Scans auf (mit ViewFactor 0)
     for (unsigned int j = 0; j < 3*(i - 1); j++) {
