@@ -118,7 +118,7 @@ target_include_directories(new_click_tool PRIVATE ${PROJECT_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
 )
 
-target_link_libraries(new_click_tool PRIVATE glfw imgui glad scan_to_panorama_lib ${OpenCV_LIBS} fbr scan show OpenMP::OpenMP_CXX ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(new_click_tool PRIVATE glfw imgui glad scan_to_panorama_lib ${OpenCV_LIBS} fbr scan show ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
 
     ###panorama reader
     add_executable(panorama_to_scan panorama_to_scan.cc fbr_global.cc)
